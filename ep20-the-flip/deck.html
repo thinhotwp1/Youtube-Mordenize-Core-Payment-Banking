@@ -1,0 +1,423 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EP20 The Flip</title>
+<link rel="stylesheet" href="../shared/deck.css">
+</head>
+<body>
+<script src="../shared/deck.js"></script>
+<script>
+/* ============================================================
+   EP20 · The Flip, Segment by Segment — diagrams (1280x800)
+   ============================================================ */
+function chevron(o){
+  const c=K[o.k||'neutral'], {x,y,w,h}=o, n=18;
+  const pts=[[x,y],[x+w-n,y],[x+w,y+h/2],[x+w-n,y+h],[x,y+h],[x+(o.first?0:n),y+h/2]].map(p=>p.join(',')).join(' ');
+  return `<g><polygon points="${pts}" fill="${c.f}" stroke="${c.s}" stroke-width="2" stroke-linejoin="round"/>`+
+    `<text class="bt" x="${x+w/2+4}" y="${y+h/2-3}" fill="${c.t}" style="font-size:15px">${esc(o.t)}</text>`+
+    `<text class="bs" x="${x+w/2+4}" y="${y+h/2+17}">${esc(o.s)}</text></g>`;
+}
+
+/* 1 · What the flip really means */
+function d1(){return [
+  group({x:10,y:30,w:620,h:330,k:'legacy',label:'⏮️ REFERENCE · BEFORE CUTOVER'}),
+  box({x:30,y:80,w:280,h:110,k:'legacy',i:'🏛️',t:'Mainframe DB2',s:'system of record\ntakes every write'}),
+  box({x:330,y:80,w:280,h:110,k:'aws',i:'🪞',t:'AWS ledger',s:'shadow · learns\nreconciles every day'}),
+  box({x:30,y:240,w:580,h:76,k:'neutral',i:'🔀',t:'Payment router',s:'all writes → mainframe'}),
+  arrow([[310,135],[330,135]],{k:'aws',st:2,label:'CDC copy',ly:210}),
+  arrow([[170,240],[170,190]],{k:'legacy',st:1}),
+
+  group({x:650,y:30,w:620,h:330,k:'good',label:'⏭️ PROPOSED · AFTER CUTOVER · PER SEGMENT'}),
+  box({x:670,y:80,w:280,h:110,k:'good',i:'📗',t:'AWS ledger',s:'system of record\ntakes every write'}),
+  box({x:970,y:80,w:280,h:110,k:'legacy',i:'🏛️',t:'Mainframe DB2',s:'reverse sync candidate\nfallback needs proof'}),
+  box({x:670,y:240,w:580,h:76,k:'neutral',i:'🔀',t:'Payment router',s:'writes for this segment → AWS'}),
+  arrow([[950,135],[970,135]],{k:'legacy',st:4,dash:1,label:'reverse sync',ly:210}),
+  arrow([[810,240],[810,190]],{k:'good',st:3}),
+
+  group({x:10,y:380,w:1260,h:200,k:'aws',label:'🔑 WHAT MOVES IN THE FLIP'}),
+  box({x:30,y:426,w:390,h:130,k:'good',i:'✍️',t:'Write authority',s:'who may change the balance'}),
+  box({x:445,y:426,w:390,h:130,k:'aws',i:'🗂️',t:'Ownership version',s:'router and writers agree\nstale writes fenced out'}),
+  box({x:860,y:426,w:390,h:130,k:'neutral',i:'📦',t:'Verified cut',s:'in-flight payments resolved\nbalances reconciled'}),
+
+  group({x:10,y:600,w:1260,h:180,k:'neutral',label:'🧭 WHERE WE ARE'}),
+  chevron({x:30,y:650,w:300,h:90,k:'good',t:'Reference Phase 1',s:'orchestration · interfaces',first:1}),
+  chevron({x:340,y:650,w:300,h:90,k:'good',t:'Reference Phase 2',s:'shadow ledger (EP19)'}),
+  chevron({x:650,y:650,w:300,h:90,k:'aws',t:'Phase 3 design',s:'cutover (EP20)'}),
+  chevron({x:960,y:650,w:290,h:90,k:'neutral',t:'Later decision',s:'retire old payment path'}),
+
+  tag(1,40,80,'Mainframe in charge'),
+  tag(2,340,80,'Shadow learns'),
+  tag(3,680,80,'AWS in charge'),
+  tag(4,980,80,'Mainframe follows'),
+  tag(5,40,426,'Flip authority, not data'),
+  tag(6,660,650,'Phase 3 now'),
+].join('')}
+
+/* 2 · Go / no-go: earn the flip */
+function d2(){return [
+  group({x:10,y:30,w:760,h:560,k:'good',label:'✅ ILLUSTRATIVE GATE · NO BANK SIGN-OFF'}),
+  table({x:30,y:66,w:720,hh:30,rh:56,cols:[['CRITERION',0],['TARGET',230],['STATUS',560]],
+    rows:[['Reconciliation','3 clean month-end closes','sample'],['Unexplained breaks','0 in the last 30 days','sample'],
+          ['Peak load test','5,000 TPS · p99 < 0.5 s','sample'],['DR drill','region failover < 15 min','sample'],
+          ['Dress rehearsals','2 full runs of the runbook','sample'],['Recovery drill','verified old-ledger state','sample'],
+          ['Operations ready','trained · 24/7 on-call','sample'],['Customers & regulator','messages ready · notified if required','open']],
+    hl:{7:'risk'}}),
+
+  group({x:790,y:30,w:480,h:560,k:'human',label:'✍️ WHO SIGNS THE “GO”'}),
+  box({x:810,y:76,w:440,h:80,k:'human',i:'🧭',t:'Head of Payments',s:'the business is ready'}),
+  box({x:810,y:170,w:440,h:80,k:'human',i:'🛡️',t:'Chief Risk Officer',s:'risks and fallback accepted'}),
+  box({x:810,y:264,w:440,h:80,k:'human',i:'🖥️',t:'CTO / CIO',s:'technology is ready'}),
+  box({x:810,y:358,w:440,h:80,k:'human',i:'📒',t:'CFO + Internal Audit',s:'the books match · controls work'}),
+  box({x:810,y:452,w:440,h:80,k:'human',i:'⚖️',t:'Compliance',s:'regulatory duties covered'}),
+
+  group({x:10,y:610,w:1260,h:170,k:'ai',label:'🤖 AI MAY DRAFT THE PACK · PEOPLE DECIDE'}),
+  box({x:30,y:650,w:360,h:110,k:'neutral',i:'📊',t:'Dashboards & reports',s:'tests · reconciliation · drills'}),
+  box({x:450,y:650,w:360,h:110,k:'ai',i:'🤖',t:'AI drafts a pack',s:'source links checked by people'}),
+  box({x:870,y:650,w:380,h:110,k:'human',i:'🚦',t:'Steering committee',s:'go · no-go · not yet'}),
+  arrow([[390,705],[450,705]],{k:'ai',st:6}),
+  arrow([[810,705],[870,705]],{k:'human',st:7}),
+
+  tag(1,740,30,'All must be green','r'),
+  tag(2,740,102,'Clean books','r'),
+  tag(3,740,326,'Rehearsed twice','r'),
+  tag(4,740,494,'Not yet green','r'),
+  tag(5,1250,30,'Named signatures','r'),
+  tag(6,40,650,'AI drafts a pack'),
+  tag(7,880,650,'People decide'),
+].join('')}
+
+/* 3 · Segment by segment: the wave plan */
+function d3(){
+  const waves=[['Wave 0 · Staff','≈ 2,000 accounts','good'],['Wave 1 · Pilot','1% of retail','aws'],['Wave 2 · Retail A','30% of retail','aws'],
+               ['Wave 3 · Retail B','the rest of retail','aws'],['Wave 4 · SMEs','small businesses','neutral'],['Wave 5 · Corporates','last · most complex','risk']];
+  const out=[group({x:10,y:30,w:1260,h:330,k:'aws',label:'🌊 WAVE PLAN · EXAMPLE'})];
+  waves.forEach((w,i)=>out.push(chevron({x:30+i*204,y:70,w:200,h:80,k:w[2],t:w[0],s:w[1],first:i===0})));
+  out.push(
+    txt(640,176,'bank owners choose waves from product risk and dependencies','note','middle'),
+    box({x:30,y:200,w:280,h:70,k:'aws',i:'🔀',t:'Flip the wave'}),
+    box({x:340,y:200,w:280,h:70,k:'human',i:'🩺',t:'Hypercare',s:'2–4 weeks'}),
+    box({x:650,y:200,w:280,h:70,k:'good',i:'📊',t:'Review the KPIs',s:'go to the next wave?'}),
+    box({x:960,y:200,w:290,h:70,k:'neutral',i:'⏭️',t:'Next wave',s:'or pause and fix'}),
+    arrow([[310,235],[340,235]],{k:'human',st:3}),
+    arrow([[620,235],[650,235]],{k:'good',st:3}),
+    arrow([[930,235],[960,235]],{k:'neutral',st:3}),
+    arrow([[1105,270],[1105,310],[170,310],[170,270]],{k:'aws',st:4,dash:1}),
+
+    group({x:10,y:380,w:620,h:400,k:'neutral',label:'🗂️ OWNERSHIP VERSION · PER ACCOUNT'}),
+    table({x:30,y:420,w:580,hh:30,rh:50,cols:[['ACCOUNT',0],['SEGMENT',200],['LEDGER OWNER',370]],
+      rows:[['DE89 … 3000','Staff','☁️ AWS'],['DE12 … 4411','Retail A','☁️ AWS'],['DE75 … 0921','Retail B','🏛️ Mainframe'],['DE44 … 7710','Corporate','🏛️ Mainframe']],
+      hl:{0:'good',1:'good'}}),
+    txt(36,700,'The payment router reads the owner for every payment.','kl'),
+    txt(36,730,'Fencing and reconciliation prove the ownership change.','kl'),
+
+    group({x:650,y:380,w:620,h:400,k:'risk',label:'⚠️ THE TRICKY CASE · MIXED TRANSFERS'}),
+    box({x:670,y:426,w:250,h:84,k:'good',i:'👩',t:'Anna',s:'Retail A · on AWS'}),
+    box({x:1000,y:426,w:250,h:84,k:'legacy',i:'👨',t:'Ben',s:'Retail B · on mainframe'}),
+    arrow([[920,468],[1000,468]],{k:'risk',st:6,label:'€50',ly:450}),
+    box({x:670,y:540,w:580,h:60,k:'aws',i:'1️⃣',t:'Debit Anna on the AWS ledger'}),
+    box({x:670,y:614,w:580,h:60,k:'legacy',i:'2️⃣',t:'Credit Ben on the mainframe (ledger adapter)'}),
+    box({x:670,y:688,w:580,h:66,k:'risk',i:'⚠️',t:'Saga needs exception handling',s:'compensation may fail · reconcile both ledgers'}),
+
+    tag(1,40,70,'Staff first'),
+    tag(2,1250,30,'Choose wave order','r'),
+    tag(3,40,200,'Flip, watch, decide'),
+    tag(4,640,310,'Repeat per wave','c'),
+    tag(5,600,380,'Ownership version','r'),
+    tag(6,1250,380,'Mixed transfers','r'),
+    tag(7,680,688,'Saga exceptions'),
+  );
+  return out.join('');
+}
+
+/* 4 · The cutover runbook */
+function d4(){
+  const steps=[['T − 7 days','🧊','Change freeze','no other big changes','change manager','neutral'],
+               ['T − 24 h','📣','Go / no-go','steering committee','Head of Payments','human'],
+               ['T − 1 h','⚖️','Reconciliation','final check · zero breaks','finance operations','good'],
+               ['T 0','🔀','Flip in batches','target ≈ 2 s pause\nper batch','platform lead','aws'],
+               ['T + 15 min','🧪','Smoke tests','bank-approved\ntransactions','QA lead','aws'],
+               ['T + 1 h','📊','Health check','p99 · STP · breaks','SRE on call','good'],
+               ['T + 24 h','🩺','Hypercare','daily reconciliation','payments ops','human']];
+  const out=[group({x:10,y:30,w:1260,h:450,k:'neutral',label:'📋 CUTOVER RUNBOOK · ONE WAVE · EXAMPLE: SUNDAY 03:00'})];
+  steps.forEach((s,i)=>{
+    const x=30+i*176;
+    out.push(txt(x+84,84,s[0],'cl','middle'),
+      box({x,y:110,w:168,h:150,k:s[5],i:s[1],t:s[2],s:s[3]}),
+      txt(x+84,284,s[4],'note','middle'));
+    if(i<6) out.push(arrow([[x+168,185],[x+176,185]],{k:'neutral',st:i+2}));
+  });
+  out.push(
+    `<line x1="382" y1="320" x2="1254" y2="320" stroke="#C0392B" stroke-width="2.4" stroke-dasharray="8 6"/>`,
+    txt(818,350,'↩️ post-switch recovery needs a rehearsed ownership cut','kl','middle'),
+    txt(640,410,'Every step has a checkpoint, a named owner, and a “go” before the next step.','kl','middle'),
+    txt(640,440,'Proposed target: rehearse twice with protected, production-like data.','note','middle'),
+
+    group({x:10,y:500,w:1260,h:280,k:'aws',label:'🔎 ZOOM · T 0 · FLIP ONE BATCH OF ACCOUNTS'}),
+    box({x:30,y:546,w:232,h:130,k:'neutral',i:'✋',t:'1 · Hold',s:'new payments wait\npause target ≈ 2 s'}),
+    box({x:274,y:546,w:232,h:130,k:'legacy',i:'⏳',t:'2 · Finish in-flight',s:'payments already started\nfinish on the mainframe'}),
+    box({x:518,y:546,w:232,h:130,k:'good',i:'⚖️',t:'3 · Prove balances',s:'mainframe = AWS\naccount by account'}),
+    box({x:762,y:546,w:232,h:130,k:'aws',i:'🔀',t:'4 · Switch owner',s:'routing table:\nowner = AWS'}),
+    box({x:1006,y:546,w:232,h:130,k:'good',i:'▶️',t:'5 · Release',s:'waiting payments\ngo to AWS'}),
+    arrow([[262,611],[274,611]],{k:'aws',st:7}),
+    arrow([[506,611],[518,611]],{k:'aws',st:7}),
+    arrow([[750,611],[762,611]],{k:'aws',st:7}),
+    arrow([[994,611],[1006,611]],{k:'aws',st:7}),
+    txt(640,716,'Target to benchmark: ≈ 2-second pause; bank approves any customer limit.','kl','middle'),
+    txt(640,746,'Failed pre-switch check: stop. Failed post-switch check: recovery plan.','note','middle'),
+
+    tag(1,40,110,'Freeze first'),
+    tag(2,216,110,'Final go'),
+    tag(3,392,110,'Books match'),
+    tag(4,568,110,'Flip in batches'),
+    tag(5,744,110,'Smoke tests'),
+    tag(6,818,320,'Recovery path','c'),
+    tag(7,1250,500,'Pause target','r'),
+  );
+  return out.join('');
+}
+
+/* 5 · The fallback window */
+function d5(){return [
+  group({x:10,y:30,w:1260,h:330,k:'neutral',label:'↩️ FALLBACK WINDOW · PER WAVE · EXAMPLE',lp:'b'}),
+  `<rect x="60" y="100" width="840" height="50" rx="10" fill="rgba(15,127,119,.14)" stroke="#0F7F77" stroke-width="2"/>`,
+  `<rect x="900" y="100" width="340" height="50" rx="10" fill="rgba(46,139,87,.16)" stroke="#2E8B57" stroke-width="2"/>`,
+  txt(480,131,'fallback window · about 2 month-end closes','kl','middle','#0B3F3B'),
+  txt(1070,131,'retired for this wave','kl','middle','#154A2D'),
+  `<line x1="900" y1="84" x2="900" y2="168" stroke="#C0392B" stroke-width="4"/>`,
+  box({x:60,y:196,w:280,h:76,k:'good',i:'📗',t:'AWS ledger',s:'system of record'}),
+  box({x:620,y:196,w:280,h:76,k:'legacy',i:'🏛️',t:'Mainframe',s:'follower · lag measured'}),
+  arrow([[340,234],[620,234]],{k:'legacy',st:2,dash:1,label:'reverse sync · every posting',ly:216}),
+  txt(60,306,'Switch back requires a common cut, in-flight resolution and verified old-ledger state.','kl'),
+
+  group({x:10,y:380,w:620,h:400,k:'risk',label:'🚨 PRE-AGREED FALLBACK TRIGGERS'}),
+  table({x:30,y:420,w:580,hh:30,rh:50,cols:[['TRIGGER',0],['THRESHOLD',250]],
+    rows:[['Reconciliation break','any unexplained break'],['Latency','p99 > 0.5 s for 15 min'],['Severity-1 incident','not fixed in 30 min'],
+          ['Data integrity','any duplicate or lost payment'],['Reverse sync lag','more than 5 minutes']]}),
+  txt(36,742,'Agreed before the flip — not argued about during an incident.','note'),
+
+  group({x:650,y:380,w:620,h:400,k:'human',label:'🧑‍✈️ WHO DECIDES · HOW FAST'}),
+  box({x:670,y:424,w:580,h:78,k:'human',i:'🧑‍✈️',t:'Incident commander',s:'calls recovery · timing to rehearse'}),
+  box({x:670,y:512,w:580,h:78,k:'human',i:'🧭',t:'Head of Payments',s:'informed at once · can stop the next wave'}),
+  box({x:670,y:600,w:580,h:78,k:'aws',i:'🔀',t:'Platform on-call',s:'executes rehearsed recovery · timing measured'}),
+  box({x:670,y:688,w:580,h:78,k:'neutral',i:'📣',t:'Communications',s:'customers and the regulator, if needed'}),
+
+  tag(1,70,100,'AWS in charge'),
+  tag(2,630,196,'Mainframe follows'),
+  tag(3,900,272,'Controlled recovery'),
+  tag(4,900,74,'Point of no return','c'),
+  tag(5,600,380,'Pre-agreed triggers','r'),
+  tag(6,1240,424,'One person calls it','r'),
+].join('')}
+
+/* 6 · Hypercare and switch-off */
+function d6(){return [
+  group({x:10,y:30,w:620,h:420,k:'human',label:'🩺 HYPERCARE · EXAMPLE 2–4 WEEKS'}),
+  box({x:30,y:72,w:580,h:80,k:'human',i:'🏠',t:'War room',s:'payments ops · SRE · squads · daily stand-up'}),
+  box({x:30,y:164,w:580,h:80,k:'aws',i:'📊',t:'Proposed dashboard',s:'p99 · STP · breaks · complaints'}),
+  box({x:30,y:256,w:580,h:80,k:'good',i:'⚖️',t:'Proposed reconciliation',s:'cadence and Finance route to agree'}),
+  box({x:30,y:348,w:580,h:80,k:'neutral',i:'📞',t:'Complaints watch',s:'the contact centre flags anything odd'}),
+
+  group({x:650,y:30,w:620,h:420,k:'good',label:'📊 WAVE 2 · DAY 14 · EXAMPLE'}),
+  kpi({x:670,y:76,w:580,h:54,k:'good',i:'⚡',t:'p99 accept time',v:'380 ms'}),
+  kpi({x:670,y:140,w:580,h:54,k:'good',i:'🔁',t:'STP rate',v:'97.4%'}),
+  kpi({x:670,y:204,w:580,h:54,k:'good',i:'⚖️',t:'Reconciliation breaks',v:'0'}),
+  kpi({x:670,y:268,w:580,h:54,k:'good',i:'📞',t:'Payment complaints vs before',v:'−12%'}),
+  kpi({x:670,y:332,w:580,h:54,k:'neutral',i:'↩️',t:'Fallbacks',v:'0'}),
+  txt(960,424,'Decision: bank owners review the evidence.','kl','middle','#154A2D'),
+
+  group({x:10,y:470,w:1260,h:310,k:'neutral',label:'🔌 SWITCH-OFF · AFTER THE LAST FALLBACK WINDOW'}),
+  box({x:30,y:516,w:290,h:120,k:'legacy',i:'⏹️',t:'1 · Stop reverse sync',s:'the point of no return'}),
+  box({x:335,y:516,w:290,h:120,k:'neutral',i:'🗄️',t:'2 · Archive',s:'read-only history,\nkept as the law requires'}),
+  box({x:640,y:516,w:290,h:120,k:'legacy',i:'🔌',t:'3 · Turn off',s:'CICS payment programs\nand batch jobs'}),
+  box({x:945,y:516,w:290,h:120,k:'good',i:'📉',t:'4 · Check actual cost',s:'measure workload\nand contract effect'}),
+  arrow([[320,576],[335,576]],{k:'neutral',st:5}),
+  arrow([[625,576],[640,576]],{k:'legacy',st:6}),
+  arrow([[930,576],[945,576]],{k:'good',st:7}),
+  kpi({x:30,y:664,w:1205,h:56,k:'good',i:'🔻',t:'Illustrative mainframe workload goal',v:'100% → near 0%'}),
+  txt(640,752,'Retire, don’t just switch off: keep history, evidence and contracts in order.','note','middle'),
+
+  tag(1,40,72,'War room'),
+  tag(2,1250,30,'Watch the numbers','r'),
+  tag(3,40,256,'Books every morning'),
+  tag(4,1250,400,'Evidence to move on','r'),
+  tag(5,40,516,'Stop sync, archive'),
+  tag(6,650,516,'Turn it off'),
+  tag(7,40,664,'Measure MIPS effect'),
+].join('')}
+
+/* 7 · Lessons, AI and handover */
+function d7(){return [
+  group({x:10,y:30,w:620,h:420,k:'ai',label:'🤖 WHERE AI COULD HELP · PEOPLE DECIDE'}),
+  table({x:30,y:70,w:580,hh:30,rh:56,cols:[['TASK',0],['AI',190],['PEOPLE',390]],
+    rows:[['Evidence pack','compiles it','sign go / no-go'],['Runbook','drafts from rehearsals','approve · rehearse'],
+          ['Hypercare','spots odd patterns early','investigate · decide'],['Fallback call','—','incident commander'],
+          ['Wave review','drafts the summary','review · publish']],hl:{3:'human'}}),
+
+  group({x:650,y:30,w:620,h:420,k:'good',label:'💡 ENTERPRISE RELEASE PRACTICES TO ADAPT'}),
+  lines(676,92,['📅 choose the bank-approved change window','🧪 rehearse with protected, realistic data','🐣 start with a small reversible scope','↩️ prove fallback, including in-flight work','📣 follow the bank communication plan','🧾 agree stop triggers before cutover'],'kl',58),
+
+  group({x:10,y:470,w:1260,h:310,k:'aws',label:'🔜 HANDOVER TO THE OPERATE STAGE'}),
+  box({x:30,y:516,w:390,h:130,k:'good',i:'🏁',t:'If Phase 3 is approved',s:'new ledger owns the defined scope\nand operations take over'}),
+  box({x:440,y:516,w:195,h:130,k:'aws',i:'📊',t:'EP21',s:'observability\n& SRE'}),
+  box({x:645,y:516,w:195,h:130,k:'aws',i:'🚨',t:'EP22',s:'incidents\n& DR'}),
+  box({x:850,y:516,w:195,h:130,k:'aws',i:'💶',t:'EP23',s:'FinOps'}),
+  box({x:1055,y:516,w:195,h:130,k:'aws',i:'🔁',t:'EP24',s:'continuous\nmodernisation'}),
+  arrow([[420,581],[440,581]],{k:'good',st:5}),
+  txt(640,712,'The flip is not the end. It is the start of running the new platform well.','kl','middle'),
+
+  tag(1,600,30,'AI compiles, people sign','r'),
+  tag(2,40,450,'Fallback stays human'),
+  tag(3,1250,30,'Lessons learned','r'),
+  tag(4,40,516,'If approved'),
+  tag(5,1250,470,'Operate stage next','r'),
+].join('')}
+
+/* ============================================================
+   Episode config
+   ============================================================ */
+const DECK={
+  brand:'🏦 CORE BANKING PAYMENTS MODERNIZATION · AWS',
+  ep:'EP 20', epShort:'EP20', title:'The Flip, Segment by Segment', subtitle:'Execution Architecture · Reference Scenario',
+  seriesTitle:'Core Payments Modernization · Execution Architecture',
+  logo:'../shared/jo-logo.png', background:'../shared/background.png',
+  stages:[['🔍','Discover'],['📋','Requirements'],['📐','Design & Plan'],['🛠️','Build'],['🚀','Test & Deploy'],['🔧','Operate']],
+  stage:5,
+  glossary:{
+    SOR:['System of record','risk','The one ledger whose balances are legally “the truth”. Only one system can hold this role for an account at a time.'],
+    WRITEAUTH:['Write authority','risk','The right to change a balance. The flip moves this right from the mainframe to AWS, one segment at a time.'],
+    SHADOW:['Shadow ledger','risk','A proposed parallel ledger. Its posting logic must be reconciled against bank-approved rules before a cutover.'],
+    REVSYNC:['Reverse sync','risk','Proposed asynchronous copy back to the legacy ledger. Lag, gaps and replay must be checked before fallback.'],
+    SEGMENT:['Segment','value','A group of customers or accounts that move together, like staff accounts or retail customers.'],
+    GONOGO:['Go / no-go','risk','The final decision, based on evidence, to flip a wave. The answer can be go, no-go, or not yet.'],
+    ENTRY:['Entry criteria','risk','The conditions that must all be green before a flip. Agreed months before — not on the night.'],
+    DRESS:['Dress rehearsal','risk','A full practice run of the cutover with production-like data, exactly as on the real night.'],
+    FREEZE:['Change freeze','risk','No other big changes near the flip. If something goes wrong, we know the cause.'],
+    EVIDENCE:['Evidence pack','risk','One document with every test result, report and sign-off. AI compiles it; people sign it.'],
+    WAVE:['Wave','value','One segment moving to AWS. Each wave is flipped, watched and reviewed before the next one starts.'],
+    ROUTETABLE:['Routing table','risk','Records the proposed owner and version. Writers must be fenced so routing alone cannot create two owners.'],
+    MIXED:['Mixed transfer','risk','A payment between an account already on AWS and one still on the mainframe. It runs as one saga with two legs.'],
+    HYPERCARE:['Hypercare','risk','Extra attention after a go-live: a war room, extra on-call and daily checks, for two to four weeks.'],
+    BLACKOUT:['Blackout dates','risk','Days when no flip is allowed: payroll day, month-end, holidays and big shopping days.'],
+    RUNBOOK:['Runbook','risk','The exact steps for the night, with times, owners and checkpoints. Rehearsed until it is boring.'],
+    CUTOVER:['Cutover','risk','The moment work moves from the old system to the new one. Here it happens per wave, not in one big night.'],
+    BATCHFLIP:['Batch of accounts','value','Small groups limit scope. Pause time and customer limits are targets to benchmark and approve.'],
+    CHECKSUM:['Balance proof','risk','A quick check that every account balance is the same on the mainframe and on AWS before the owner changes.'],
+    SMOKE:['Smoke test','value','Bank-approved transactions after a change, with known expected outcomes and observers.'],
+    FALLBACK:['Fallback','risk','A controlled recovery: fence writes, resolve in-flight work, reconcile the old ledger, then route.'],
+    TRIGGER:['Fallback trigger','risk','A pre-agreed condition that starts a fallback, like any unexplained reconciliation break.'],
+    IC:['Incident commander','risk','The one person who leads an incident and can call a fallback. No committee in the middle of the night.'],
+    WINDOW:['Fallback window','risk','How long switching back stays possible. Here: until about two clean month-end closes after the wave.'],
+    PONR:['Point of no return','risk','A bank-approved decision to close the fallback window. Retention and downstream dependencies may continue.'],
+    WARROOM:['War room','value','One place — physical or online — where all teams work together during hypercare and fix problems fast.'],
+    ARCHIVE:['Read-only archive','risk','Old mainframe data, kept for as long as the law requires. Readable, but never changed.'],
+    MIPS:['MIPS','cost','A mainframe capacity measure. Actual saving depends on workload, contract terms and retirement.'],
+    DECOM:['Decommission','cost','Turning off old programs, jobs and capacity for good. The savings only arrive after this step.'],
+    ANOMALY:['Anomaly detection','value','AI watches live metrics and flags unusual patterns early. A person then investigates and decides.'],
+    PIR:['Wave review','value','A meeting after each wave: what went well, what didn’t, and what we change next time.'],
+    HITL:['Human-in-the-loop','risk','AI suggests; a named person decides. The fallback call is always human.'],
+    BAU:['Business as usual','value','When the project ends and normal teams run the platform every day. The Operate stage starts here.'],
+    LESSON:['Lessons learned','value','Written lessons from each wave, so the next wave is safer than the last.'],
+  },
+  slides:[
+    {icon:'🔀',kicker:'EP20 · 1/7 · THE IDEA',title:'What “the Flip” Really Means',time:'00:00 – 02:00',draw:d1,
+     key:'We flip who may change the balance — not the data.',next:'🔜 Next: go / no-go',
+     open:'This is the proposed transfer of ledger write authority.',
+     land:'The flip is a change of authority, not a big data move.',
+     gloss:[['SOR',[1,3]],['SHADOW',[2]],['REVSYNC',[4]],['WRITEAUTH',[5]],['SEGMENT',[6]]],
+     demo:['prototype versioned ownership and stale-writer fencing with synthetic accounts',
+           'test reverse-sync lag, reconciliation and recovery in a sandbox'],
+     steps:[['Mainframe in charge','Before: DB2 takes every write.'],
+            ['Shadow learns','The AWS ledger computes from approved events and is reconciled.'],
+            ['AWS in charge','After: the AWS ledger takes every write for the segment.'],
+            ['Mainframe follows','Reverse sync may support a tested fallback.'],
+            ['Flip authority, not data','Fencing, in-flight work and cuts protect the change.'],
+            ['Phase 3 design','An illustrative next phase, not a completed bank cutover.']]},
+    {icon:'🚦',kicker:'EP20 · 2/7 · GO / NO-GO',title:'Earn the Flip',time:'02:00 – 03:50',draw:d2,
+     key:'Every criterion green — or we wait.',next:'🔜 Next: the wave plan',
+     open:'Before any flip, we ask one question: have we earned it?',
+     land:'AI collects the evidence. People make the decision.',
+     gloss:[['ENTRY',[1]],['DRESS',[3]],['FREEZE',[3]],['GONOGO',[5,7]],['EVIDENCE',[6]]],
+     demo:['define evidence-pack fields and source links; validate each criterion',
+           'test retention and access controls for the pack before sign-off'],
+     steps:[['All must be green','Eight proposed criteria for this scenario.'],
+            ['Clean books','Three clean month-ends, zero unexplained breaks.'],
+            ['Rehearsed twice','Two dress rehearsals and a tested switch-back.'],
+            ['Not yet green','Customer and regulator messages still open → wait.'],
+            ['Named signatures','Payments, Risk, Technology, Finance & Audit, Compliance.'],
+            ['AI drafts a pack','People check each source and its completeness.'],
+            ['People decide','Go, no-go, or not yet.']]},
+    {icon:'🌊',kicker:'EP20 · 3/7 · SEGMENT BY SEGMENT',title:'The Wave Plan',time:'03:50 – 05:55',draw:d3,
+     key:'Choose small waves from bank-owned product and dependency risk.',next:'🔜 Next: the cutover runbook',
+     open:'One possible design is a cutover in waves.',
+     land:'A saga needs explicit pending states and reconciliation.',
+     gloss:[['WAVE',[1,4]],['BLACKOUT',[2]],['HYPERCARE',[3]],['ROUTETABLE',[5]],['MIXED',[6,7]]],
+     demo:['test versioned ownership, fencing and a failed mixed transfer with synthetic accounts',
+           'validate each wave boundary and configuration change with bank owners'],
+     steps:[['Staff first','About 2,000 staff accounts go first.'],
+            ['Choose wave order','Bank owners assess products, dependencies and risk.'],
+            ['Flip, watch, decide','Flip, 2–4 weeks of hypercare, review the KPIs.'],
+            ['Repeat per wave','Next wave — or pause and fix.'],
+            ['Ownership version','Router and both writers agree on the account owner.'],
+            ['Mixed transfers','Anna on AWS pays Ben on the mainframe.'],
+            ['Saga exceptions','Compensation may fail; reconcile and handle pending work.']]},
+    {icon:'📋',kicker:'EP20 · 4/7 · THE NIGHT',title:'The Cutover Runbook',time:'05:55 – 08:00',draw:d4,
+     key:'Rehearse the night until it is boring.',next:'🔜 Next: the fallback window',
+     open:'Here is the runbook for one wave.',
+     land:'A failed pre-switch gate stops the wave; post-switch failure invokes recovery.',
+     gloss:[['RUNBOOK',[1]],['CUTOVER',[4]],['CHECKSUM',[3]],['SMOKE',[5]],['BATCHFLIP',[7]]],
+     demo:['rehearse hold, drain, compare, fence, switch and release with failure injection',
+           'measure pause time and recovery against bank-approved limits'],
+     steps:[['Freeze first','T − 7 days: no other big changes.'],
+            ['Final go','T − 24 h: the steering committee decides.'],
+            ['Books match','T − 1 h: final reconciliation, zero breaks.'],
+            ['Flip in batches','T 0: a few hundred accounts at a time.'],
+            ['Smoke tests','T + 15 min: bank-approved transactions.'],
+            ['Recovery path','Post-switch return requires a verified old ledger.'],
+            ['Pause target','Benchmark hold, drain, prove, fence and release.']]},
+    {icon:'↩️',kicker:'EP20 · 5/7 · THE SAFETY NET',title:'The Fallback Window',time:'08:00 – 09:45',draw:d5,
+     key:'Decide the triggers before the night — not during it.',next:'🔜 Next: hypercare & switch-off',
+     open:'Even with all this preparation, something could still go wrong.',
+     land:'Agreed before the flip — not argued about during an incident.',
+     gloss:[['WINDOW',[1]],['FALLBACK',[3]],['PONR',[4]],['TRIGGER',[5]],['IC',[6]]],
+     demo:['inject reverse-sync lag; rehearse paired cuts and in-flight recovery',
+           'test trigger alarms and the incident-commander path'],
+     steps:[['AWS in charge','The AWS ledger is now the system of record.'],
+            ['Mainframe follows','Reverse sync may lag and needs reconciliation.'],
+            ['Controlled recovery','Fence, resolve, reconcile, then route.'],
+            ['Point of no return','After about two clean month-ends, sync stops.'],
+            ['Pre-agreed triggers','Breaks, latency, severe incidents, integrity, sync lag.'],
+            ['One person calls it','The incident commander; rehearse the decision time.']]},
+    {icon:'🩺',kicker:'EP20 · 6/7 · AFTER THE FLIP',title:'Hypercare and Switch-Off',time:'09:45 – 11:20',draw:d6,
+     key:'The savings only arrive when the old system is really off.',next:'🔜 Next: lessons & handover',
+     open:'After each wave comes hypercare.',
+     land:'Retire, don’t just switch off.',
+     gloss:[['WARROOM',[1]],['HYPERCARE',[2,4]],['ARCHIVE',[5]],['DECOM',[6]],['MIPS',[7]]],
+     demo:['design a sample dashboard for p99, STP, breaks and complaints',
+           'map all dependencies, records and contracts before any retirement'],
+     steps:[['War room','Payments ops, SRE and squads, together every day.'],
+            ['Watch the numbers','p99, STP, breaks, complaints, fallbacks.'],
+            ['Reconciliation cadence','Agree the reporting route with Finance.'],
+            ['Evidence to move on','Bank owners review baselines and outcomes.'],
+            ['Stop sync, archive','After the last window: read-only history.'],
+            ['Turn it off','CICS payment programs and batch jobs.'],
+            ['Measure MIPS effect','Compare actual use and bill after retirement.']]},
+    {icon:'🏁',kicker:'EP20 · 7/7 · LESSONS & HANDOVER',title:'Lessons, AI and Handover',time:'11:20 – 12:40',draw:d7,
+     key:'The flip is not the end. It is the start of running well.',next:'🔜 Next episode: EP21 — Observability & SRE',
+     open:'Let’s review what this proposed cutover would require.',
+     land:'The flip is not the end. It is the start of running the new platform well.',
+     gloss:[['EVIDENCE',[1]],['ANOMALY',[1]],['HITL',[2]],['LESSON',[3]],['BAU',[5]]],
+     demo:['test AI summaries on synthetic release records and source links',
+           'measure false alerts and require human review before action'],
+     steps:[['AI compiles, people sign','Evidence, runbook drafts, early warnings, summaries.'],
+            ['Fallback stays human','The incident commander makes that call.'],
+            ['Enterprise practice','Bank calendar, rehearsals, small scope, tested fallback.'],
+            ['If approved','New ledger owns only the agreed payment scope.'],
+            ['Operate stage next','EP21 SRE · EP22 incidents · EP23 FinOps · EP24.']]},
+  ],
+};
+startDeck(DECK);
+</script>
+</body>
+</html>

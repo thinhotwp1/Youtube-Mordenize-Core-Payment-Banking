@@ -1,0 +1,214 @@
+﻿===== Slide 1 · The 3 a.m. Question  (00:00 – 02:05) =====
+
+[tag ①]
+The reference roadmap has reached operations.
+This is not a bank platform I have run; it is a way to examine the execution problem.
+Imagine a customer asking at three in the morning: "I sent five hundred euros an hour ago.
+Where is it?"
+The bank defines the correct status and communication; engineering must make the evidence findable.
+
+[tag ②]
+Without joined telemetry, an operator may search the app, gateway, Kafka, mainframe and external connection separately.
+The eight teams and three-hour delay on the diagram are illustrative.
+The engineering question is how to shorten that search while protecting customer data.
+
+[tag ③]
+A shared correlation key lets us search once.
+Where a scheme supplies a UETR, we link it to our internal payment and trace IDs.
+Other rails may use different identifiers, so the bank's integration team defines the mapping.
+
+[tag ④]
+The trace can show which internal steps completed, which external handoff was attempted, and where status is still uncertain.
+Customer care should use only a bank-approved status message.
+A trace does not prove that another bank has received or settled the payment.
+
+[tag ⑤]
+The proposed outcome is faster investigation, earlier detection, a usable incident trail and cost attribution.
+The twenty-second answer on the slide is a design target; it needs an incident drill and measured search time before anyone can claim it.
+
+[validation plan]
+A reference observability harness could join a synthetic payment ID across traces, metrics, logs and events.
+That would test the correlation design; it would not prove production performance.
+
+===== Slide 2 · Four Signals, One Key  (02:05 – 03:55) =====
+
+[tag ①]
+In this reference architecture, telemetry comes from the proposed Kubernetes services, Kafka, the mainframe adapter, the external gateway and the API edge.
+The actual bank estate would determine the integration points.
+
+[tag ②]
+OpenTelemetry gives these components a common way to emit signals.
+Collectors can enrich records with a safe correlation token and retain slow or failed traces.
+The collector design needs scale, failure isolation and data-governance tests; using an open format does not remove all vendor dependencies.
+
+[tag ③]
+We also minimize and mask sensitive data before storage, then test the filters.
+A correlation ID should not reveal an account number or customer name.
+
+[tag ④]
+The collector produces four signals.
+Logs tell us what happened, in words.
+Metrics tell us how much and how fast.
+Traces follow one payment, step by step.
+
+[tag ⑤]
+A fourth signal in this design is domain events, from Kafka.
+Their names and meanings come from bank-approved business states; a technical event alone must not be presented as settlement proof.
+
+[tag ⑥]
+The engineering contract links the external reference, where one exists, to the internal payment ID and trace ID.
+We test for missing, reused and delayed identifiers as well as the happy path.
+
+[tag ⑦]
+The target is to navigate from any approved identifier to the relevant signals.
+AI may flag unusual patterns, but a person verifies the source records before acting.
+
+===== Slide 3 · Follow One Payment  (03:55 – 05:45) =====
+
+[tag ①]
+Let's inspect one synthetic trace, not a real customer's payment.
+The diagram uses a two-hundred-and-fifty-euro transfer and a linked reference ID to show the method.
+
+[tag ②]
+Each bar is a span, one timed technical step.
+The fourteen, twenty-two, twenty-eight and one-hundred-and-thirty-eight millisecond values are sample timings.
+In a real bank, we would measure them under representative load.
+
+[tag ③]
+The red line is an illustrative internal latency budget of five hundred milliseconds.
+The sample uses four hundred and sixty-one.
+That passes this example budget; it is not a production benchmark or a promise to customers.
+
+[tag ④]
+The orange span is sixty-six milliseconds above its example budget.
+This is how a trace directs investigation toward a dependency, but one trace is not enough to diagnose a systemic bottleneck.
+
+[tag ⑤]
+The external round trip in this sample is about one point one seconds.
+We can measure the boundary we observe, but need partner or scheme evidence to explain what happened beyond it.
+
+[tag ⑥]
+Below, a business-state timeline maps technical events to bank-approved meanings.
+A "settled" state must come from the authoritative source defined by the bank, not merely from a successful API call.
+
+[tag ⑦]
+AI could compare many traces and suggest that funds holds became slower after a particular time.
+The four-percent figure is illustrative.
+An engineer checks the sample size, dependency metrics and change history before confirming cause.
+
+===== Slide 4 · SLOs and Error Budgets  (05:45 – 07:40) =====
+
+[tag ①]
+The bank's NFRs become measurable SLOs.
+An SLI is the observed signal, such as the share of requests accepted within a time budget.
+An SLO is the approved target over a window.
+The ninety-nine-percent and thirty-day figures here are examples; product and operations owners set them against actual customer commitments.
+
+[tag ②]
+Correctness needs separate controls.
+A suspected duplicate debit or payment without a known status triggers investigation immediately.
+We do not treat a money-integrity invariant as an ordinary error budget.
+
+[tag ③]
+The chart on the right is sample data for a thirty-day error budget.
+It shows thirty-eight percent remaining, as an example of how a team would discuss reliability risk.
+
+[tag ④]
+In the sample, one incident and one release consume most of that budget.
+The point is to connect operational events to an explicit release decision, not to claim these incidents occurred.
+
+[tag ⑤]
+We watch burn rate, the speed at which the budget is spent.
+The page threshold on the diagram is illustrative.
+SRE and product owners tune it against actual traffic, false alarms and customer impact.
+
+[tag ⑥]
+A slower burn may become a planned squad task rather than an overnight page, if the bank's incident policy allows it.
+
+[tag ⑦]
+Product, SRE and risk owners agree a policy for slowing releases when reliability degrades.
+The fifty-percent and zero-budget actions shown are example gates; the bank decides them before a crisis.
+
+===== Slide 5 · Alerts That Wake the Right Person  (07:40 – 09:15) =====
+
+[tag ①]
+Too many alerts are as bad as none.
+The diagram's two billion daily data points are a scale assumption, not a measured platform result.
+The design goal is to help an on-call engineer see customer impact quickly.
+
+[tag ②]
+The sample keeps most warnings on dashboards and sends only high-impact conditions to a person.
+The exact count of pages must be tuned from observed incidents.
+
+[tag ③]
+A strong default is to page on customer-impact symptoms: failures, long delays or missing outcomes.
+CPU and pod restarts still matter for diagnosis.
+A dependency warning can also deserve a page when it predicts imminent harm; the runbook defines that boundary.
+
+[tag ④]
+In this example, fraud latency and stuck-payment alerts rise together.
+AI could group them into one candidate incident and suggest a likely connection.
+It cannot establish root cause from timing alone.
+
+[tag ⑤]
+The ownership map routes the page to the service team, with an escalation path when several teams or external partners are involved.
+
+[tag ⑥]
+Every page should have an owner, a tested runbook and a clear action.
+We can verify that rule with game days and on-call feedback.
+
+===== Slide 6 · Runbooks and On-Call, with AI  (09:15 – 10:55) =====
+
+[tag ①]
+At three in the morning, an engineer needs a runbook, not a blank page.
+This example starts with internal status, partner status and trace evidence.
+Customer messages, inquiry types and update frequency must follow the bank's approved process.
+Compliance determines whether a regulatory incident record is required.
+
+[tag ②]
+The orange line warns against an untracked manual re-send.
+Idempotent retries and ledger reconciliation reduce duplicate risk, but no architect should promise that a retry key alone makes double charging impossible.
+
+[tag ③]
+AI could summarize the incident, link source records and suggest a runbook.
+The engineer checks customer-impact counts and time ranges before using them.
+
+[tag ④]
+It may draft a status update, but the bank's communication owner approves external wording.
+
+[tag ⑤]
+In this design, AI has no authority to move money, issue refunds or change production controls.
+
+[tag ⑥]
+Some technical remediation, such as restarting a stateless pod, may be automated after testing.
+Adding capacity needs limits.
+Changing fraud mode is a bank risk decision and should never be treated as a generic safe switch.
+
+[tag ⑦]
+A named person authorizes money-impacting actions, cross-region failover and external communications under the bank's policy.
+The owning squads participate in on-call and the recovery drills.
+
+===== Slide 7 · Dashboards for Every Audience  (10:55 – 12:00) =====
+
+[tag ①]
+Different owners need different views built from reconciled source data.
+A leadership view could show volume, straight-through rate, SLOs and measured legacy workload removed.
+
+[tag ②]
+Operations needs a near-live view of flow, delayed outcomes, partner connectivity and open incidents.
+The thirty-second threshold shown is a sample policy.
+
+[tag ③]
+Each squad tracks p99 latency against an approved budget, error-budget use and recent deployments.
+
+[tag ④]
+Risk and Audit need incident evidence, applicable reporting status and recovery-drill results.
+Compliance determines which rules apply.
+
+[tag ⑤]
+A regular SLO review asks what is at risk, what to fix next and which repeated manual work can be automated safely.
+
+[tag ⑥]
+Next, in episode twenty-two, we look at what happens when things really break: incidents and disaster recovery.
+Then, in episode twenty-three, the cost of every payment.
+

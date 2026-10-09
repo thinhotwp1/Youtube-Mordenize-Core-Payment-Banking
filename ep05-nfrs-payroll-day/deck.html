@@ -1,0 +1,415 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EP05 NFRs That Survive Payroll Day</title>
+<link rel="stylesheet" href="../shared/deck.css">
+</head>
+<body>
+<script src="../shared/deck.js"></script>
+<script>
+/* ============================================================
+   EP05 · NFRs That Survive Payroll Day — diagrams (1280x800)
+   ============================================================ */
+const poly=(pts,col,w=2.6,extra='')=>`<polyline points="${pts.map(p=>p.join(',')).join(' ')}" fill="none" stroke="${col}" stroke-width="${w}" stroke-linejoin="round" stroke-linecap="round" ${extra}/>`;
+
+/* 1 · From vague to measurable */
+function d1(){return [
+  group({x:10,y:30,w:600,h:330,k:'bad',label:'❌ VAGUE · WORKS IN TESTING, BREAKS ON PAYROLL DAY'}),
+  box({x:30,y:72,w:560,h:100,k:'bad',i:'💬',t:'“The system must be fast,\nhighly available and scalable.”'}),
+  box({x:30,y:196,w:176,h:140,k:'risk',i:'⚡',t:'Fast?',s:'for whom?\nhow fast?\nmeasured how?'}),
+  box({x:222,y:196,w:176,h:140,k:'risk',i:'🟢',t:'Available?',s:'when? 24/7?\nmeasured where?'}),
+  box({x:414,y:196,w:176,h:140,k:'risk',i:'📈',t:'Scalable?',s:'to how many\npayments — when?'}),
+
+  group({x:630,y:30,w:640,h:330,k:'good',label:'✅ EXAMPLE TARGETS · BANK TO VALIDATE'}),
+  kpi({x:650,y:76,w:600,h:76,k:'good',i:'⚡',t:'NFR-LAT-01 · accept time at p99',v:'< 0.5 s'}),
+  kpi({x:650,y:166,w:600,h:76,k:'good',i:'🟢',t:'NFR-AV-01 · available, 24/7',v:'99.99%'}),
+  kpi({x:650,y:256,w:600,h:76,k:'good',i:'📈',t:'NFR-VOL-01 · busiest-day peak',v:'5,000 TPS'}),
+  arrow([[590,122],[650,114]],{k:'good',st:2}),
+
+  group({x:10,y:380,w:1260,h:400,k:'neutral',label:'🛤️ WHERE THE NUMBERS COME FROM',lp:'b'}),
+  ...[['📈','Bank traffic logs','volumes · timing to measure'],['⚖️','Approved obligations','bank-confirmed clocks'],['📊','Business forecast','growth · new products'],
+      ['🛡️','DORA & risk','recovery · impact tolerance'],['🚨','Incident history','what broke before']]
+     .map((s,i)=>box({x:30,y:404+i*66,w:280,h:56,k:'neutral',i:s[0],t:s[1],s:s[2]})),
+  box({x:350,y:460,w:280,h:200,k:'ai',i:'🤖',t:'AI could analyse',s:'approved logs only\nproposes patterns\ncites sources'}),
+  box({x:670,y:460,w:280,h:200,k:'human',i:'👥',t:'People agree',s:'Architect · SRE\nBusiness owner · Risk'}),
+  box({x:990,y:420,w:260,h:300,k:'good',i:'🗂️',t:'NFR catalog · goal',s:'ID · target · source\nowner · test\n\n18 sample NFRs'}),
+  arrow([[310,560],[350,560]],{k:'ai',st:3}),
+  arrow([[630,560],[670,560]],{k:'human',st:4}),
+  arrow([[950,560],[990,560]],{k:'good',st:5}),
+
+  tag(1,590,30,'Vague words','r'),
+  tag(2,1250,30,'Measurable numbers','r'),
+  tag(3,40,380,'Measure first'),
+  tag(4,360,460,'AI finds patterns'),
+  tag(5,680,460,'People agree'),
+  tag(6,1000,420,'NFR catalog'),
+].join('')}
+
+/* 2 · Sizing for payroll day */
+function d2(){
+  const X=h=>70+h*28, Y=t=>360-t*0.32;
+  const P=a=>a.map(([h,t])=>[X(h),Y(t)]);
+  const normal=[[0,20],[2,8],[5,6],[7,70],[9,160],[12,195],[13,210],[15,160],[18,185],[20,140],[22,60],[24,20]];
+  const payroll=[[0,30],[0.15,830],[0.5,320],[1,140],[2,50],[5,30],[7,230],[9,400],[12,520],[13,500],[15,420],[18,470],[20,340],[22,150],[24,40]];
+  const out=[group({x:10,y:30,w:780,h:430,k:'neutral',label:'📈 INSTANT PAYMENTS PER SECOND · EXAMPLE BANK',lp:'b'})];
+  [0,300,600,900].forEach(t=>out.push(`<line x1="70" y1="${Y(t)}" x2="746" y2="${Y(t)}" stroke="rgba(34,37,48,.10)"/>`,txt(62,Y(t)+4,String(t),'cl','end')));
+  ['00:00','06:00','12:00','18:00','24:00'].forEach((t,i)=>out.push(txt(X(i*6),380,t,'cl','middle')));
+  out.push(
+    `<path d="M70 360 L752 360" stroke="#222530" stroke-width="2"/>`,`<path d="M70 360 L70 60" stroke="#222530" stroke-width="2"/>`,
+    txt(78,60,'TPS','cl'),
+    poly(P(normal),'#7B8190',2.6),
+    poly(P(payroll),'#C9661E',3.2),
+    `<line x1="70" y1="${Y(21)}" x2="746" y2="${Y(21)}" stroke="#0F7F77" stroke-width="2" stroke-dasharray="8 6"/>`,
+    `<circle cx="${X(0.15)}" cy="${Y(830)}" r="7" fill="#C9661E"/>`,
+    `<circle cx="${X(13)}" cy="${Y(210)}" r="6" fill="#7B8190"/>`,
+    txt(X(13),Y(210)+24,'normal-day peak: 210','cl','middle','#4F5D75'),
+    poly([[560,78],[600,78]],'#7B8190',3), txt(608,83,'normal day','kl'),
+    poly([[560,104],[600,104]],'#C9661E',3.4), txt(608,109,'payroll day','kl'),
+  );
+  out.push(
+    group({x:810,y:30,w:460,h:430,k:'aws',label:'🧮 DESIGN TARGET'}),
+    kpi({x:830,y:74,w:420,h:64,k:'neutral',i:'📈',t:'Assumed peak second',v:'830 TPS'}),
+    kpi({x:830,y:154,w:420,h:64,k:'aws',i:'🚀',t:'Assumed growth factor',v:'× 3'}),
+    kpi({x:830,y:234,w:420,h:64,k:'aws',i:'🛟',t:'Headroom: lose a zone + surprises',v:'× 2'}),
+    `<line x1="830" y1="316" x2="1250" y2="316" stroke="#222530" stroke-width="2"/>`,
+    box({x:830,y:330,w:420,h:110,k:'good',i:'🎯',t:'Design target ≈ 5,000 TPS',s:'830 × 3 × 2 = 4,980'}),
+
+    group({x:10,y:480,w:1260,h:300,k:'neutral',label:'🧪 TEST PLAN · RESULTS NOT YET MEASURED'}),
+    box({x:30,y:526,w:390,h:140,k:'risk',i:'💥',t:'Burst test',s:'5,000 TPS for 15 minutes\np99 under 0.5 s · zero errors'}),
+    box({x:445,y:526,w:390,h:140,k:'aws',i:'🕰️',t:'Soak test',s:'normal peak for 24 hours\nfinds slow leaks'}),
+    box({x:860,y:526,w:390,h:140,k:'aws',i:'⚡',t:'Spike test',s:'0 → 2,500 TPS in 10 seconds\nauto-scaling must keep up'}),
+    box({x:30,y:686,w:1220,h:70,k:'ai',i:'🤖',t:'Bank logs would replace these assumed peaks',s:'AI may help draft a test pattern after data review'}),
+    arrow([[1040,440],[1040,526]],{k:'good',st:6}),
+
+    tag(1,80,404,'Average: 21 TPS — hides the peak'),
+    tag(2,X(0.15)+14,Y(830),'Assumed peak'),
+    tag(3,1250,154,'Growth','r'),
+    tag(4,1250,234,'Headroom','r'),
+    tag(5,840,440,'≈ 5,000 TPS'),
+    tag(6,1250,480,'Prove it with tests','r'),
+  );
+  return out.join('');
+}
+
+/* 3 · The 10-second budget */
+function d3(){
+  const steps=[['🚪','Gateway & auth',20,'aws'],['🔄','Orchestrator',30,'aws'],['📖','Rules & limits',40,'aws'],['🛡️','Fraud score',150,'risk'],
+               ['🏛️','Funds hold',120,'legacy'],['🧵','Outbox → Kafka',40,'aws'],['📤','Scheme gateway',50,'aws'],['➕','Spare',50,'good']];
+  const out=[
+    group({x:10,y:30,w:1260,h:190,k:'neutral',label:'⏱️ EU INSTANT FLOW · CLOCK TO CONFIRM'}),
+    `<rect x="40" y="86" width="60" height="44" fill="rgba(15,127,119,.55)" stroke="#0F7F77" stroke-width="2"/>`,
+    `<rect x="100" y="86" width="132" height="44" fill="rgba(79,93,117,.25)" stroke="#4F5D75" stroke-width="2"/>`,
+    `<rect x="232" y="86" width="1006" height="44" fill="rgba(46,139,87,.10)" stroke="#2E8B57" stroke-width="1.6" stroke-dasharray="6 5"/>`,
+    txt(166,113,'scheme 1.1 s','cl','middle'),
+    txt(735,113,'illustrative margin before proposed limit','kl','middle','#2E8B57'),
+    `<line x1="1238" y1="70" x2="1238" y2="146" stroke="#C0392B" stroke-width="4"/>`,
+    txt(1230,80,'10 s · reference clock','cl','end','#C0392B'),
+    txt(40,80,'0 s','cl'),
+    txt(40,198,'illustrative: about 1.5 s end to end (not measured)','note'),
+    txt(1240,170,'no answer → unknown state → bank-approved inquiry','kl','end'),
+    group({x:10,y:240,w:1260,h:340,k:'aws',label:'🧩 PROPOSED 500 ms · ONE BUDGET PER STEP (p99)'}),
+  ];
+  let x=40;
+  steps.forEach(s=>{
+    const w=s[2]*2.4, c=K[s[3]];
+    out.push(`<rect x="${x}" y="276" width="${w}" height="44" fill="${c.f}" stroke="${c.s}" stroke-width="2"/>`,
+      `<text x="${x+w/2}" y="303" text-anchor="middle" font-size="13" font-weight="800" fill="${c.t}">${w>=150?esc((s[1]==='Funds hold'?'Funds hold (mainframe)':s[1])+' · '+s[2]+' ms'):s[2]}</text>`);
+    x+=w;
+  });
+  steps.forEach((s,i)=>out.push(kpi({x:40+(i%4)*300,y:338+Math.floor(i/4)*62,w:290,h:52,k:s[3],i:s[0],t:s[1],v:s[2]+' ms'})));
+  out.push(
+    box({x:40,y:478,w:590,h:86,k:'good',i:'✂️',t:'Sanctions path · validate',s:'cadence and latency need bank evidence'}),
+    box({x:650,y:478,w:590,h:86,k:'risk',i:'🛡️',t:'Fraud is the biggest step',s:'150 ms · the fraud team owns this number'}),
+    group({x:10,y:600,w:1260,h:180,k:'human',label:'🙋 BEFORE THE CLOCK STARTS · AND HOW WE MEASURE'}),
+    box({x:30,y:646,w:390,h:110,k:'human',i:'🔎',t:'Verification of Payee',s:'answer in under 1 s\nthe customer is waiting'}),
+    box({x:440,y:646,w:390,h:110,k:'human',i:'🔐',t:'Strong authentication',s:'the customer’s own time\nnot counted in our 0.5 s'}),
+    box({x:850,y:646,w:400,h:110,k:'aws',i:'📏',t:'p50 vs p99',s:'p50 = the typical customer\np99 = 99 of 100 — we design for this'}),
+    tag(1,1250,30,'Confirm legal clock','r'),
+    tag(2,40,160,'Our share: 0.5 s at p99'),
+    tag(3,1250,240,'One budget per step','r'),
+    tag(4,660,478,'Fraud is the biggest'),
+    tag(5,50,478,'Confirm sanctions path'),
+    tag(6,1250,600,'Design for p99','r'),
+  );
+  return out.join('');
+}
+
+/* 4 · 24/7 means no maintenance window */
+function d4(){return [
+  group({x:10,y:30,w:620,h:380,k:'neutral',label:'🟢 HOW MANY NINES?'}),
+  table({x:30,y:68,w:580,hh:30,rh:52,cols:[['AVAILABILITY',0],['DOWN PER YEAR',190],['PER MONTH',390]],
+    rows:[['99.9%','8.8 hours','44 min'],['99.95%','4.4 hours','22 min'],['99.99%','53 min','4.4 min'],['99.999%','5.3 min','26 s']],hl:{2:'good'}}),
+  txt(30,386,'Each extra nine costs much more to build and run.','note'),
+
+  group({x:650,y:30,w:620,h:380,k:'risk',label:'⛓️ THE WEAKEST LINK · EXAMPLE'}),
+  kpi({x:670,y:76,w:300,h:72,k:'aws',i:'☁️',t:'New platform',v:'99.99%'}),
+  kpi({x:670,y:176,w:300,h:72,k:'risk',i:'🛡️',t:'Fraud engine',v:'99.95%'}),
+  kpi({x:670,y:276,w:300,h:72,k:'legacy',i:'🏛️',t:'Mainframe ledger',v:'99.9%'}),
+  `<text x="820" y="170" text-anchor="middle" font-size="22" font-weight="800" fill="#222530">×</text>`,
+  `<text x="820" y="270" text-anchor="middle" font-size="22" font-weight="800" fill="#222530">×</text>`,
+  txt(820,372,'Sunday night maintenance','note','middle'),
+  box({x:1000,y:130,w:250,h:160,k:'bad',i:'❌',t:'Example: 99.84%',s:'independent-failure model\nbelow proposed target'}),
+  txt(1125,320,'0.9999 × 0.9995 × 0.999','note','middle'),
+  arrow([[970,112],[985,112],[985,190],[1000,190]],{k:'risk',st:3}),
+  arrow([[970,212],[1000,212]],{k:'risk',st:3}),
+  arrow([[970,312],[985,312],[985,234],[1000,234]],{k:'risk',st:3}),
+
+  group({x:10,y:430,w:1260,h:350,k:'neutral',label:'🛠️ THREE OPTIONS → DECISION IN EP07'}),
+  box({x:30,y:476,w:390,h:150,k:'aws',i:'🏛️',t:'A · Mainframe 24/7',s:'rolling maintenance, no downtime\ncost: mainframe team + licences'}),
+  box({x:445,y:476,w:390,h:150,k:'risk',i:'🧾',t:'B · Stand-in option',s:'bank must approve whether\nany offline posting is safe\nrisk: state + reconciliation'}),
+  box({x:860,y:476,w:390,h:150,k:'risk',i:'🛡️',t:'C · Degraded fraud option',s:'bank fraud and risk owners\nset rules, limits and duration'}),
+  box({x:30,y:646,w:600,h:110,k:'good',i:'⏳',t:'Example error budget: 4.4 min',s:'bank agrees release policy and measurement'}),
+  box({x:650,y:646,w:600,h:110,k:'aws',i:'🚀',t:'No planned outage · target',s:'prove releases meet accepted interruption budget'}),
+
+  tag(1,600,30,'Pick the nines','r'),
+  tag(2,40,352,'99.99% = 4.4 min a month'),
+  tag(3,1250,30,'Weakest link','r'),
+  tag(4,1010,290,'Target not met'),
+  tag(5,1250,430,'Three options','r'),
+  tag(6,40,646,'Error budget'),
+  tag(7,660,646,'No maintenance window'),
+].join('')}
+
+/* 5 · Plan every failure */
+function d5(){return [
+  group({x:10,y:30,w:1260,h:400,k:'neutral',label:'🛟 RECOVERY TARGETS · BY TYPE OF FAILURE'}),
+  table({x:30,y:66,w:1220,hh:30,rh:52,
+    cols:[['WHAT FAILS',0],['CUSTOMER IMPACT',250],['DATA LOSS (RPO)',470],['BACK IN (RTO)',650],['HOW',820]],
+    rows:[['🖥️ One server','target: minimal','0 target','seconds target','restart + capacity test'],
+          ['🏢 One zone (data centre)','target: few retries','0 target','< 1 min target','replication + fault test'],
+          ['🌍 Whole AWS region','target: short pause','< 1 s target','< 15 min target','second region + drill'],
+          ['🏛️ Mainframe link','per decision (EP07)','0','per ADR','stand-in or a clear message'],
+          ['🚀 Bad release','limit impact','0 target','< 5 min target','canary + state-aware fallback'],
+          ['🦠 Cyber attack / bad data','per DORA plan','last clean copy','per DORA plan','locked backups · restore drills']],
+    hl:{3:'risk'}}),
+
+  group({x:10,y:450,w:620,h:330,k:'good',label:'🔒 INTEGRITY · NEVER NEGOTIABLE'}),
+  lines(36,506,['□ no duplicate debit on one authorised request','□ no untracked accepted payment','□ 30 s inquiry is an example target','□ 1 min trace is an example target','□ durable, protected audit trail'],'kl',52),
+
+  group({x:650,y:450,w:620,h:330,k:'human',label:'🧪 PROPOSED DRILL PLAN'}),
+  box({x:670,y:496,w:580,h:76,k:'human',i:'🎮',t:'Game days · proposed',s:'zone failure in a controlled test environment'}),
+  box({x:670,y:586,w:580,h:76,k:'human',i:'🌍',t:'DR drill · proposed',s:'bank sets region-failover cadence and owners'}),
+  box({x:670,y:676,w:580,h:76,k:'risk',i:'📋',t:'DORA',s:'test resilience · report major incidents'}),
+
+  tag(1,1250,30,'Plan per failure','r'),
+  tag(2,1244,177,'No data loss','r'),
+  tag(3,1244,229,'Back in 15 min','r'),
+  tag(4,1244,281,'Open decision','r'),
+  tag(5,1244,333,'Roll back','r'),
+  tag(6,600,450,'Integrity is absolute','r'),
+  tag(7,1250,450,'Practise failures','r'),
+].join('')}
+
+/* 6 · Every NFR becomes a test */
+function d6(){return [
+  group({x:10,y:30,w:1260,h:420,k:'neutral',label:'🧪 EVERY NFR → A TEST PLAN · EXAMPLE'}),
+  table({x:30,y:66,w:1220,hh:30,rh:54,
+    cols:[['NFR',0],['TARGET',150],['HOW WE PROVE IT',480],['WHEN',830]],
+    rows:[['NFR-VOL-01','5,000 TPS · 15 min · p99 < 0.5 s','k6 load test','monthly in full · weekly scaled'],
+          ['NFR-LAT-01','step budgets · 500 ms in total','latency test per service','every pull request'],
+          ['NFR-AV-01','99.99% · 24/7','SLO + error budget','always, in production'],
+          ['NFR-REC-02','lose a zone · back in < 1 min','chaos test (fault injection)','monthly game day'],
+          ['NFR-REC-03','lose a region · back in < 15 min','DR drill','twice a year'],
+          ['NFR-DUP-01','zero duplicate debits','duplicate storm + reconciliation','every release · daily']]}),
+  group({x:10,y:470,w:620,h:310,k:'ai',label:'🤖 AI HELPS HERE'}),
+  lines(36,528,['🤖 drafts k6 scripts from the NFR catalog','🤖 drafts chaos experiments, step by step','🤖 reads results: which step broke its budget','👀 SRE reviews every test before it runs'],'kl',54),
+  group({x:650,y:470,w:620,h:310,k:'good',label:'📊 SAMPLE SLO DASHBOARD · NOT LIVE DATA'}),
+  kpi({x:670,y:516,w:580,h:52,k:'good',i:'🟢',t:'Availability · example',v:'99.993%'}),
+  kpi({x:670,y:578,w:580,h:52,k:'good',i:'⚡',t:'p99 latency · example',v:'410 ms'}),
+  kpi({x:670,y:640,w:580,h:52,k:'risk',i:'⏳',t:'Error budget left',v:'62%'}),
+  kpi({x:670,y:702,w:580,h:52,k:'good',i:'🔁',t:'Duplicate debits · example',v:'0'}),
+
+  tag(1,1250,30,'No test, no NFR','r'),
+  tag(2,1244,126,'Load test','r'),
+  tag(3,1244,180,'Every pull request','r'),
+  tag(4,1244,234,'In production','r'),
+  tag(5,1244,288,'Break it on purpose','r'),
+  tag(6,600,470,'AI writes the tests','r'),
+  tag(7,1250,470,'Example SLOs','r'),
+].join('')}
+
+/* 7 · Agree the price, sign the targets */
+function d7(){return [
+  group({x:10,y:30,w:620,h:370,k:'neutral',label:'⚖️ EVERY NINE HAS A PRICE'}),
+  kpi({x:30,y:76,w:580,h:70,k:'neutral',i:'🏢',t:'99.9% · sample architecture option',v:'€'}),
+  kpi({x:30,y:160,w:580,h:70,k:'good',i:'🏢',t:'99.99% · sample architecture option',v:'€€€'}),
+  kpi({x:30,y:244,w:580,h:70,k:'risk',i:'🌍',t:'99.999% · sample architecture option',v:'€€€€€€'}),
+  txt(30,360,'Proposed SLO: 99.99%, subject to bank approval.','kl'),
+
+  group({x:650,y:30,w:620,h:370,k:'human',label:'✍️ WHO SIGNS'}),
+  box({x:670,y:72,w:580,h:66,k:'human',i:'🧭',t:'Business owner',s:'reviews proposed SLO and cost'}),
+  box({x:670,y:150,w:580,h:66,k:'human',i:'🛡️',t:'Chief Risk Officer',s:'recovery targets · impact tolerance · DORA'}),
+  box({x:670,y:228,w:580,h:66,k:'human',i:'📐',t:'Architect',s:'possible to build · weakest-link check'}),
+  box({x:670,y:306,w:580,h:66,k:'human',i:'🧑‍🚒',t:'SRE lead',s:'can run it 24/7 · on-call ready'}),
+
+  group({x:10,y:420,w:620,h:360,k:'risk',label:'⚠️ AI RISKS HERE · AND THE GUARDRAILS'}),
+  lines(36,474,['🤖 copies generic targets (99.999% everywhere)','      → every NFR needs source and cost','🤖 invents numbers','      → label assumptions until bank data exists','🤖 forgets dependencies','      → model shared failures too','🤖 writes untested NFRs → require a test plan'],'kl',40),
+
+  group({x:650,y:420,w:620,h:360,k:'good',label:'📦 HAND OVER · EXAMPLE'}),
+  kpi({x:670,y:464,w:580,h:50,k:'good',i:'🗂️',t:'NFRs in the catalog',v:'18'}),
+  kpi({x:670,y:522,w:580,h:50,k:'good',i:'🧪',t:'Test plans · example',v:'18'}),
+  kpi({x:670,y:580,w:580,h:50,k:'risk',i:'❓',t:'Open decision: mainframe 24/7',v:'→ EP07'}),
+  box({x:670,y:648,w:135,h:110,k:'aws',i:'🔐',t:'EP06',s:'security'}),
+  box({x:815,y:648,w:135,h:110,k:'aws',i:'📐',t:'EP07',s:'architecture'}),
+  box({x:960,y:648,w:135,h:110,k:'aws',i:'🧪',t:'EP17',s:'testing'}),
+  box({x:1105,y:648,w:145,h:110,k:'aws',i:'📊',t:'EP21',s:'SRE'}),
+
+  tag(1,600,30,'Every nine has a price','r'),
+  tag(2,1240,72,'Business signs the cost','r'),
+  tag(3,1240,150,'Risk signs recovery','r'),
+  tag(4,600,420,'AI risks, guarded','r'),
+  tag(5,1250,420,'Catalog ready','r'),
+  tag(6,1240,648,'Next episodes','r'),
+].join('')}
+
+/* ============================================================
+   Episode config
+   ============================================================ */
+const DECK={
+  brand:'🏦 CORE BANKING PAYMENTS MODERNIZATION · AWS',
+  ep:'EP 05', epShort:'EP05', title:'NFRs That Survive Payroll Day', subtitle:'Execution Architect · reference scenario',
+  seriesTitle:'Enterprise Modernization · Reference Series',
+  callout:{title:'🧪 EVIDENCE PLAN',first:'Method:',second:'Bank check:'},
+  logo:'../shared/jo-logo.png', background:'../shared/background.png',
+  stages:[['🔍','Discover'],['📋','Requirements'],['📐','Design & Plan'],['🛠️','Build'],['🚀','Test & Deploy'],['🔧','Operate']],
+  stage:2,
+  glossary:{
+    NFR:['NFR','value','Non-functional requirement: how well the system must work — speed, uptime, recovery — not what it does.'],
+    FUNC:['Functional vs non-functional','value','Functional: “send a payment”. Non-functional: “send it in under half a second, 24/7”. Both must be true.'],
+    MEASURE:['Measurable target','risk','A number with a unit and a way to check it. “Fast” is an opinion; “p99 under 500 ms” is a target.'],
+    SRE:['SRE','value','Site reliability engineering: engineers who keep production reliable, and use data to decide when to slow down.'],
+    CATALOG:['NFR catalog','risk','One list of every NFR with an ID, a target, a source, an owner and a test — like the rules catalog.'],
+    TPS:['TPS','value','Transactions per second: how many payments the platform takes at the same moment.'],
+    PEAK:['Peak vs average','risk','A day’s average hides its busiest second. Systems fail at the peak, so we size for the peak.'],
+    GROWTH:['Growth factor','value','A planning assumption. Bank product forecasts, not a generic rule, set the real factor.'],
+    HEADROOM:['Headroom','cost','Spare capacity above the expected peak, for surprises and for losing a data centre. It costs money; outages cost more.'],
+    AZ:['Availability Zone','risk','One of several separate data centres in an AWS region. If one fails, the others must carry the whole load.'],
+    LATENCY:['Latency','value','The time a customer waits for an answer. Every step adds a little.'],
+    P99:['p99','value','The time within which 99 of 100 payments finish. We design for it, because averages hide unhappy customers.'],
+    BUDGET:['Latency budget','risk','A proposed time allocation per step. Production-like measurements test the end-to-end target.'],
+    TIMEOUT:['Timeout','risk','The moment we stop waiting for an answer. After it, we ask with a status inquiry instead of guessing.'],
+    FRAUDSCORE:['Fraud score','risk','A bank-owned control with a proposed latency budget. The actual cost and response need measurement.'],
+    NINES:['Availability (“nines”)','cost','99.99% means about 53 minutes of downtime a year. Each extra nine costs much more to build and run.'],
+    ERRBUDGET:['Error budget','risk','The downtime we can “spend” each month — about 4.4 minutes at 99.99%. When it’s gone, we stop new features and fix reliability.'],
+    MAINTWIN:['Maintenance window','risk','Planned downtime, often on Sunday night. Instant payments run 24/7, so there is no window anymore.'],
+    CHAIN:['Dependency chain','risk','Simplified availability may multiply independent components. Correlated failures and degraded paths need separate modeling.'],
+    STANDIN:['Stand-in processing','risk','A possible fallback when the core is unavailable. Bank payments, finance and risk owners must approve whether it is safe.'],
+    RPO:['RPO','risk','Recovery point objective: tolerated data loss. Zero in-region is an example target to prove.'],
+    RTO:['RTO','risk','Recovery time objective: how long until we are back. It is different for a server, a data centre or a whole region.'],
+    FAILOVER:['Failover','risk','Moving work automatically to a healthy copy when one part fails. Practised, not just planned.'],
+    CANARY:['Canary release','risk','Send a new version to a small share of payments first. If it misbehaves, roll back before most customers notice.'],
+    IMPACT:['Impact tolerance','risk','The most disruption the bank can accept for a critical service. Regulators expect banks to set it and prove they stay within it.'],
+    FITNESS:['Fitness function','value','An automatic test that checks an NFR, like speed or recovery, every time something changes.'],
+    SLO:['SLO','value','Service level objective: the target we set for ourselves, like 99.99% available. Measured live, every minute.'],
+    LOADTEST:['Load test (k6)','value','A proposed test of throughput, latency and errors under production-like conditions. Results are not yet measured.'],
+    CHAOS:['Chaos engineering','risk','Breaking things on purpose, in a controlled way, to prove recovery works. Better to learn in a test than in an incident.'],
+    DRDRILL:['DR drill','risk','A planned recovery exercise. Bank owners set scope and cadence; observed results provide evidence.'],
+    TRADEOFF:['Trade-off','cost','Choosing one benefit at the cost of another, like more uptime for more money. The business, not IT, signs the cost.'],
+    APPETITE:['Risk appetite','risk','How much risk the board accepts to reach its goals. NFR targets must fit inside it.'],
+    DORA:['DORA','risk','EU Digital Operational Resilience Act. Bank legal and risk owners interpret applicable duties; engineering tests approved resilience controls.'],
+    OPENDEC:['Open decision','risk','A choice we cannot make yet, with an owner and a date. Here: how to stay 24/7 when the mainframe is down.'],
+    ADR:['ADR','risk','Architecture Decision Record: one page per big decision and why it was made. The mainframe decision becomes one in EP07.'],
+  },
+  slides:[
+    {icon:'📏',kicker:'EP05 · 1/7 · THE PROBLEM',title:'From Vague to Measurable',time:'00:00 – 02:05',draw:d1,
+     key:'If you can’t measure it, you can’t promise it.',next:'🔜 Next: sizing for payroll day',
+     open:'In episode four, we wrote what the system must do. Now: how well.',
+     land:'Unknown numbers remain open until measured.',
+     gloss:[['NFR',[1,2]],['FUNC',[1]],['MEASURE',[2]],['SRE',[5]],['CATALOG',[6]]],
+     callout:['Draft NFRs with source, owner and measurement method.',
+              'Bank owners approve targets after baseline and cost review.'],
+     steps:[['Vague words','“Fast, available, scalable” — works in testing, breaks on payroll day.'],
+            ['Measurable numbers','A number, a unit and a way to check it.'],
+            ['Measure first','Bank logs, approved obligations, forecast and incidents.'],
+            ['AI could analyse','Only approved data; cite patterns and gaps.'],
+            ['People agree','Architect, SRE, business owner and Risk.'],
+            ['NFR catalog','ID, target, source, owner and test — for every NFR.']]},
+    {icon:'📈',kicker:'EP05 · 2/7 · VOLUME',title:'Sizing for Payroll Day',time:'02:05 – 04:00',draw:d2,
+     key:'Size for the busiest second, not the average day.',next:'🔜 Next: the 10-second budget',
+     open:'Payroll day doesn’t care about averages.',
+     land:'The test plan must produce measured evidence before approval.',
+     gloss:[['TPS',[1]],['PEAK',[1,2]],['GROWTH',[3]],['HEADROOM',[4]],['AZ',[4]]],
+     callout:['Plan burst, soak and spike tests at the proposed load.',
+              'Replace assumed peaks and factors with bank traffic data.'],
+     steps:[['Average hides the peak','1.8 M payments a day = only 21 per second on average.'],
+            ['Assumed peak','830 in one second is a scenario input.'],
+            ['Growth','× 3 is an assumed product forecast.'],
+            ['Headroom','× 2 is a planning factor to test.'],
+            ['Design target','830 × 3 × 2 ≈ 5,000 TPS.'],
+            ['Test plan','Burst, soak and spike runs; report results.']]},
+    {icon:'⏱️',kicker:'EP05 · 3/7 · SPEED',title:'The 10-Second Budget',time:'04:00 – 05:50',draw:d3,
+     key:'Give every step a budget — and a team that owns it.',next:'🔜 Next: 24/7 availability',
+     open:'Bank compliance must confirm the ten-second clock.',
+     land:'We design for the ninety-ninth customer, not the average one.',
+     gloss:[['LATENCY',[1]],['TIMEOUT',[1]],['P99',[2,6]],['BUDGET',[3]],['FRAUDSCORE',[4]]],
+     callout:['Propose a p99 budget and timeout tests per step.',
+              'Confirm scheme clock, screening path and real traces.'],
+     steps:[['Confirm time rule','Bank validates clock boundary and applicability.'],
+            ['Proposed: 0.5 s','Internal p99 budget, not a result.'],
+            ['One budget per step','Gateway, orchestrator, rules, fraud, funds hold, Kafka, scheme.'],
+            ['Fraud is the biggest','150 ms — the fraud team owns it.'],
+            ['Sanctions path','Bank compliance confirms cadence; measure latency.'],
+            ['Before the clock','Confirm journey; measure VoP at p99.']]},
+    {icon:'🟢',kicker:'EP05 · 4/7 · AVAILABILITY',title:'24/7 Means No Maintenance Window',time:'05:50 – 07:55',draw:d4,
+     key:'Model dependencies and shared failures before promising SLOs.',next:'🔜 Next: plan every failure',
+     open:'Instant payments never stop. So how available must we be?',
+     land:'Releases must meet the bank’s interruption budget.',
+     gloss:[['NINES',[1,2]],['CHAIN',[3,4]],['STANDIN',[5]],['ERRBUDGET',[6]],['MAINTWIN',[7]]],
+     callout:['Model component and end-to-end availability.',
+              'Bank owners decide fallback and acceptable interruption.'],
+     steps:[['Pick the nines','Each extra nine costs much more.'],
+            ['99.99%','About 4 minutes of downtime a month.'],
+            ['Weakest link','New platform × fraud engine × mainframe ledger.'],
+            ['Example result','99.84% in a simplified independent model.'],
+            ['Three options','All fallbacks require bank risk review.'],
+            ['Error budget','Spent? Stop features, fix reliability first.'],
+            ['No planned outage','Test rolling release and state-aware fallback.']]},
+    {icon:'🛟',kicker:'EP05 · 5/7 · RECOVERY & INTEGRITY',title:'Plan Every Failure',time:'07:55 – 10:05',draw:d5,
+     key:'Set recovery targets and test in-flight payment states.',next:'🔜 Next: every NFR becomes a test',
+     open:'Things will fail. The question is how much it hurts.',
+     land:'A drill provides evidence and exposes gaps.',
+     gloss:[['RPO',[2]],['RTO',[3]],['FAILOVER',[2,3]],['CANARY',[5]],['IMPACT',[7]]],
+     callout:['Plan server, zone, region and release-failure drills.',
+              'Bank owners approve RPO, RTO and unknown-state handling.'],
+     steps:[['Plan per failure','Server, zone, region, mainframe, release, cyber.'],
+            ['One zone: target','Zero data loss, under one minute; test it.'],
+            ['Region: target','Under 15 minutes; test unsettled state.'],
+            ['Mainframe: open decision','Stand-in or a clear message — decided in EP07.'],
+            ['Bad release: fallback','Canary and state-aware recovery.'],
+            ['Integrity controls','No duplicate debit; no untracked payment.'],
+            ['Practise failures','Bank sets drill scope and cadence.']]},
+    {icon:'🧪',kicker:'EP05 · 6/7 · PROOF',title:'Every NFR Becomes a Test',time:'10:05 – 11:50',draw:d6,
+     key:'Every NFR needs a measurement and test plan.',next:'🔜 Next: agree the price & hand over',
+     open:'An NFR without a test is just a wish.',
+     land:'Measured results must show source, window and limits.',
+     gloss:[['FITNESS',[1]],['LOADTEST',[2]],['SLO',[4,7]],['CHAOS',[5]],['DRDRILL',[5]]],
+     callout:['Plan load, retry, chaos and recovery tests.',
+              'Set representative environment and review evidence.'],
+     steps:[['No test, no NFR','Every row has a test and a schedule.'],
+            ['Load test','5,000 TPS is a proposed target, not a result.'],
+            ['Every pull request','Lightweight checks; p99 needs controlled load.'],
+            ['In production','SLO policy needs a real measurement boundary.'],
+            ['Break it on purpose','Chaos tests, DR drills, duplicate storms.'],
+            ['AI writes the tests','AI drafts scripts and experiments; SRE reviews them.'],
+            ['Example SLOs','Dashboard figures are illustrative placeholders.']]},
+    {icon:'✍️',kicker:'EP05 · 7/7 · AGREE & HAND OVER',title:'Agree the Price, Sign the Targets',time:'11:50 – 13:25',draw:d7,
+     key:'Bank owners accept targets, risk and operating cost.',next:'🔜 Next episode: EP06 — Security & Compliance by Design',
+     open:'Every nine has a price. Someone must agree to pay it.',
+     land:'Approved targets give architecture a measurable goal.',
+     gloss:[['TRADEOFF',[1]],['APPETITE',[2]],['DORA',[3]],['OPENDEC',[5]],['ADR',[6]]],
+     callout:['Compare options, costs and dependencies.',
+              'Business, Risk and SRE approve target and open gaps.'],
+     steps:[['Every nine has a price','Rows are options, not fixed recipes.'],
+            ['Business reviews cost','99.99% is a proposed SLO.'],
+            ['Risk signs recovery','RTO, RPO and impact tolerance.'],
+            ['AI risks, guarded','Label assumptions until bank data exists.'],
+            ['Sample catalog','18 candidate NFRs and one open decision.'],
+            ['Next episodes','EP06 security · EP07 architecture · EP17 testing · EP21 SRE.']]},
+  ],
+};
+startDeck(DECK);
+</script>
+</body>
+</html>

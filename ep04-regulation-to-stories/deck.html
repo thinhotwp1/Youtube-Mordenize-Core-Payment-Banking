@@ -1,0 +1,414 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EP04 Regulation to Stories</title>
+<link rel="stylesheet" href="../shared/deck.css">
+</head>
+<body>
+<script src="../shared/deck.js"></script>
+<script>
+/* ============================================================
+   EP04 · From Regulation to User Stories — diagrams (1280x800)
+   ============================================================ */
+/* small story card: ID on top, title below */
+function card(x,y,w,id,t,k='neutral'){
+  const c=K[k];
+  return `<g><rect x="${x}" y="${y}" width="${w}" height="52" rx="8" fill="#FFFBF4" stroke="${c.s}" stroke-width="1.5"/>`+
+    `<text x="${x+10}" y="${y+19}" font-size="11.5" font-weight="800" fill="${c.s}">${esc(id)}</text>`+
+    `<text x="${x+10}" y="${y+39}" font-size="13" font-weight="600" fill="#222530">${esc(t)}</text></g>`;
+}
+
+/* 1 · From rules to requirements */
+function d1(){return [
+  group({x:10,y:30,w:330,h:520,k:'neutral',label:'📥 INPUTS'}),
+  box({x:24,y:70,w:302,h:80,k:'legacy',i:'📖',t:'EP02 candidate rules',s:'sample reviewed catalog'}),
+  box({x:24,y:166,w:302,h:80,k:'aws',i:'🎯',t:'EP03 proposed slice',s:'scope · targets · ADR-001'}),
+  box({x:24,y:262,w:302,h:80,k:'risk',i:'⚖️',t:'Regulation',s:'Instant Payments Regulation\nSCT Inst rulebook · PSD2'}),
+  box({x:24,y:358,w:302,h:80,k:'human',i:'🧭',t:'Customer journeys',s:'research · complaints · app data'}),
+  box({x:24,y:454,w:302,h:80,k:'neutral',i:'💶',t:'Product & pricing',s:'fees · limits · features'}),
+  box({x:380,y:120,w:300,h:130,k:'ai',i:'🤖',t:'AI drafts',s:'epics · stories · acceptance criteria\nevery item cites its source'}),
+  box({x:380,y:300,w:300,h:150,k:'human',i:'👥',t:'People decide',s:'Product owner\nCompliance\nArchitect'}),
+  group({x:720,y:30,w:550,h:520,k:'good',label:'📦 OUTPUTS'}),
+  box({x:740,y:80,w:510,h:120,k:'good',i:'🗂️',t:'Bank-reviewed backlog · target',s:'epics · user stories · acceptance criteria'}),
+  box({x:740,y:220,w:510,h:100,k:'good',i:'🧪',t:'Executable acceptance tests',s:'Given / When / Then — in plain English'}),
+  box({x:740,y:340,w:510,h:100,k:'good',i:'🔗',t:'Traceability',s:'law → story → test'}),
+  box({x:740,y:460,w:510,h:70,k:'aws',i:'🔜',t:'Feeds EP05 · EP06 · EP07',s:'targets · security · architecture'}),
+  arrow([[340,185],[380,185]],{k:'ai',st:2}),
+  arrow([[640,250],[640,300]],{k:'human',st:3}),
+  arrow([[680,375],[705,375],[705,140],[740,140]],{k:'good',st:4}),
+  arrow([[995,200],[995,220]],{k:'good',st:5}),
+  arrow([[995,320],[995,340]],{k:'good',st:5}),
+
+  group({x:10,y:570,w:1260,h:210,k:'bad',label:'⚠️ WHY REQUIREMENTS GO WRONG'}),
+  box({x:30,y:616,w:390,h:130,k:'bad',i:'📚',t:'The law is long',s:'teams read it differently'}),
+  box({x:440,y:616,w:390,h:130,k:'bad',i:'🧩',t:'Rules get lost',s:'discovery rules never reach the backlog'}),
+  box({x:850,y:616,w:400,h:130,k:'bad',i:'🔁',t:'Gaps are found late',s:'in testing — or by the regulator'}),
+
+  tag(1,330,570,'Why it goes wrong'),
+  tag(2,130,30,'Five inputs'),
+  tag(3,390,250,'Every item cites a source'),
+  tag(4,390,450,'People decide'),
+  tag(5,1262,30,'Review backlog','r'),
+].join('')}
+
+/* 2 · What the law asks for (example: SEPA Instant in the EU) */
+function d2(){
+  const cards=[
+    ['⏱️','Time rule','EU instant flow example\nbank confirms clock boundary\n→ latency budget','aws'],
+    ['🌙','Availability','bank confirms applicable flow\nand service coverage\n→ operating model','aws'],
+    ['🔎','Verification of Payee','bank confirms response states\nand customer action\n→ API and journey tests','risk'],
+    ['💶','Pricing','legal and product owners\nconfirm fee policy\n→ billing tests','risk'],
+    ['🧾','Customer limits','bank defines customer\nand risk limits\n→ enforcement tests','risk'],
+    ['🛡️','Sanctions controls','bank confirms scope,\nlists and cadence\n→ evidence and exceptions','risk'],
+    ['🔐','Authentication','bank defines applicable\nstep-up controls\n→ identity tests','aws'],
+    ['📨','ISO 20022 messages','bank and scheme owners\nconfirm message use\n→ contract tests','aws'],
+  ];
+  const out=[group({x:10,y:30,w:1260,h:500,k:'neutral',label:'⚖️ CANDIDATE OBLIGATIONS · BANK COMPLIANCE TO VALIDATE'})];
+  cards.forEach((c,i)=>out.push(box({x:30+(i%4)*305,y:i<4?76:300,w:295,h:200,k:c[3],i:c[0],t:c[1],s:c[2]})));
+  out.push(
+    txt(1250,52,'orange = possible new work','note','end'),
+    box({x:30,y:596,w:600,h:150,k:'human',i:'👩‍⚖️',t:'Compliance interprets',s:'every obligation gets a REQ-ID,\na source and a named owner'}),
+    box({x:650,y:596,w:600,h:150,k:'neutral',i:'🌍',t:'Other schemes, same method',s:'FedNow, UK Faster Payments and others\nhave their own rules — the pipeline stays the same'}),
+    tag(1,40,76,'Validate time rule'),
+    tag(2,650,76,'Check the payee'),
+    tag(3,955,76,'Price parity'),
+    tag(4,40,300,'Customer limits'),
+    tag(5,345,300,'Confirm screening'),
+    tag(6,650,300,'SCA + ISO 20022'),
+    tag(7,40,596,'Compliance owns the meaning'),
+  );
+  return out.join('');
+}
+
+/* 3 · The AI requirements pipeline */
+function d3(){return [
+  group({x:10,y:30,w:1260,h:170,k:'ai',label:'🤖 AI DRAFTS'}),
+  group({x:10,y:220,w:1260,h:170,k:'neutral',label:'🧰 TOOLS CHECK'}),
+  group({x:10,y:410,w:1260,h:170,k:'human',label:'👥 PEOPLE DECIDE'}),
+  box({x:40,y:78,w:250,h:96,k:'ai',i:'📑',t:'Split the law',s:'numbered obligations\nREG-10S · REG-VOP · …'}),
+  box({x:330,y:78,w:250,h:96,k:'ai',i:'✍️',t:'Draft stories',s:'epics · stories · criteria\neach cites a REG-ID or BR-ID'}),
+  box({x:620,y:268,w:250,h:96,k:'neutral',i:'🔍',t:'Quality checks',s:'source present · testable\nno duplicates · INVEST'}),
+  box({x:900,y:268,w:330,h:96,k:'risk',i:'⚠️',t:'Conflict found',s:'BR-040: cut-off at 17:30\nvs REG-24/7: never stop'}),
+  box({x:40,y:458,w:250,h:96,k:'human',i:'👩‍⚖️',t:'Compliance',s:'confirms what\nthe law means'}),
+  box({x:330,y:458,w:250,h:96,k:'human',i:'🧭',t:'Product owner',s:'value · priority · wording'}),
+  box({x:620,y:458,w:250,h:96,k:'human',i:'📐',t:'Architect',s:'feasible? which NFRs?'}),
+  box({x:900,y:458,w:330,h:96,k:'good',i:'✅',t:'Decision required',s:'bank owner reviews BR-040\nscope and exceptions'}),
+  arrow([[165,174],[165,458]],{k:'human',st:1,dash:1,label:'confirm',ly:316}),
+  arrow([[290,506],[310,506],[310,126],[330,126]],{k:'ai',st:2}),
+  arrow([[580,126],[600,126],[600,316],[620,316]],{k:'neutral',st:3}),
+  arrow([[870,316],[900,316]],{k:'risk',st:4}),
+  arrow([[1065,364],[1065,458]],{k:'good',st:4}),
+  arrow([[700,364],[700,430],[455,430],[455,458]],{k:'human',st:5}),
+  arrow([[790,364],[790,458]],{k:'human',st:5}),
+
+  group({x:10,y:600,w:1260,h:180,k:'good',label:'🗂️ BACKLOG · SLICE 1 · EXAMPLE'}),
+  box({x:30,y:646,w:230,h:100,k:'good',i:'🧱',t:'7 epics · sample'}),
+  box({x:280,y:646,w:230,h:100,k:'good',i:'📝',t:'22 stories · sample'}),
+  box({x:530,y:646,w:230,h:100,k:'good',i:'✅',t:'58 criteria · sample'}),
+  box({x:780,y:646,w:230,h:100,k:'good',i:'🔗',t:'Source links · goal'}),
+  box({x:1030,y:646,w:220,h:100,k:'aws',i:'🗂️',t:'Backlog target',s:'REG-IDs and BR-IDs\nto validate'}),
+  arrow([[455,554],[455,646]],{k:'good',st:6}),
+  arrow([[745,554],[745,600]],{k:'good',st:6}),
+
+  tag(1,50,78,'Law → obligations'),
+  tag(2,340,78,'Stories cite sources'),
+  tag(3,630,268,'Machine checks'),
+  tag(4,910,268,'Old rule vs new law'),
+  tag(5,340,554,'Three people approve'),
+  tag(6,1262,600,'Backlog in Jira','r'),
+].join('')}
+
+/* 4 · Story map for slice 1 */
+function d4(){
+  const epics=[['✏️','Start payment'],['🔎','Verify payee'],['🔐','Authorize'],['🛡️','Check & limits'],['📤','Send in 10 s'],['📬','Confirm & track'],['↩️','Exceptions']];
+  const X=i=>15+i*180;
+  const mvp=[
+    [['US-101','Enter IBAN, amount'],['US-102','Instant or standard'],['US-103','Show fee = standard']],
+    [['US-105','Match / close / no'],['US-106','Warn on no match','risk']],
+    [['US-108','SCA: amount + payee']],
+    [['US-112','Frozen → reject','legacy'],['US-115','Customer limit','risk'],['US-121','Duplicate check','legacy']],
+    [['US-125','pacs.008, < 10 s']],
+    [['US-128','Status + receipt']],
+    [['US-131','Timeout → inquiry'],['US-133','Clear reject reason']],
+  ];
+  const later=[[['US-150','Save payees']],[['US-155','Bulk VoP for firms']],[],[['US-160','Smarter fraud']],[['US-165','Inbound instant']],[['US-170','Proof of payment']],[['US-175','Recall (camt.056)']]];
+  const out=[];
+  epics.forEach((e,i)=>out.push(box({x:X(i),y:40,w:170,h:64,k:'aws',i:e[0],t:e[1]})));
+  out.push(group({x:10,y:122,w:1260,h:336,k:'good',label:'🚀 PILOT RELEASE (MVP)',lp:'b'}));
+  mvp.forEach((col,i)=>col.forEach((s,j)=>out.push(card(X(i),140+j*62,170,s[0],s[1],s[2]||'good'))));
+  out.push(group({x:10,y:474,w:1260,h:150,k:'neutral',label:'⏭️ LATER RELEASES',lp:'b'}));
+  later.forEach((col,i)=>col.forEach((s,j)=>out.push(card(X(i),492+j*62,170,s[0],s[1],'neutral'))));
+  out.push(
+    group({x:10,y:640,w:1260,h:144,k:'human',label:'⚙️ BEHIND THE SCENES · ALSO IN THE PILOT',lp:'b'}),
+    card(30,662,390,'US-140','Screening cadence: bank to confirm','risk'),
+    card(440,662,390,'US-141','24/7 on-call and runbooks','human'),
+    card(850,662,400,'US-142','Fee table: instant = standard','risk'),
+    tag(1,X(0)+8,40,'Journey = epics'),
+    tag(2,1262,458,'Pilot line','r'),
+    tag(3,X(1)+4,290,'New: the law'),
+    tag(4,X(3)+4,352,'EP02 rules'),
+    tag(5,X(6)+4,290,'Exceptions too'),
+    tag(6,1262,624,'Later, not never','r'),
+    tag(7,1262,784,'Behind the scenes','r'),
+  );
+  return out.join('');
+}
+
+/* 5 · Anatomy of a good story */
+function d5(){return [
+  `<g><rect x="10" y="30" width="620" height="330" rx="16" fill="#FFFDF8" stroke="#2E8B57" stroke-width="2.4"/>`+
+  `<path d="M10 76 V46 Q10 30 26 30 H614 Q630 30 630 46 V76 Z" fill="rgba(46,139,87,.12)"/></g>`,
+  txt(30,61,'📝 US-105 · Verify the payee','rc-h'),
+  `<rect x="452" y="42" width="160" height="24" rx="12" fill="#0F7F77"/><text x="532" y="58.5" text-anchor="middle" font-size="12" font-weight="800" fill="#fff">EPIC E2 · VERIFY</text>`,
+  lines(30,118,['As a retail customer,','I want to see if the name matches the account','before I confirm the payment,','so that I don’t send money to the wrong person.'],'gx',34),
+  txt(30,278,'SOURCE','rc-l'),
+  txt(30,302,'REG-VOP · Instant Payments Regulation — Verification of Payee','rc-t'),
+  txt(30,334,'Depends on: VoP service · NFR: fast answer (EP05)','rc-t','start','#5E6573'),
+
+  code({x:650,y:30,w:620,h:480,title:'US-105.feature · draft criteria',lines:[
+    ['','Scenario: Name matches','y'],
+    ['','  Given the name matches the account holder'],
+    ['','  Then the app shows "Name matches"'],
+    ['',''],
+    ['','Scenario: Close match','y'],
+    ['','  Given the name is close to the account holder'],
+    ['','  Then the app shows a bank-approved result'],
+    ['',''],
+    ['','Scenario: No match','o'],
+    ['','  Given the name does not match'],
+    ['','  Then the app warns and explains the risk'],
+    ['','  And the bank-approved next step applies'],
+    ['',''],
+    ['','Scenario: Check not possible','y'],
+    ['','  Given the payee bank cannot answer'],
+    ['','  Then the app says the check was not possible'],
+  ]}),
+
+  group({x:10,y:380,w:620,h:400,k:'human',label:'📋 PROPOSED DEFINITION OF READY'}),
+  lines(36,434,['• source identified (REG-ID or BR-ID)','• acceptance criteria testable','• bank experts validate edge cases','• NFRs tagged: speed, security','• dependencies reviewed: VoP service','• PO + Compliance approval required','• sizing reviewed by delivery team'],'kl',46),
+
+  group({x:650,y:530,w:620,h:250,k:'ai',label:'🤖 WHO DID WHAT'}),
+  lines(676,586,['🤖 AI could draft the sample scenarios','🤖 AI may suggest an unavailable case','👩‍⚖️ Compliance validates warning and liability','🧭 Product owner approves final behavior'],'kl',44),
+
+  tag(1,400,30,'As a… I want… so that…'),
+  tag(2,140,272,'Source: the law'),
+  tag(3,1262,30,'Four outcomes','r'),
+  tag(4,1262,302,'Bank validates choice','r'),
+  tag(5,320,380,'Ready means ready'),
+  tag(6,1262,530,'AI drafts, people approve','r'),
+].join('')}
+
+/* 6 · Traceability: law → story → test */
+function d6(){return [
+  group({x:10,y:30,w:1260,h:500,k:'neutral',label:'🔗 TRACEABILITY MATRIX · SLICE 1 · EXAMPLE'}),
+  table({x:30,y:70,w:1220,hh:32,rh:50,
+    cols:[['SOURCE',0],['REQUIREMENT',130],['EPIC',470],['STORIES',540],['ACCEPTANCE TESTS',720],['STATUS',880]],
+    rows:[['REG-10S','Payee has money within 10 s?','E5','US-125','AT-125a · AT-125b','sample link'],
+          ['REG-VOP','Payee check before confirm?','E2','US-105 · US-106','AT-105a … AT-105d','sample link'],
+          ['REG-PRICE','Instant fee ≤ standard fee?','E1','US-103 · US-142','AT-103a','sample link'],
+          ['REG-LIMIT','Customer-set limit?','E4','US-115','AT-115a · AT-115b','sample link'],
+          ['REG-SANC','Screening cadence?','Ops','US-140','AT-140a','legal review'],
+          ['BR-014','Frozen account → reject?','E4','US-112','BR014Test','SME review'],
+          ['BR-031','Duplicate within 5 minutes?','E4','US-121','BR031Test','SME review'],
+          ['BR-040','17:30 cutoff rule?','—','—','—','scope review']],
+    hl:{4:'risk',7:'bad'}}),
+
+  group({x:10,y:550,w:1260,h:230,k:'good',label:'📏 COVERAGE · EVIDENCE · CHANGE'}),
+  kpi({x:30,y:596,w:390,h:48,k:'good',i:'📜',t:'Linked obligations · example',v:'100%'}),
+  kpi({x:30,y:652,w:390,h:48,k:'good',i:'🧪',t:'Linked stories · example',v:'100%'}),
+  kpi({x:30,y:708,w:390,h:48,k:'risk',i:'❓',t:'Open legal questions',v:'1'}),
+  box({x:440,y:596,w:390,h:160,k:'good',i:'🗄️',t:'Audit evidence plan',s:'export at agreed release gates\nprotect records from alteration'}),
+  box({x:850,y:596,w:400,h:160,k:'aws',i:'🔁',t:'When interpretation changes',s:'update the approved REG-ID →\nreview linked stories and tests'}),
+
+  tag(1,520,30,'Law → story → test'),
+  tag(2,1242,180,'One law, two stories','r'),
+  tag(3,1242,330,'Waits for an answer','r'),
+  tag(4,1242,380,'EP02 rules join here','r'),
+  tag(5,1242,480,'Retired on purpose','r'),
+  tag(6,40,596,'Coverage'),
+  tag(7,860,596,'Change one law, see the impact'),
+].join('')}
+
+/* 7 · Approve and hand over */
+function d7(){return [
+  group({x:10,y:30,w:1260,h:240,k:'human',label:'✍️ THREE APPROVALS BEFORE A STORY IS “READY”'}),
+  box({x:30,y:80,w:390,h:160,k:'human',i:'🧭',t:'Product owner',s:'value · priority\nclear wording'}),
+  box({x:445,y:80,w:390,h:160,k:'human',i:'👩‍⚖️',t:'Compliance',s:'reads the law the same way\nsigns the interpretation'}),
+  box({x:860,y:80,w:390,h:160,k:'human',i:'📐',t:'Architect',s:'possible to build · NFRs tagged\ndependencies known'}),
+
+  group({x:10,y:290,w:620,h:280,k:'risk',label:'⚠️ AI RISKS HERE · AND THE GUARDRAILS'}),
+  lines(36,346,['🤥 invents a requirement → no source, no story','⚖️ misreads the law → Compliance signs the meaning','📏 writes too much detail → PO keeps stories small','🔁 copies old bugs → EP02 rules checked against the law'],'kl',54),
+
+  group({x:650,y:290,w:620,h:280,k:'good',label:'📦 SAMPLE BACKLOG · APPROVAL STILL REQUIRED'}),
+  kpi({x:670,y:336,w:580,h:46,k:'good',i:'🧱',t:'Epics',v:'7'}),
+  kpi({x:670,y:392,w:580,h:46,k:'good',i:'📝',t:'User stories',v:'22'}),
+  kpi({x:670,y:448,w:580,h:46,k:'good',i:'✅',t:'Acceptance criteria',v:'58'}),
+  kpi({x:670,y:504,w:580,h:46,k:'risk',i:'❓',t:'Open legal questions',v:'1'}),
+
+  group({x:10,y:590,w:1260,h:190,k:'aws',label:'🔜 NEXT EPISODES'}),
+  box({x:30,y:636,w:290,h:110,k:'aws',i:'🎯',t:'EP05 · NFRs',s:'10 s · 24/7 · zero duplicates'}),
+  box({x:340,y:636,w:290,h:110,k:'aws',i:'🔐',t:'EP06 · Security',s:'SCA · sanctions · DORA'}),
+  box({x:650,y:636,w:290,h:110,k:'aws',i:'📐',t:'EP07 · Architecture',s:'target design · ADRs'}),
+  box({x:960,y:636,w:290,h:110,k:'aws',i:'📨',t:'EP08 · Contracts',s:'APIs from the stories'}),
+  arrow([[320,691],[340,691]],{k:'aws',st:6}),
+  arrow([[630,691],[650,691]],{k:'aws',st:6}),
+  arrow([[940,691],[960,691]],{k:'aws',st:6}),
+
+  tag(1,40,80,'Product owner'),
+  tag(2,455,80,'Compliance'),
+  tag(3,870,80,'Architect'),
+  tag(4,420,290,'AI risks, guarded'),
+  tag(5,1262,290,'Review before planning','r'),
+  tag(6,1262,590,'Next episodes','r'),
+].join('')}
+
+/* ============================================================
+   Episode config
+   ============================================================ */
+const DECK={
+  brand:'🏦 CORE BANKING PAYMENTS MODERNIZATION · AWS',
+  ep:'EP 04', epShort:'EP04', title:'From Regulation to User Stories', subtitle:'Execution Architect · reference scenario',
+  seriesTitle:'Enterprise Modernization · Reference Series',
+  callout:{title:'🧪 EVIDENCE PLAN',first:'Method:',second:'Bank check:'},
+  logo:'../shared/jo-logo.png', background:'../shared/background.png',
+  stages:[['🔍','Discover'],['📋','Requirements'],['📐','Design & Plan'],['🛠️','Build'],['🚀','Test & Deploy'],['🔧','Operate']],
+  stage:2,
+  glossary:{
+    STORY:['User story','value','One small need, written as “As a… I want… so that…”. It keeps the team focused on the customer, not the system.'],
+    EPIC:['Epic','value','A big piece of work made of several stories, like “Verify the payee”. Our epics follow the customer journey.'],
+    AC:['Acceptance criteria','risk','The exact conditions a story must meet to be “done”. Written so they can be tested automatically.'],
+    BACKLOG:['Backlog','value','The ordered list of all stories for the slice. The top is what the team builds next.'],
+    PO:['Product owner','value','The business person who decides what goes into the backlog, and in which order. Accountable for value.'],
+    IPR:['Instant Payments Regulation','risk','EU rules used as a reference case. Bank compliance confirms current scope, dates and interpretation.'],
+    TENSEC:['10-second rule','risk','An EU instant-credit-transfer timing concept. Bank and scheme experts confirm its exact clock and applicability.'],
+    VOP:['Verification of Payee','risk','A payee-check service. Bank compliance and product define applicable flows, responses and customer action.'],
+    PARITY:['Price parity','cost','A pricing constraint to interpret for the bank’s market and products. Product and legal owners set the fee rule.'],
+    SCA:['Strong customer authentication','risk','Bank identity and compliance owners define applicable factors, linking and exceptions for each flow.'],
+    REQID:['Requirement ID','value','A short ID for each legal obligation, like REG-VOP. Stories and tests point to it, so nothing gets lost.'],
+    CONFLICT:['Rule–law conflict','risk','When an old rule disagrees with a new law, like a 17:30 cut-off versus 24/7 payments. Each one needs a recorded decision.'],
+    INVEST:['INVEST','value','A checklist for good stories: Independent, Negotiable, Valuable, Estimable, Small, Testable.'],
+    COMPREV:['Compliance review','risk','Compliance officers confirm what the law means for us, and sign it. AI drafts; it never interprets the law alone.'],
+    JIRA:['Jira','value','A common backlog tool. Each story links back to its source and forward to its tests.'],
+    STORYMAP:['Story map','value','The customer journey from left to right, with stories underneath. A line shows what goes into the first release.'],
+    JOURNEY:['Customer journey','value','The steps a customer takes, from start to finish. Epics follow it, so we build what customers really do.'],
+    MVP:['MVP / pilot','risk','The smallest release that is useful and safe. For slice 1, it goes to a pilot group of customers first.'],
+    EXCEPTION:['Exception path','risk','Timeouts, rejects and recalls need bank-approved states, owners and tests.'],
+    OPSSTORY:['Operational story','value','Support, screening and fees may need work before launch. Bank owners approve the actual release gate.'],
+    GHERKIN:['Gherkin','value','A plain-English test format: Given… When… Then… Business people can read it, and computers can run it.'],
+    CLOSE:['Close match','risk','A possible payee-check result. Bank product and compliance approve what is shown and what happens next.'],
+    LIAB:['Liability','risk','Who bears loss in a disputed case. Bank legal and compliance owners decide the applicable rule and customer wording.'],
+    DOR:['Definition of Ready','risk','A checklist a story must pass before the team starts it. No source, no tests — no start.'],
+    TESTABLE:['Testable','value','A requirement you can prove with a test. “Fast” is not testable; “under one second” is.'],
+    TRACE:['Traceability','risk','Links from each law to its stories and tests. Auditors can follow any obligation from end to end.'],
+    COVER:['Coverage','value','Share of approved obligations linked to stories and tests. Open legal questions must remain visible.'],
+    NA:['Not applicable','risk','A bank-approved decision that a rule does not apply to a defined flow, with a recorded reason.'],
+    REGCHANGE:['Regulatory change','risk','Laws and scheme rules change every year. With IDs and links, we see exactly what each change touches.'],
+    EVIDENCE:['Audit evidence','risk','Versioned links and test results support a review; they do not by themselves prove legal compliance.'],
+    INTERP:['Legal interpretation','risk','What a law means for this bank, in plain words. Compliance owns it and signs it.'],
+    DORA:['DORA','risk','EU Digital Operational Resilience Act. Bank legal and risk owners interpret applicable duties; engineering implements approved controls and evidence.'],
+    SPRINT:['Sprint planning','value','The meeting where the team picks stories from the top of the backlog for the next sprint.'],
+    OPENQ:['Open question','risk','Something nobody can answer yet, often legal. It has an owner and a date, and the story waits.'],
+    LIVING:['Living backlog','value','The backlog keeps changing as we learn. Sources and links keep it honest.'],
+  },
+  slides:[
+    {icon:'🧱',kicker:'EP04 · 1/7 · THE GOAL',title:'From Rules to Requirements',time:'00:00 – 01:30',draw:d1,
+     key:'Bank-approved meaning becomes buildable, testable work.',next:'🔜 Next: candidate obligations',
+     open:'The bank owns domain meaning; engineering owns translation.',
+     land:'Trace each approved source through story and test.',
+     gloss:[['STORY',[3]],['EPIC',[3]],['AC',[3,5]],['BACKLOG',[5]],['PO',[4]]],
+     callout:['Version candidate rules, decisions and draft criteria.',
+              'Product and compliance approve meaning before build.'],
+     steps:[['Why it goes wrong','Long laws, lost rules, gaps found late.'],
+            ['Five inputs','Rules catalog, slice 1, regulation, journeys, pricing.'],
+            ['Every item cites a source','AI drafts epics, stories and criteria.'],
+            ['People decide','Product owner, Compliance and Architect review.'],
+            ['Backlog target','Reviewed stories, tests and traceability.']]},
+    {icon:'⚖️',kicker:'EP04 · 2/7 · THE LAW',title:'What the Law Asks For',time:'01:30 – 03:35',draw:d2,
+     key:'AI can summarise the law. Only Compliance interprets it.',next:'🔜 Next: the AI requirements pipeline',
+     open:'Our example is SEPA Instant in the EU.',
+     land:'These IDs are what our stories will point to.',
+     gloss:[['IPR',[1]],['TENSEC',[1]],['VOP',[2]],['PARITY',[3]],['SCA',[6]]],
+     callout:['Draft obligation IDs with versioned sources.',
+              'Compliance confirms scope, clocks, fees and screening.'],
+     steps:[['Validate time rule','Bank confirms clock and service coverage.'],
+            ['Check the payee','Bank defines result states and next action.'],
+            ['Pricing','Product and legal owners set the fee policy.'],
+            ['Customer limits','Bank defines customer and risk limits.'],
+            ['Sanctions controls','Compliance confirms lists and cadence.'],
+            ['Auth + messages','Bank and scheme owners confirm usage.'],
+            ['Compliance owns the meaning','Every obligation: an ID, a source, an owner.']]},
+    {icon:'🛤️',kicker:'EP04 · 3/7 · THE PIPELINE',title:'How the Backlog Is Built',time:'03:35 – 05:05',draw:d3,
+     key:'AI drafts. Tools check. People approve.',next:'🔜 Next: the story map',
+     open:'Here is how the backlog is built.',
+     land:'Every approved story needs a source and owner.',
+     gloss:[['REQID',[1]],['INVEST',[3]],['CONFLICT',[4]],['COMPREV',[5]],['JIRA',[6]]],
+     callout:['Check draft stories for sources and testable outcomes.',
+              'Compliance approves interpretation; product approves behavior.'],
+     steps:[['Law → obligations','AI splits the law into REG-IDs; Compliance confirms.'],
+            ['Stories cite sources','Each story points to a REG-ID or a BR-ID.'],
+            ['Machine checks','Source, testable, no duplicates, INVEST.'],
+            ['Old rule vs new flow','BR-040 cut-off requires a bank decision.'],
+            ['Three people approve','Compliance, product owner, architect.'],
+            ['Example backlog','7 epics, 22 stories, 58 criteria; validate all.']]},
+    {icon:'🗺️',kicker:'EP04 · 4/7 · THE STORY MAP',title:'Story Map for Slice 1',time:'05:05 – 06:55',draw:d4,
+     key:'Product and payments owners validate the journey.',next:'🔜 Next: anatomy of a story',
+     open:'This is the story map.',
+     land:'Bank owners decide which controls gate the release.',
+     gloss:[['STORYMAP',[1]],['JOURNEY',[1]],['MVP',[2]],['EXCEPTION',[5]],['OPSSTORY',[7]]],
+     callout:['Draft the journey, pilot boundary and exception stories.',
+              'Product, fraud and compliance confirm release scope.'],
+     steps:[['Journey = epics','Seven steps, from start payment to exceptions.'],
+            ['Pilot line','Above it: the smallest useful, safe release.'],
+            ['Payee check','Bank approves result and warning behavior.'],
+            ['EP02 rules','Frozen account and duplicate check become stories.'],
+            ['Exceptions too','Timeouts and clear reject reasons, from day one.'],
+            ['Later, not never','Saved payees, inbound instant, recalls.'],
+            ['Behind the scenes','Screening, support and fees need owner review.']]},
+    {icon:'📝',kicker:'EP04 · 5/7 · ONE STORY, IN DETAIL',title:'Anatomy of a Good Story',time:'06:55 – 08:35',draw:d5,
+     key:'No source, no tests — no start.',next:'🔜 Next: traceability',
+     open:'Let’s open one story.',
+     land:'Compliance and product must approve the final behavior.',
+     gloss:[['GHERKIN',[3]],['CLOSE',[3]],['LIAB',[4]],['DOR',[5]],['TESTABLE',[5]]],
+     callout:['Propose four result-state tests for the sample story.',
+              'Approve warning, data disclosure and liability treatment.'],
+     steps:[['As a… I want… so that…','US-105: check the payee name before paying.'],
+            ['Source: the law','REG-VOP links the story back to the regulation.'],
+            ['Four outcomes','Match, close match, no match, not possible.'],
+            ['Bank validates choice','No-match behavior and liability need review.'],
+            ['Ready means ready','Source, tests, edge cases, NFRs, approvals, size.'],
+            ['AI drafts, people approve','Bank owners review the final scenario.']]},
+    {icon:'🔗',kicker:'EP04 · 6/7 · TRACEABILITY',title:'Law → Story → Test',time:'08:35 – 10:20',draw:d6,
+     key:'Retire a rule on purpose — never lose one by accident.',next:'🔜 Next: approve & hand over',
+     open:'Now the traceability matrix.',
+     land:'We can see every story and test it touches.',
+     gloss:[['TRACE',[1]],['COVER',[6]],['NA',[5]],['EVIDENCE',[7]],['REGCHANGE',[7]]],
+     callout:['Build versioned links from source to story and test.',
+              'Review coverage and open legal questions before release.'],
+     steps:[['Law → story → test','Each row starts from a source.'],
+            ['One law, two stories','Verification of Payee: two stories, four tests.'],
+            ['Legal question','Bank compliance confirms screening scope.'],
+            ['EP02 rules join here','Frozen account and duplicates: story + test.'],
+            ['Not applicable — proposed','Bank owner approves BR-040 treatment.'],
+            ['Coverage','100% is a sample view, with an open question.'],
+            ['Change an interpretation','Review linked stories and tests.']]},
+    {icon:'✅',kicker:'EP04 · 7/7 · APPROVE & HAND OVER',title:'Ready for Sprint Planning',time:'10:20 – 11:35',draw:d7,
+     key:'Approved stories can proceed; open questions remain visible.',next:'🔜 Next episode: EP05 — NFRs That Survive Payroll Day',
+     open:'The bank defines the approval path for each story.',
+     land:'Architecture starts from approved behavior and known gaps.',
+     gloss:[['INTERP',[2]],['OPENQ',[5]],['SPRINT',[5]],['DORA',[6]],['LIVING',[4]]],
+     callout:['Record named review and block unsupported stories.',
+              'Bank governance confirms roles and open-question gates.'],
+     steps:[['Product owner','Value, priority, clear wording.'],
+            ['Compliance','Same reading of the law; signed interpretation.'],
+            ['Architect','Possible to build, NFRs tagged, dependencies known.'],
+            ['AI risks, guarded','No source, no story; Compliance signs the meaning.'],
+            ['Example backlog','7 epics, 22 stories, 58 criteria, 1 open question.'],
+            ['Next episodes','EP05 targets · EP06 security · EP07 design · EP08 APIs.']]},
+  ],
+};
+startDeck(DECK);
+</script>
+</body>
+</html>

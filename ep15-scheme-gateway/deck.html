@@ -1,0 +1,389 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EP15 Scheme Gateway & ISO 20022</title>
+<link rel="stylesheet" href="../shared/deck.css">
+</head>
+<body>
+<script src="../shared/deck.js"></script>
+<script>
+/* ============================================================
+   EP15 · Scheme Gateway & ISO 20022 — diagrams (1280x800)
+   ============================================================ */
+
+/* 1 · The bank's door to the scheme */
+function d1(){return [
+  group({x:10,y:30,w:420,h:460,k:'aws',label:'🏦 REFERENCE BANK · INTERNAL CONTRACT'}),
+  box({x:30,y:80,w:380,h:90,k:'aws',i:'🔄',t:'Payment orchestrator',s:'the saga · decides what happens next'}),
+  box({x:30,y:200,w:380,h:90,k:'aws',i:'🧵',t:'Kafka',s:'SubmitToScheme command\npayments.events.v1'}),
+  box({x:30,y:320,w:380,h:90,k:'human',i:'🧑‍💼',t:'Operations console',s:'unknown payments · recalls'}),
+  box({x:470,y:80,w:340,h:330,k:'aws',i:'🚪',t:'Scheme gateway',s:'proposed integration boundary\n\ntranslate · validate\nsecure transport\ntrack uncertain states\nretain approved evidence'}),
+  group({x:850,y:30,w:420,h:460,k:'neutral',label:'🌐 OUTSIDE · ISO 20022'}),
+  box({x:870,y:80,w:380,h:80,k:'neutral',i:'🔐',t:'Secure network',s:'Direct Connect · certificates'}),
+  box({x:870,y:190,w:380,h:100,k:'neutral',i:'🏛️',t:'Clearing & settlement (CSM)',s:'SEPA Instant: TIPS or RT1'}),
+  box({x:870,y:320,w:380,h:90,k:'neutral',i:'🏦',t:'Payee’s bank',s:'outcome follows scheme rules'}),
+  arrow([[220,170],[220,200]],{k:'aws',st:1,both:1}),
+  arrow([[410,245],[470,245]],{k:'aws',st:2,both:1}),
+  arrow([[410,365],[470,365]],{k:'human',st:2,both:1,dash:1}),
+  arrow([[810,120],[870,120]],{k:'neutral',st:3,both:1,label:'ISO 20022',lx:840,ly:100}),
+  arrow([[1060,160],[1060,190]],{k:'neutral',st:3,both:1}),
+  arrow([[1060,290],[1060,320]],{k:'neutral',st:3,both:1}),
+
+  group({x:10,y:510,w:1260,h:270,k:'good',label:'🎯 FIVE JOBS OF THE GATEWAY'}),
+  ...[['🔁','Translate','internal events ↔ ISO 20022'],['✅','Validate','schema + scheme rules'],['🔐','Sign & send','keys in an HSM · mTLS'],
+      ['⏱️','Track','timers · inquiries · recalls'],['🗄️','Archive','every message, locked']]
+     .map((s,i)=>box({x:30+i*246,y:560,w:232,h:190,k:'good',i:s[0],t:s[1],s:s[2]})),
+
+  tag(1,420,30,'Inside: internal event','r'),
+  tag(2,480,80,'One door'),
+  tag(3,1260,30,'Outside: ISO 20022','r'),
+  tag(4,1250,510,'Five jobs','r'),
+  tag(5,480,410,'Nobody else talks to the scheme'),
+].join('')}
+
+/* 2 · Five messages you must know (sequence) */
+function d2(){
+  const L={app:110,bank:400,csm:760,payee:1120};
+  const msg=(a,b,y,t,k,st)=>arrow([[L[a],y],[L[b],y]],{k,st,label:t,lx:(L[a]+L[b])/2,ly:y-14});
+  const div=(y,t)=>`<line x1="20" y1="${y}" x2="1260" y2="${y}" stroke="rgba(34,37,48,.25)" stroke-width="1.4" stroke-dasharray="6 6"/>`+txt(20,y-8,t,'hd');
+  return [
+    box({x:10,y:40,w:200,h:56,k:'neutral',i:'📱',t:'Customer app'}),
+    box({x:300,y:40,w:200,h:56,k:'aws',i:'🏦',t:'Our bank · gateway'}),
+    box({x:660,y:40,w:200,h:56,k:'neutral',i:'🏛️',t:'CSM (TIPS / RT1)'}),
+    box({x:1020,y:40,w:200,h:56,k:'neutral',i:'🏦',t:'Payee’s bank'}),
+    `<line x1="${L.app}" y1="96" x2="${L.app}" y2="345" stroke="#7B8190" stroke-width="1.6" stroke-dasharray="5 5"/>`,
+    ...['bank','csm','payee'].map(k=>`<line x1="${L[k]}" y1="96" x2="${L[k]}" y2="745" stroke="#7B8190" stroke-width="1.6" stroke-dasharray="5 5"/>`),
+    msg('app','bank',140,'pay 250 EUR · API','neutral',1),
+    msg('bank','csm',190,'pacs.008','aws',2), msg('csm','payee',220,'pacs.008','aws',2),
+    msg('payee','csm',270,'pacs.002 · accepted','good',3), msg('csm','bank',300,'pacs.002 · accepted','good',3),
+    msg('bank','app',330,'status per bank rule','good',3),
+    div(368,'IF NO ANSWER IN TIME'),
+    msg('bank','csm',410,'pacs.028 · if allowed','risk',4), msg('csm','bank',450,'pacs.002 · status','risk',4),
+    div(488,'LATER: A PROBLEM IS FOUND'),
+    msg('bank','csm',530,'camt.056 · if eligible','bad',5), msg('csm','payee',560,'camt.056','bad',5),
+    msg('payee','csm',610,'pacs.004 · money returned','good',6), msg('csm','bank',640,'pacs.004','good',6),
+    txt(940,676,'— or —','note','middle'),
+    msg('payee','csm',705,'camt.029 · refused + reason','neutral',6), msg('csm','bank',735,'camt.029','neutral',6),
+    tag(1,130,162,'Customer pays'),
+    tag(2,130,200,'pacs.008 = the payment'),
+    tag(3,130,290,'pacs.002 = the answer'),
+    tag(4,130,430,'pacs.028 = where is it?'),
+    tag(5,130,545,'camt.056 = please return'),
+    tag(6,130,670,'pacs.004 or camt.029'),
+  ].join('');
+}
+
+/* 3 · From our event to a pacs.008 */
+function d3(){
+  const lc=i=>89+24*i, rc=j=>89+26*j;
+  const pairs=[[2,7],[3,8],[4,9],[5,11],[5,12],[6,13],[6,14],[7,15]];
+  return [
+    code({x:20,y:40,w:470,h:290,title:'SubmitToScheme · sample event (JSON)',lines:[
+      ['1','{'],['2','  "type": "SubmitToScheme",'],['3','  "endToEndId": "E2E-7781",','y'],['4','  "uetr": "8a5e…c41d",','y'],
+      ['5','  "amount": "250.00 EUR",','y'],['6','  "debtor": "Anna Example · DE89…3000",','y'],['7','  "creditor": "Lucas Example · FR14…2606",','y'],
+      ['8','  "remittance": "Rent October"','y'],['9','}']]}),
+    code({x:560,y:40,w:700,h:500,title:'pacs.008 · simplified',lh:26,lines:[
+      ['1','<FIToFICstmrCdtTrf>'],['2','  <GrpHdr>'],['3','    <MsgId>BNK-20261007-000123</MsgId>','r'],['4','    <NbOfTxs>1</NbOfTxs>','r'],
+      ['5','    <SttlmInf><SttlmMtd>CLRG</SttlmMtd></SttlmInf>','r'],['6','  </GrpHdr>'],['7','  <CdtTrfTxInf>'],
+      ['8','    <PmtId><EndToEndId>E2E-7781</EndToEndId>','y'],['9','           <UETR>8a5e…c41d</UETR></PmtId>','y'],
+      ['10','    <IntrBkSttlmAmt Ccy="EUR">250.00</IntrBkSttlmAmt>','y'],['11','    <ChrgBr>SLEV</ChrgBr>','r'],
+      ['12','    <Dbtr><Nm>Anna Example</Nm></Dbtr>','y'],['13','    <DbtrAcct><Id><IBAN>DE89…3000</IBAN></Id></DbtrAcct>','y'],
+      ['14','    <Cdtr><Nm>Lucas Example</Nm></Cdtr>','y'],['15','    <CdtrAcct><Id><IBAN>FR14…2606</IBAN></Id></CdtrAcct>','y'],
+      ['16','    <RmtInf><Ustrd>Rent October</Ustrd></RmtInf>','y'],['17','  </CdtTrfTxInf> …']]}),
+    ...pairs.map(([i,j],n)=>arrow([[490,lc(i)],[500+n*7,lc(i)],[500+n*7,rc(j)],[560,rc(j)]],{k:'good',st:2,w:2})),
+    txt(1258,560,'yellow = source event · red = gateway field','note','end'),
+
+    group({x:10,y:360,w:530,h:420,k:'ai',label:'🤖 AI-ASSISTED MAPPING'}),
+    lines(36,416,['🤖 may draft from an approved scheme guide','🤖 may draft mapping code and tests','🤖 flags uncertain fields','👀 payments SMEs check meaning','□ official samples need acceptance tests'],'kl',56),
+
+    group({x:560,y:576,w:710,h:204,k:'good',label:'✅ THREE CHECKS BEFORE SENDING'}),
+    box({x:576,y:618,w:220,h:140,k:'good',i:'📐',t:'XSD schema',s:'valid ISO 20022\nstructure'}),
+    box({x:806,y:618,w:220,h:140,k:'good',i:'📏',t:'Scheme rules',s:'allowed characters\nlengths · SLEV'}),
+    box({x:1036,y:618,w:220,h:140,k:'good',i:'💶',t:'Business rules',s:'amount > 0\ntwo decimals'}),
+
+    tag(1,480,40,'Our clean event','r'),
+    tag(2,1250,40,'Mapped field by field','r'),
+    tag(3,570,540,'Added by the gateway'),
+    tag(4,520,360,'AI drafts the mapping','r'),
+    tag(5,1250,576,'Validate before sending','r'),
+  ].join('');
+}
+
+/* 4 · Inside the gateway */
+function d4(){
+  const out=[
+    group({x:10,y:30,w:1260,h:250,k:'aws',label:'📤 OUTBOUND · OUR BANK → SCHEME'}),
+    group({x:10,y:300,w:1260,h:250,k:'neutral',label:'📥 INBOUND · SCHEME → OUR BANK'}),
+  ];
+  const ob=[['🧵','Consume','SubmitToScheme\nfrom Kafka'],['🔁','Map','event → pacs.008'],['✅','Validate','XSD + scheme rules'],
+            ['🔐','Sign','key inside an HSM'],['📡','Send','mTLS · secure link'],['⏱️','Start timer','one per payment']];
+  ob.forEach((s,i)=>{out.push(box({x:30+i*206,y:80,w:185,h:120,k:'aws',i:s[0],t:s[1],s:s[2]})); if(i<5) out.push(arrow([[215+i*206,140],[236+i*206,140]],{k:'aws',st:i<1?1:i<3?2:i<5?3:4}))});
+  const ib=[['📣','Publish','result to Kafka\nvia the outbox'],['⏹️','Stop timer','answer received'],['🚫','Drop duplicates','message ID seen?'],
+            ['🔍','Parse','pacs.002 · pacs.004\ncamt.029'],['✍️','Verify','signature + certificate'],['📡','Receive','from the CSM']];
+  ib.forEach((s,i)=>{out.push(box({x:30+i*206,y:350,w:185,h:120,k:i===0?'good':'neutral',i:s[0],t:s[1],s:s[2]})); if(i<5) out.push(arrow([[236+i*206,410],[215+i*206,410]],{k:'neutral',st:5}))});
+  out.push(
+  txt(640,256,'Gateway latency target: 50 ms · benchmark in bank environment.','note','middle'),
+  txt(640,526,'Correlation keys and status meaning need scheme validation.','note','middle'),
+    group({x:10,y:570,w:1260,h:210,k:'good',label:'🧱 SHARED PARTS'}),
+  box({x:30,y:614,w:300,h:140,k:'good',i:'🗄️',t:'Message archive',s:'scope and retention\nset by bank policy'}),
+    box({x:340,y:614,w:300,h:140,k:'risk',i:'🔑',t:'Keys & certificates',s:'HSM · rotated on a schedule'}),
+    box({x:650,y:614,w:300,h:140,k:'aws',i:'⏱️',t:'Timer store',s:'survives restarts'}),
+    box({x:960,y:614,w:290,h:140,k:'aws',i:'📊',t:'Metrics',s:'answer time · rejects by reason\ninquiries'}),
+    tag(1,246,80,'Translate'),
+    tag(2,452,80,'Validate first'),
+    tag(3,658,80,'Keys stay in the HSM'),
+    tag(4,1070,80,'Timer per payment'),
+    tag(5,1250,300,'Inbound: verify, dedupe','r'),
+    tag(6,40,614,'Every message archived'),
+  );
+  return out.join('');
+}
+
+/* 5 · When answers are late — or wrong */
+function d5(){return [
+  group({x:10,y:30,w:1260,h:400,k:'aws',label:'⏱️ AFTER WE SEND A pacs.008'}),
+  box({x:30,y:190,w:180,h:80,k:'aws',i:'📤',t:'pacs.008 sent'}),
+  box({x:250,y:190,w:170,h:80,k:'neutral',i:'❓',t:'Answer\nin time?'}),
+  box({x:470,y:70,w:250,h:80,k:'good',i:'✅',t:'pacs.002 · status',s:'meaning: bank-owned'}),
+  box({x:770,y:70,w:220,h:80,k:'good',i:'🏁',t:'Booking action',s:'per bank rule'}),
+  box({x:470,y:190,w:250,h:80,k:'bad',i:'❌',t:'pacs.002 · rejected',s:'with a reason code'}),
+  box({x:770,y:190,w:220,h:80,k:'aws',i:'↩️',t:'Hold decision',s:'per ledger + scheme rule'}),
+  box({x:470,y:310,w:250,h:80,k:'risk',i:'⏳',t:'No answer',s:'the timer fires'}),
+  box({x:770,y:310,w:220,h:80,k:'risk',i:'🔎',t:'Status inquiry',s:'if scheme allows'}),
+  box({x:1030,y:310,w:220,h:80,k:'risk',i:'🔁',t:'Still silent?',s:'follow scheme runbook'}),
+  box({x:1030,y:70,w:220,h:210,k:'neutral',i:'📖',t:'Reason codes',s:'AC04 · AC06\nAB05 · FF01\nillustrative only\nverify profile'}),
+  arrow([[210,230],[250,230]],{k:'aws',st:1}),
+  arrow([[420,215],[445,215],[445,110],[470,110]],{k:'good',st:2}),
+  arrow([[720,110],[770,110]],{k:'good',st:2}),
+  arrow([[420,230],[470,230]],{k:'bad',st:3}),
+  arrow([[720,230],[770,230]],{k:'bad',st:3}),
+  arrow([[420,245],[445,245],[445,350],[470,350]],{k:'risk',st:4}),
+  arrow([[720,350],[770,350]],{k:'risk',st:4}),
+  arrow([[990,350],[1030,350]],{k:'risk',st:4}),
+  arrow([[880,390],[880,414],[335,414],[335,270]],{k:'risk',st:4,dash:1,label:'the real answer',lx:610,ly:414}),
+
+  group({x:10,y:450,w:1260,h:330,k:'neutral',label:'↩️ AFTER SETTLEMENT · RECALLS'}),
+  box({x:30,y:496,w:240,h:96,k:'risk',i:'🚩',t:'Problem found',s:'duplicate · fraud · error'}),
+  box({x:310,y:496,w:290,h:96,k:'bad',i:'📨',t:'camt.056',s:'example recall path · SME approved'}),
+  box({x:640,y:496,w:270,h:96,k:'neutral',i:'🏦',t:'Payee’s bank decides',s:'its customer may need to agree'}),
+  box({x:950,y:484,w:300,h:56,k:'good',i:'💶',t:'pacs.004 · possible return'}),
+  box({x:950,y:552,w:300,h:56,k:'bad',i:'📄',t:'camt.029 · possible resolution'}),
+  arrow([[270,544],[310,544]],{k:'risk',st:6}),
+  arrow([[600,544],[640,544]],{k:'bad',st:6}),
+  arrow([[910,530],[930,530],[930,512],[950,512]],{k:'good',st:7}),
+  arrow([[910,560],[930,560],[930,580],[950,580]],{k:'bad',st:7}),
+  box({x:30,y:640,w:1220,h:110,k:'human',i:'🧑‍💼',t:'Operations console · proposed',s:'approved inquiries, recalls and unknown states with traceable history'}),
+
+  tag(1,260,190,'Three outcomes'),
+  tag(2,480,70,'Accepted → settle'),
+  tag(3,480,190,'Rejected → release'),
+  tag(4,480,310,'Timeout ≠ failure'),
+  tag(5,1040,70,'Standard codes'),
+  tag(6,320,496,'Recall with camt.056'),
+  tag(7,1240,484,'Return or refuse','r'),
+  tag(8,40,640,'One ops queue'),
+].join('')}
+
+/* 6 · Test it against a fake scheme */
+function d6(){return [
+  code({x:20,y:40,w:620,h:320,title:'Illustrative timeout test sketch',lines:[
+    ['1','@Test'],['2','void inquiryIfSchemeAllows() {'],
+    ['3','  scheme.staySilentFor("E2E-7781");  // simulator says nothing','y'],
+    ['4','  gateway.send(payment("E2E-7781"));'],
+    ['5','  clock.advance(bankApprovedWait());  // example','y'],
+    ['6',''],
+    ['7','  assertThat(scheme.received("pacs.028"))','o'],
+    ['8','      .hasEndToEndId("E2E-7781");  // ask, don’t guess','o'],
+    ['9','  assertBankApprovedHoldState("E2E-7781");'],
+    ['10','}']]}),
+  group({x:660,y:30,w:610,h:340,k:'neutral',label:'🧪 SCHEME SIMULATOR (WIREMOCK) · SIX SCENARIOS'}),
+  table({x:676,y:66,w:578,hh:28,rh:44,cols:[['SCENARIO',0],['SIMULATOR DOES',160],['SME TO CONFIRM',370]],
+    rows:[['Accept','pacs.002 accepted','booking state'],['Reject','pacs.002 · sample code','hold action'],['Silence','no answer','inquiry timing'],
+          ['Duplicate','same answer twice','processed once'],['Return path','profile-specific','bank disposition'],['Recall result','profile-specific','ops handling']],
+    hl:{2:'risk'}}),
+
+  group({x:10,y:390,w:620,h:390,k:'ai',label:'🤖 AI-SUGGESTED EDGE CASES · THE TEAM DECIDES'}),
+  lines(36,446,['• names with é, ü, ß → allowed character set','• remittance text over 140 characters','• an amount with three decimals → reject early','• the answer arrives after the timeout','• two different answers for one payment'],'kl',58),
+  group({x:650,y:390,w:620,h:390,k:'good',label:'🎓 BEFORE GO-LIVE'}),
+  box({x:670,y:436,w:580,h:96,k:'good',i:'📦',t:'Official message tests',s:'applicable samples require bank acceptance'}),
+  box({x:670,y:546,w:580,h:96,k:'human',i:'🏛️',t:'Scheme certification gate',s:'bank and CSM own external approval'}),
+  box({x:670,y:656,w:580,h:96,k:'aws',i:'🚦',t:'In CI, on every pull request',s:'simulator + contract tests'}),
+
+  tag(1,630,40,'Timeout test','r'),
+  tag(2,1250,30,'Six scenarios','r'),
+  tag(3,600,390,'AI finds edge cases','r'),
+  tag(4,680,436,'Official samples'),
+  tag(5,680,546,'Certification'),
+  tag(6,680,656,'Every pull request'),
+].join('')}
+
+/* 7 · Ready for real money */
+function d7(){return [
+  group({x:10,y:30,w:620,h:400,k:'good',label:'✅ GO-LIVE CHECKLIST'}),
+  lines(36,88,['□ scheme approval required','□ applicable official samples passed','□ key handling and rotation tested','□ archive scope and retention agreed','□ runbooks for unknowns and outages','□ 50 ms at 5,000 TPS is a test target','□ route rollback and in-flight work tested'],'kl',46),
+  group({x:650,y:30,w:620,h:400,k:'aws',label:'📊 SYNTHETIC OPERATIONS DASHBOARD'}),
+  kpi({x:670,y:76,w:580,h:52,k:'good',i:'⏱️',t:'pacs.002 answer time (p99)',v:'1.2 s'}),
+  kpi({x:670,y:140,w:580,h:52,k:'good',i:'❌',t:'Reject rate',v:'0.8%'}),
+  kpi({x:670,y:204,w:580,h:52,k:'neutral',i:'📖',t:'Top reject reason',v:'AC04'}),
+  kpi({x:670,y:268,w:580,h:52,k:'risk',i:'🔎',t:'Status inquiries',v:'0.05%'}),
+  kpi({x:670,y:332,w:580,h:52,k:'good',i:'🎯',t:'Unknown > 1 hour · target',v:'0*'}),
+
+  group({x:10,y:450,w:620,h:330,k:'risk',label:'⚠️ AI RISKS HERE · AND THE GUARDRAILS'}),
+  lines(36,506,['🤖 maps a field wrongly','      → field-by-field tests with official samples','🤖 invents a reason code','      → codes only from the official ISO list','🤖 ignores a scheme rule → validator in CI','👀 a payments expert signs the mapping'],'kl',44),
+  group({x:650,y:450,w:620,h:330,k:'neutral',label:'🔜 NEXT EPISODES'}),
+  box({x:670,y:496,w:580,h:76,k:'aws',i:'🛡️',t:'EP16 · Screening & Fraud',s:'fraud latency target: 150 ms'}),
+  box({x:670,y:586,w:580,h:76,k:'aws',i:'🧪',t:'EP17 · Testing a Bank-Grade Platform',s:'contract · integration · chaos · load'}),
+  box({x:670,y:676,w:580,h:76,k:'aws',i:'🚦',t:'EP18 · CI/CD with Bank Controls',s:'scans · approvals · canary'}),
+
+  tag(1,600,30,'Ready means certified','r'),
+  tag(2,1250,30,'Watch every message','r'),
+  tag(3,1240,332,'Zero unknown','r'),
+  tag(4,600,450,'AI risks, guarded','r'),
+  tag(5,1250,450,'Next episodes','r'),
+].join('')}
+
+/* ============================================================
+   Episode config
+   ============================================================ */
+const DECK={
+  brand:'🏦 CORE BANKING PAYMENTS MODERNIZATION · AWS',
+  ep:'EP 15', epShort:'EP15', title:'Scheme Gateway & ISO 20022', subtitle:'Execution Architecture · Reference Scenario',
+  seriesTitle:'Core Payments Modernization · Execution Architecture',
+  logo:'../shared/jo-logo.png', background:'../shared/background.png',
+  stages:[['🔍','Discover'],['📋','Requirements'],['📐','Design & Plan'],['🛠️','Build'],['🚀','Test & Deploy'],['🔧','Operate']],
+  stage:4,
+  glossary:{
+    SCHEME:['Payment scheme','value','The rulebook and network for one payment type, like SEPA Instant or FedNow. Every bank in it follows the same rules.'],
+    CSM:['CSM','value','Clearing and settlement mechanism: the central system that passes payments between banks and settles them, like TIPS or RT1.'],
+    GATEWAY:['Scheme gateway','risk','A proposed boundary for external messages and connectivity; the bank approves the actual integration model.'],
+    ACL:['Anti-corruption layer','risk','A translator at the boundary to keep scheme-specific formats out of internal services.'],
+    ISO:['ISO 20022','value','A message standard with scheme-specific profiles. Structure alone does not guarantee acceptance.'],
+    PACS008:['pacs.008','value','The payment itself, sent from bank to bank: who pays whom, how much, and why.'],
+    PACS002:['pacs.002','value','A status message; the bank and scheme define how each status affects customer and ledger state.'],
+    PACS028:['pacs.028','risk','A possible status-inquiry path where the selected scheme profile allows it.'],
+    CAMT056:['camt.056','risk','A possible recall request; eligibility, timing and reason come from the scheme and payments team.'],
+    RETURN:['pacs.004 / camt.029','value','Possible return or resolution messages in this reference sequence; confirm against scheme procedures.'],
+    MAPPING:['Mapping','risk','Field-by-field rules that turn a source event into a scheme message. Payments SMEs approve meaning.'],
+    XSD:['XSD schema','value','A machine-readable description of message structure. Validation also needs scheme and business rules.'],
+    E2E:['EndToEndId & UETR','value','Reference fields used for correlation. Their availability and behaviour depend on the payment flow.'],
+    GUIDE:['Implementation guide','risk','The scheme’s detailed rules for each field — lengths, characters, codes. Stricter than ISO 20022 alone.'],
+    REMIT:['Remittance information','value','The “why” of a payment, like “Rent October”. In SEPA, up to 140 characters of free text.'],
+    HSM:['HSM','risk','Hardware security module: a locked device for signing keys. The keys never leave it — not even for us.'],
+    MTLS:['mTLS','risk','Mutual TLS: both sides prove who they are with certificates before any message is sent.'],
+    DEDUPE:['Duplicate check','risk','Networks may deliver twice. A proposed inbox records message IDs so handling can be idempotent.'],
+    ARCHIVE:['Message archive','risk','Controlled message evidence with retention and access set by the bank and applicable rules.'],
+    TIMER:['Payment timer','risk','A durable timer for an unknown state; the next inquiry follows scheme and bank policy.'],
+    REASON:['Reason code','value','A message code interpreted under the selected ISO version, scheme profile and bank policy.'],
+    UNKNOWN:['Unknown state','risk','A sent payment has no confirmed outcome. Follow the selected scheme and bank inquiry process before deciding.'],
+    RECALL:['Recall','risk','Asking the other bank to send money back after settlement. Their customer may need to agree.'],
+    OPSQ:['Operations queue','value','One screen for every inquiry, recall and unknown payment, with the full message history.'],
+    SIM:['Scheme simulator','value','A fake scheme built with WireMock. It can accept, reject, stay silent or answer twice — on demand.'],
+    FAKECLOCK:['Test clock','value','A clock the test controls, so a 10-second timeout can be tested in a millisecond.'],
+    CHARSET:['Character set','risk','Allowed characters depend on the current scheme profile. Test transformations without losing customer meaning.'],
+    CERT:['Scheme certification','risk','Formal tests with the CSM before a bank may go live. No pass, no connection.'],
+    CONTRACT:['Contract test','value','A test that checks messages against an agreed contract on each change.'],
+    RUNBOOK:['Runbook','risk','Step-by-step instructions for operations, like “a payment has been unknown for one hour”.'],
+    KEYROT:['Key rotation','risk','Replacing keys and certificates on a schedule, before they expire. Tested, not hoped for.'],
+    REJRATE:['Reject rate','value','The share of payments rejected, by reason code. A sudden rise shows a problem early.'],
+    CODELIST:['Official code list','risk','The ISO 20022 lists of allowed codes. Codes come from here — never from memory, and never from AI.'],
+    SIGNMAP:['Mapping sign-off','risk','A payments expert approves the mapping, field by field, before it goes live.'],
+  },
+  slides:[
+    {icon:'🚪',kicker:'EP15 · 1/7 · THE ROLE',title:'The Bank’s Door to the Scheme',time:'00:00 – 01:45',draw:d1,
+     key:'A proposed gateway isolates scheme-specific contracts.',next:'🔜 Next: selected scheme messages',
+     open:'This is a reference integration pattern, not a connected bank gateway.',
+     land:'The bank approves the actual boundary and message profile.',
+     gloss:[['ISO',[1,3]],['GATEWAY',[2,5]],['ACL',[2]],['SCHEME',[3]],['CSM',[3]]],
+     demo:['planned simulator tests for gateway failure paths',
+           'bank and scheme test environments are required for acceptance'],
+     steps:[['Inside: internal event','Proposed services publish an internal event on Kafka.'],
+            ['One door','Proposed owner of scheme integration.'],
+            ['Outside: ISO 20022','Secure network, the CSM, the payee’s bank.'],
+            ['Five jobs','Translate, validate, sign and send, track, archive.'],
+            ['Nobody else talks to the scheme','Boundary limits, but does not remove, change impact.']]},
+    {icon:'📨',kicker:'EP15 · 2/7 · THE MESSAGES',title:'Selected Scheme Messages',time:'01:45 – 03:15',draw:d2,
+     key:'The chosen scheme profile defines messages and outcomes.',next:'🔜 Next: the mapping',
+     open:'Let’s follow one payment through the messages.',
+     land:'This is a limited reference sequence, not a scheme rulebook.',
+     gloss:[['PACS008',[2]],['PACS002',[3]],['PACS028',[4]],['CAMT056',[5]],['RETURN',[6]]],
+     demo:['planned simulator cases for submission, status and recall',
+           'external bank and scheme test gates remain separate'],
+     steps:[['Customer pays','The app calls the proposed initiation API.'],
+            ['pacs.008','The payment, sent through the CSM to the payee’s bank.'],
+            ['pacs.002','Status meaning is scheme and bank owned.'],
+            ['pacs.028','Inquiry only when the scheme allows it.'],
+            ['camt.056','Recall eligibility needs SME approval.'],
+            ['pacs.004 or camt.029','Possible resolution paths to validate.']]},
+    {icon:'🔁',kicker:'EP15 · 3/7 · MAPPING',title:'From Our Event to a pacs.008',time:'03:15 – 05:00',draw:d3,
+     key:'Map field by field — and validate before you send.',next:'🔜 Next: inside the gateway',
+     open:'Now the heart of the gateway: the mapping.',
+     land:'Domain owners approve the rules; tests enforce them.',
+     gloss:[['E2E',[1,2]],['MAPPING',[2]],['REMIT',[2]],['GUIDE',[4]],['XSD',[5]]],
+     demo:['candidate Java mapping and schema tests',
+           'bank-approved cases needed beyond the ISO XSD'],
+     steps:[['Our clean event','IDs, amount, debtor, creditor, reason — in simple JSON.'],
+            ['Mapped field by field','Each candidate mapping needs a source and test.'],
+            ['Added by the gateway','Envelope fields; settlement values need approval.'],
+            ['AI drafts the mapping','Payments SMEs check meaning field by field.'],
+            ['Validate before sending','XSD, scheme rules, business rules.']]},
+    {icon:'⚙️',kicker:'EP15 · 4/7 · DESIGN',title:'Inside the Gateway',time:'05:00 – 06:30',draw:d4,
+     key:'Translate, validate, secure, track and retain evidence.',next:'🔜 Next: late and wrong answers',
+     open:'Let’s look inside the gateway.',
+     land:'Evidence should reconstruct what was sent and decided.',
+     gloss:[['HSM',[3]],['MTLS',[3]],['TIMER',[4]],['DEDUPE',[5]],['ARCHIVE',[6]]],
+     demo:['candidate timer, inbox and key-handling design',
+           'bank security team selects HSM, archive and certificate controls'],
+     steps:[['Translate','Read the Kafka command, build the pacs.008.'],
+            ['Validate first','Reduce avoidable format rejects.'],
+            ['Keys stay in the HSM','Signed inside the HSM, sent over mTLS.'],
+            ['Timer per payment','A durable clock follows bank and scheme policy.'],
+            ['Inbound: verify, dedupe','Check the signature, drop duplicates, stop the timer.'],
+            ['Every message archived','Retention and access set by bank policy.']]},
+    {icon:'⏳',kicker:'EP15 · 5/7 · EXCEPTIONS',title:'When Answers Are Late — or Wrong',time:'06:30 – 08:25',draw:d5,
+     key:'Timeout means unknown; inquiry follows scheme rules.',next:'🔜 Next: simulator tests',
+     open:'Most payments get a quick yes. This slide is about the rest.',
+     land:'Every exception lands in one queue, with its full history.',
+     gloss:[['UNKNOWN',[4]],['PACS028',[4]],['REASON',[3,5]],['RECALL',[6,7]],['OPSQ',[8]]],
+     demo:['planned silent-scheme and late-response fault tests',
+           'timer recovery needs a recorded restart test'],
+     steps:[['Three outcomes','Accepted, rejected, or no answer.'],
+            ['Accepted → settle','Booking follows bank-approved status meaning.'],
+            ['Rejected → release','Hold action follows ledger and scheme rules.'],
+            ['Timeout ≠ failure','Keep unknown state; inquire if allowed.'],
+            ['Standard codes','Example codes; verify current profile.'],
+            ['Recall with camt.056','Only if eligible under scheme rules.'],
+            ['Return or refuse','Possible resolution messages to validate.'],
+            ['One ops queue','Inquiries, recalls and unknowns in one place.']]},
+    {icon:'🧪',kicker:'EP15 · 6/7 · TESTING',title:'Test Failure Paths with a Scheme Simulator',time:'08:25 – 10:05',draw:d6,
+     key:'Simulators challenge engineering; certification is separate.',next:'🔜 Next: acceptance gates',
+     open:'A scheme simulator lets us force difficult responses.',
+     land:'External approval belongs to the bank and scheme.',
+     gloss:[['FAKECLOCK',[1]],['SIM',[2]],['CHARSET',[3]],['CERT',[5]],['CONTRACT',[6]]],
+     demo:['proposed <b>WireMock</b> and <b>JUnit</b> scenario suite',
+           'scheme certification uses an approved external environment'],
+     steps:[['Timeout test','A test clock makes 10 seconds pass in a millisecond.'],
+            ['Six scenarios','Accept, reject, silence, duplicate, recall OK, recall refused.'],
+            ['AI finds edge cases','Accents, long texts, three decimals, late answers.'],
+            ['Official samples','Bank selects applicable cases and signs results.'],
+            ['Certification','Formal tests with the CSM before go-live.'],
+            ['Every pull request','Simulator and contract tests in CI.']]},
+    {icon:'🚀',kicker:'EP15 · 7/7 · ACCEPTANCE',title:'The Real-Money Gate',time:'10:05 – 11:40',draw:d7,
+     key:'No real-money pilot without bank and scheme acceptance.',next:'🔜 Next episode: EP16 — Screening & Fraud',
+     open:'Before real money moves, we check everything.',
+     land:'This is a reference boundary; EP16 examines fraud controls.',
+     gloss:[['RUNBOOK',[1]],['KEYROT',[1]],['REJRATE',[2]],['CODELIST',[4]],['SIGNMAP',[4]]],
+     demo:['proposed operations dashboard with synthetic metrics',
+           'bank operations sets production alarms and ownership'],
+     steps:[['Ready means certified','Approval and measured evidence required.'],
+            ['Watch every message','Answer time, reject rate and reasons, inquiries.'],
+            ['Zero unknown','One-hour threshold is a sample target.'],
+            ['AI risks, guarded','Official samples and code lists; an expert signs the mapping.'],
+            ['Next episodes','EP16 fraud · EP17 testing · EP18 CI/CD.']]},
+  ],
+};
+startDeck(DECK);
+</script>
+</body>
+</html>

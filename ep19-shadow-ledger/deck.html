@@ -1,0 +1,420 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EP19 Shadow Ledger & Reconciliation</title>
+<link rel="stylesheet" href="../shared/deck.css">
+</head>
+<body>
+<script src="../shared/deck.js"></script>
+<script>
+/* ============================================================
+   EP19 · Shadow Ledger & Reconciliation (Phase 2) — diagrams
+   ============================================================ */
+const poly=(pts,col,w=2.6,extra='')=>`<polyline points="${pts.map(p=>p.join(',')).join(' ')}" fill="none" stroke="${col}" stroke-width="${w}" stroke-linejoin="round" stroke-linecap="round" ${extra}/>`;
+
+/* 1 · Why a shadow ledger */
+function d1(){return [
+  group({x:10,y:30,w:1260,h:140,k:'neutral',label:'🗓️ WHERE WE ARE'}),
+  chevron({x:30,y:70,w:400,h:80,k:'good',t:'Reference Phase 1',s:'orchestration design',first:1}),
+  chevron({x:440,y:70,w:400,h:80,k:'aws',t:'Phase 2 · Shadow ledger',s:'you are here'}),
+  chevron({x:850,y:70,w:400,h:80,k:'neutral',t:'Phase 3 · Flip the system of record',s:'next: EP20'}),
+
+  group({x:10,y:190,w:620,h:370,k:'risk',label:'⚠️ WHY THE LEDGER IS DIFFERENT'}),
+  lines(36,252,['📒 the authoritative books for this scope','💶 balances and reporting need bank rules','🧮 posting, fees and rounding vary by product','🏛️ Finance and controls define acceptance','⚠️ a cutover needs proved recovery'],'kl',58),
+
+  group({x:650,y:190,w:620,h:370,k:'good',label:'✅ THE SHADOW LEDGER IDEA'}),
+  box({x:670,y:236,w:580,h:80,k:'legacy',i:'🏛️',t:'The mainframe stays in charge',s:'customers and auditors see no change'}),
+  box({x:670,y:340,w:580,h:80,k:'aws',i:'🪞',t:'Proposed second set of books',s:'from approved events and bank-owned rules'}),
+  box({x:670,y:444,w:580,h:80,k:'good',i:'⚖️',t:'Compare every day, to the cent',s:'until there is nothing left to explain'}),
+  arrow([[960,316],[960,340]],{k:'aws',st:3}),
+  arrow([[960,420],[960,444]],{k:'good',st:4}),
+
+  group({x:10,y:580,w:1260,h:200,k:'human',label:'🎯 WHAT PHASE 2 MUST PROVE'}),
+  box({x:30,y:622,w:290,h:136,k:'good',i:'💶',t:'Same balances',s:'every account, to the cent'}),
+  box({x:340,y:622,w:290,h:136,k:'good',i:'🧾',t:'Same totals',s:'every day, every product'}),
+  box({x:650,y:622,w:290,h:136,k:'risk',i:'📅',t:'Hard days too',s:'month-end · payroll · year-end'}),
+  box({x:960,y:622,w:290,h:136,k:'human',i:'✍️',t:'Bank-owned approval',s:'Finance · payments · risk'}),
+
+  tag(1,452,70,'You are here'),
+  tag(2,600,190,'The ledger is special','r'),
+  tag(3,680,340,'A second set of books'),
+  tag(4,680,444,'Compare to the cent'),
+  tag(5,1250,580,'Prove it to people','r'),
+].join('')}
+
+/* 2 · How the parallel run works */
+function d2(){return [
+  group({x:10,y:30,w:320,h:520,k:'legacy',label:'🏛️ MAINFRAME · IN CHARGE'}),
+  box({x:30,y:76,w:280,h:60,k:'neutral',i:'📥',t:'Payments in',s:'from the Phase 1 platform'}),
+  box({x:30,y:160,w:280,h:70,k:'legacy',i:'🖥️',t:'CICS posting',s:'today’s rules'}),
+  box({x:30,y:254,w:280,h:90,k:'legacy',i:'📒',t:'DB2 · official books',s:'system of record'}),
+  box({x:30,y:368,w:280,h:64,k:'legacy',i:'🧾',t:'End-of-day totals',s:'counts and sums'}),
+  box({x:30,y:456,w:280,h:70,k:'legacy',i:'📜',t:'DB2 change log',s:'every change, in order'}),
+  arrow([[170,136],[170,160]],{k:'legacy',st:1}),
+  arrow([[170,230],[170,254]],{k:'legacy',st:1}),
+  arrow([[100,344],[100,368]],{k:'legacy',st:1}),
+
+  box({x:370,y:76,w:220,h:90,k:'aws',i:'🧵',t:'Amazon MSK',s:'payment events\n+ CDC changes'}),
+  box({x:370,y:440,w:220,h:90,k:'aws',i:'🔁',t:'CDC',s:'reads the DB2 log\nwithin seconds'}),
+
+  group({x:630,y:30,w:640,h:520,k:'aws',label:'🧪 AWS · PROPOSED SHADOW LEDGER · NO WRITE AUTHORITY'}),
+  box({x:650,y:76,w:290,h:96,k:'aws',i:'🧮',t:'New ledger engine',s:'re-posts approved events\nwith bank-owned rules'}),
+  box({x:960,y:76,w:290,h:96,k:'good',i:'📊',t:'Read offload?',s:'selected reads only\nfreshness and cost tested'}),
+  box({x:650,y:200,w:290,h:90,k:'aws',i:'📗',t:'Shadow books',s:'Aurora · computed independently'}),
+  box({x:960,y:200,w:290,h:90,k:'aws',i:'🪞',t:'Mirror of DB2',s:'Aurora · validate CDC gaps and lag'}),
+  box({x:650,y:320,w:600,h:96,k:'good',i:'⚖️',t:'Reconciliation engine',s:'totals · balances · postings · paired watermarks'}),
+  box({x:650,y:440,w:290,h:90,k:'risk',i:'🚩',t:'Breaks',s:'classified · owned · fixed'}),
+  box({x:960,y:440,w:290,h:90,k:'human',i:'📈',t:'Daily report',s:'Finance · Operations · Audit'}),
+
+  arrow([[310,491],[370,491]],{k:'aws',st:2}),
+  arrow([[480,440],[480,166]],{k:'aws',st:2}),
+  arrow([[310,106],[370,106]],{k:'aws',st:3}),
+  arrow([[590,124],[650,124]],{k:'aws',st:3}),
+  arrow([[795,172],[795,200]],{k:'aws',st:3}),
+  arrow([[590,150],[620,150],[620,186],[1050,186],[1050,200]],{k:'aws',st:2}),
+  arrow([[310,400],[650,400]],{k:'legacy',st:4,dash:1,label:'EOD totals',lx:560,ly:400}),
+  arrow([[795,290],[795,320]],{k:'good',st:4}),
+  arrow([[1105,290],[1105,320]],{k:'good',st:4}),
+  arrow([[795,416],[795,440]],{k:'risk',st:5}),
+  arrow([[1105,416],[1105,440]],{k:'human',st:5}),
+  arrow([[1180,200],[1180,172]],{k:'good',st:6}),
+
+  group({x:10,y:570,w:1260,h:210,k:'neutral',label:'🔑 THREE RULES OF THE PARALLEL RUN'}),
+  box({x:30,y:612,w:390,h:140,k:'bad',i:'🚫',t:'AWS writes nothing back',s:'the mainframe stays\nthe only truth'}),
+  box({x:445,y:612,w:390,h:140,k:'aws',i:'🧮',t:'Compute, don’t copy',s:'shadow balances come from\nthe payments, not from DB2'}),
+  box({x:860,y:612,w:390,h:140,k:'good',i:'⏱️',t:'Compare paired cuts',s:'source + event watermarks\nstable posting IDs'}),
+
+  tag(1,40,254,'Still the official books'),
+  tag(2,380,440,'Copy every change'),
+  tag(3,660,76,'Same payments, new rules'),
+  tag(4,660,320,'Compare to the cent'),
+  tag(5,1240,440,'Breaks and reports','r'),
+  tag(6,970,76,'Test read offload'),
+  tag(7,1250,570,'Three rules','r'),
+].join('')}
+
+/* 3 · Reconciliation in three levels */
+function d3(){return [
+  group({x:10,y:30,w:780,h:560,k:'neutral',label:'⚖️ THREE LEVELS · EVERY DAY · EXAMPLE'}),
+  box({x:30,y:76,w:740,h:130,k:'good',i:'🧾',t:'Level 1 · Control totals',s:'count and sum of postings, per product, per day\n14.2 M postings · €4.8 bn · both sides match ✓'}),
+  box({x:80,y:226,w:640,h:130,k:'good',i:'💶',t:'Level 2 · Every account balance',s:'all 4.1 M accounts compared, to the cent\n4,099,963 match · 37 differ → breaks'}),
+  box({x:130,y:376,w:540,h:130,k:'risk',i:'🔎',t:'Level 3 · Every posting, one by one',s:'matched by posting ID on both sides\n14,199,610 matched · 390 → investigate'}),
+  arrow([[400,206],[400,226]],{k:'good',st:2}),
+  arrow([[400,356],[400,376]],{k:'risk',st:3}),
+  txt(400,548,'Level 1 says “something is wrong”. Level 3 says exactly where.','note','middle'),
+
+  group({x:810,y:30,w:460,h:360,k:'aws',label:'⏱️ COMPARE AT THE SAME CUT'}),
+  box({x:830,y:76,w:420,h:84,k:'legacy',i:'🏛️',t:'Mainframe end of day',s:'checkpoint at one log position'}),
+  box({x:830,y:180,w:420,h:84,k:'aws',i:'☁️',t:'AWS shadow',s:'paired event cut · verify IDs'}),
+  box({x:830,y:284,w:420,h:84,k:'neutral',i:'⏭️',t:'Payments after the cut',s:'next cycle — not a break'}),
+
+  group({x:810,y:410,w:460,h:180,k:'neutral',label:'🕐 HOW OFTEN'}),
+  lines(830,466,['⚡ every few minutes: totals on the stream','🌙 every day: all three levels','📅 every month-end: interest, fees, statements'],'kl',42),
+
+  group({x:10,y:610,w:1260,h:170,k:'good',label:'📊 TODAY’S SCORECARD · EXAMPLE'}),
+  kpi({x:30,y:660,w:290,h:70,k:'good',i:'🎯',t:'Match rate',v:'99.997%'}),
+  kpi({x:340,y:660,w:290,h:70,k:'risk',i:'🚩',t:'Breaks today',v:'37'}),
+  kpi({x:650,y:660,w:290,h:70,k:'bad',i:'❓',t:'Unexplained',v:'3'}),
+  kpi({x:960,y:660,w:290,h:70,k:'neutral',i:'⏳',t:'Oldest open break',v:'2 days'}),
+
+  tag(1,40,76,'Totals first'),
+  tag(2,90,226,'Every account'),
+  tag(3,140,376,'Every posting'),
+  tag(4,1250,30,'Same cut','r'),
+  tag(5,1250,410,'How often','r'),
+  tag(6,1250,610,'Daily scorecard','r'),
+].join('')}
+
+/* 4 · Breaks: find, classify, fix */
+function d4(){
+  const data=[840,760,610,690,480,400,330,260,310,190,150,110,140,80,55,35,45,12,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+  const X=w=>80+(w-1)*20, Y=v=>360-v*0.32;
+  const out=[group({x:10,y:30,w:780,h:400,k:'neutral',label:'📉 UNEXPLAINED BREAKS PER DAY · 32 WEEKS · EXAMPLE',lp:'b'})];
+  [0,300,600,900].forEach(v=>out.push(`<line x1="80" y1="${Y(v)}" x2="${X(32)}" y2="${Y(v)}" stroke="rgba(34,37,48,.10)"/>`,txt(72,Y(v)+4,String(v),'cl','end')));
+  [1,8,16,24,32].forEach(w=>out.push(txt(X(w),380,'week '+w,'cl','middle')));
+  [4,9,13,17,22,26,30].forEach(w=>out.push(`<line x1="${X(w)}" y1="70" x2="${X(w)}" y2="360" stroke="rgba(201,102,30,.35)" stroke-dasharray="4 5"/>`,txt(X(w),64,'ME','cl','middle','#C9661E')));
+  out.push(
+    `<path d="M80 360 L${X(32)+6} 360" stroke="#222530" stroke-width="2"/>`,`<path d="M80 360 L80 60" stroke="#222530" stroke-width="2"/>`,
+    poly(data.map((v,i)=>[X(i+1),Y(v)]),'#C0392B',3.2),
+    ...[22,26,30].map(w=>`<circle cx="${X(w)}" cy="${Y(0)-16}" r="10" fill="#2E8B57"/><text x="${X(w)}" y="${Y(0)-11.5}" text-anchor="middle" font-size="13" font-weight="800" fill="#fff">✓</text>`),
+    txt(X(26),Y(0)-40,'scenario target: zero from week 19','kl','middle','#2E8B57'),
+    txt(760,96,'ME = month-end','note','end'),
+
+    group({x:810,y:30,w:460,h:400,k:'risk',label:'🏷️ FOUR KINDS OF BREAK'}),
+    box({x:830,y:70,w:420,h:76,k:'neutral',i:'⏱️',t:'Timing',s:'in flight at cut → verify next cycle'}),
+    box({x:830,y:156,w:420,h:76,k:'risk',i:'📖',t:'Rule gap',s:'interest rounded differently → fix rule, replay'}),
+    box({x:830,y:242,w:420,h:76,k:'risk',i:'🗃️',t:'Data',s:'dormant status mapped wrongly → fix, replay'}),
+    box({x:830,y:328,w:420,h:76,k:'legacy',i:'🏛️',t:'Legacy bug',s:'mainframe charges a fee twice → business decides'}),
+
+    group({x:10,y:450,w:1260,h:330,k:'neutral',label:'🔁 FROM BREAK TO CLOSED'}),
+  );
+  [['🚩','Break found','risk','a difference'],['🤖','AI groups','ai','similar breaks\nlikely cause'],['👤','Owner confirms','human','the root cause'],
+   ['🛠️','Fix','aws','rule · data\nor decision'],['⏪','Replay','aws','re-run past days'],['✅','Closed','good','after a clean\nre-check']].forEach((b,i)=>{
+    const x=30+i*208;
+    out.push(box({x,y:496,w:180,h:100,k:b[2],i:b[0],t:b[1],s:b[3]}));
+    if(i<5) out.push(arrow([[x+180,546],[x+208,546]],{k:'neutral',st:i<1?6:7}));
+  });
+  out.push(
+    box({x:30,y:620,w:600,h:136,k:'legacy',i:'🏛️',t:'When the mainframe is wrong',s:'we don’t copy the bug by accident —\nthe business decides, and we record it (EP02)'}),
+    box({x:650,y:620,w:600,h:136,k:'ai',i:'🤖',t:'AI helps, people decide',s:'AI groups thousands of breaks into a few causes\nand links them to the EP02 rules catalog'}),
+    tag(1,330,30,'Falling week by week'),
+    tag(2,1250,30,'Four kinds','r'),
+    tag(3,1240,70,'Verify timing','r'),
+    tag(4,1240,156,'Fix and replay','r'),
+    tag(5,40,620,'Legacy bug: decide'),
+    tag(6,248,496,'AI groups breaks'),
+    tag(7,1080,496,'Closed after replay'),
+  );
+  return out.join('');
+}
+
+/* 5 · Month-end and the hard days */
+function d5(){
+  const days=[['📅','Month-end','interest · fees\nstatements','risk'],['📊','Quarter-end','regulatory\nreports','risk'],['🎆','Year-end','annual interest\ntax reports','risk'],
+              ['💼','Payroll day','peak volume','aws'],['🏖️','TARGET holiday','T2 closed ·\ninstant still runs','aws'],['🕐','Clock change','a day with\n23 or 25 hours','neutral']];
+  return [
+    group({x:10,y:30,w:1260,h:300,k:'neutral',label:'📅 THE HARD DAYS · EACH ONE MUST RECONCILE CLEAN'}),
+    ...days.map((d,i)=>box({x:30+i*205,y:76,w:195,h:220,k:d[3],i:d[0],t:d[1],s:d[2]})),
+
+    group({x:10,y:350,w:620,h:430,k:'aws',label:'🧮 MONTH-END IN DETAIL'}),
+    box({x:30,y:396,w:580,h:74,k:'aws',i:'📈',t:'Interest accrual',s:'a little every day, summed at month-end'}),
+    box({x:30,y:482,w:580,h:74,k:'aws',i:'💶',t:'Fees',s:'account fees and transaction fees'}),
+    box({x:30,y:568,w:580,h:74,k:'aws',i:'🧾',t:'Statements',s:'every customer, every account'}),
+    box({x:30,y:654,w:580,h:74,k:'good',i:'📒',t:'General ledger file',s:'Finance’s master books'}),
+    arrow([[320,470],[320,482]],{k:'aws',st:5}),
+    arrow([[320,556],[320,568]],{k:'aws',st:5}),
+    arrow([[320,642],[320,654]],{k:'good',st:5}),
+
+    group({x:650,y:350,w:620,h:430,k:'human',label:'📆 TWO KINDS OF “DAY”'}),
+    box({x:670,y:396,w:580,h:90,k:'legacy',i:'🏛️',t:'Bank-defined business day',s:'cut-off, holidays and zone from policy'}),
+    box({x:670,y:500,w:580,h:90,k:'aws',i:'☁️',t:'AWS: the 24/7 clock',s:'every payment has an exact timestamp'}),
+    box({x:670,y:614,w:580,h:140,k:'good',i:'🔑',t:'Record both',s:'approved business date + exact event time\nkeep the rule version and calendar\nreconcile by business date · trace by time'}),
+
+    tag(1,1250,30,'Hard days','r'),
+    tag(2,40,76,'Month-end'),
+    tag(3,651,76,'Payroll & holidays'),
+    tag(4,1061,76,'Clock change'),
+    tag(5,40,396,'Interest and fees'),
+    tag(6,1250,350,'Two kinds of day','r'),
+    tag(7,680,614,'Record both dates'),
+  ].join('');
+}
+
+/* 6 · Move the reads, cut the MIPS */
+function d6(){
+  const Y=v=>470-v*3.6;
+  const bars=[['baseline',0,100,'legacy','100'],['balances',91,100,'good','−9'],['statements',85,91,'good','−6'],['reporting',80,85,'good','−5'],['other reads',78,80,'good','−2'],['scenario',0,78,'aws','78']];
+  const out=[
+    group({x:10,y:30,w:620,h:500,k:'aws',label:'📊 MOVE THE READS FIRST'}),
+    table({x:30,y:70,w:580,hh:28,rh:62,cols:[['WORKLOAD',0],['CANDIDATE',220],['RELEASE GATE',380]],
+      rows:[['📱 App balance view','AWS mirror','bank-approved freshness'],['🧾 Statements','AWS mirror','policy and access'],
+            ['🏬 Reporting','AWS mirror','tested failure path'],['📊 Other reads','evaluate','bank-by-bank review'],
+            ['🔒 Funds check','MAINFRAME','authoritative path']],hl:{4:'risk'}}),
+    txt(30,480,'Move only reads with approved freshness and access.','kl'),
+    txt(30,508,'Funds checks stay on the authoritative path.','kl'),
+    group({x:650,y:30,w:620,h:500,k:'good',label:'🔻 MIPS COST HYPOTHESIS · ILLUSTRATIVE'}),
+    `<line x1="670" y1="470" x2="1250" y2="470" stroke="#222530" stroke-width="2"/>`,
+  ];
+  bars.forEach((b,i)=>{
+    const x=680+i*92, c=K[b[3]], y0=Y(b[2]), y1=Y(b[1]);
+    out.push(`<rect x="${x}" y="${y0}" width="70" height="${y1-y0}" rx="6" fill="${c.f}" stroke="${c.s}" stroke-width="2"/>`,
+      txt(x+35,y0-8,b[4],'kv','middle',c.s), txt(x+35,494,b[0],'cl','middle'));
+    if(i>0&&i<5) out.push(`<line x1="${x-22}" y1="${Y(bars[i][2])}" x2="${x}" y2="${Y(bars[i][2])}" stroke="#7B8190" stroke-dasharray="3 3"/>`);
+  });
+  out.push(
+    group({x:10,y:550,w:1260,h:230,k:'neutral',label:'⏱️ FRESHNESS · TARGETS TO TEST · EXAMPLE'}),
+    kpi({x:30,y:596,w:390,h:52,k:'good',i:'⏱️',t:'CDC lag p99 target',v:'< 5 s'}),
+    kpi({x:30,y:658,w:390,h:52,k:'good',i:'📦',t:'Gap check',v:'required'}),
+    kpi({x:30,y:720,w:390,h:52,k:'risk',i:'🚨',t:'Lag alarm',v:'at 30 s'}),
+    box({x:440,y:596,w:810,h:176,k:'risk',i:'🔁',t:'If CDC falls behind',s:'route eligible reads back only if capacity is proven\nrehearse the switch · page the on-call engineer'}),
+    tag(1,600,30,'Candidate reads','r'),
+    tag(2,40,436,'Money checks stay exact'),
+    tag(3,1250,30,'Test cost impact','r'),
+    tag(4,1175,130,'Example −22%','c'),
+    tag(5,40,596,'Freshness watched'),
+    tag(6,450,596,'Rehearsed fallback'),
+  );
+  return out.join('');
+}
+
+/* 7 · Go / no-go for the flip */
+function d7(){return [
+  group({x:10,y:30,w:780,h:560,k:'good',label:'🚦 ILLUSTRATIVE GATE · NO BANK SIGN-OFF'}),
+  table({x:30,y:66,w:740,hh:28,rh:54,cols:[['CRITERION',0],['EVIDENCE',400],['STATUS',590]],
+    rows:[['3 clean month-ends in a row','weeks 22 · 26 · 30','sample pass'],
+          ['0 unexplained breaks for 60 days','daily reports','sample pass'],
+          ['Every break kind closed, with an owner','break log','sample pass'],
+          ['Payroll day reconciled clean','day report','sample pass'],
+          ['DR drill on the new ledger','drill report','sample pass'],
+          ['Fallback rehearsed (paired cuts)','rehearsal log','sample pass'],
+          ['Finance & Internal Audit sign-off','audit report','open'],
+          ['Notice need assessed by Compliance','policy note','sample scope']],hl:{6:'risk'}}),
+  tag(2,30,562,'NOT YET'),
+  txt(196,568,'— sample pack; final evidence still under review.','kl'),
+
+  group({x:810,y:30,w:460,h:300,k:'human',label:'✍️ WHO SIGNS THE FLIP'}),
+  box({x:830,y:70,w:420,h:54,k:'human',i:'💶',t:'CFO',s:'the books are right'}),
+  box({x:830,y:132,w:420,h:54,k:'human',i:'🛡️',t:'Chief Risk Officer',s:'risk within appetite'}),
+  box({x:830,y:194,w:420,h:54,k:'human',i:'🔎',t:'Bank control owner',s:'evidence and exceptions reviewed'}),
+  box({x:830,y:256,w:420,h:54,k:'human',i:'🛠️',t:'CTO',s:'the platform is ready'}),
+
+  group({x:810,y:350,w:460,h:240,k:'ai',label:'🤖 AI MAY DRAFT THE EVIDENCE PACK'}),
+  lines(830,404,['🤖 collects daily reports and break logs','🤖 drafts a summary for each criterion','👀 Audit checks every claim at the source','🔒 the pack is locked once signed'],'kl',44),
+
+  group({x:10,y:610,w:1260,h:170,k:'aws',label:'🔜 NEXT · EP20 · PROPOSED CUTOVER'}),
+  box({x:30,y:652,w:1220,h:104,k:'aws',i:'🔀',t:'Segment-by-segment design',s:'write authority needs fencing · reverse sync is measured · fallback is rehearsed'}),
+
+  tag(1,760,30,'Eight exit criteria','r'),
+  tag(3,1250,30,'Four signatures','r'),
+  tag(4,1250,350,'AI drafts, Audit checks','r'),
+  tag(5,1250,610,'Next: the flip','r'),
+].join('')}
+
+/* ============================================================
+   Episode config
+   ============================================================ */
+const DECK={
+  brand:'🏦 CORE BANKING PAYMENTS MODERNIZATION · AWS',
+  ep:'EP 19', epShort:'EP19', title:'Shadow Ledger & Reconciliation', subtitle:'Execution Architecture · Reference Scenario',
+  seriesTitle:'Core Payments Modernization · Execution Architecture',
+  logo:'../shared/jo-logo.png', background:'../shared/background.png',
+  stages:[['🔍','Discover'],['📋','Requirements'],['📐','Design & Plan'],['🛠️','Build'],['🚀','Test & Deploy'],['🔧','Operate']],
+  stage:5,
+  glossary:{
+    SOR:['System of record','risk','The one database whose balances are legally “the truth”. In Phase 2, that is still DB2 on the mainframe.'],
+    SHADOW:['Shadow ledger','risk','A second set of books on AWS, built from the same payments. It runs in parallel and must prove itself before anyone relies on it.'],
+    PARRUN:['Parallel run','cost','Old and new systems process the same work at the same time. The safest way to build trust — and you pay for both.'],
+    RECON:['Reconciliation','risk','Comparing two sets of numbers that should be the same, and explaining every difference.'],
+    AUDIT:['Internal Audit','risk','An independent bank control function. The bank defines its review and approval role.'],
+    CDC:['Change Data Capture','cost','Reads committed source changes. Lag, gaps, ordering and source impact must be tested.'],
+    MIRROR:['Mirror','value','A proposed read-only copy of the mainframe books, validated at known source positions.'],
+    REPOST:['Re-posting','value','The proposed engine computes from approved events and bank-owned rules, independently of mirrored balances.'],
+    NOWRITE:['No write-back','risk','In this reference Phase 2, the shadow does not change customer balances. Source load and data controls still need testing.'],
+    READOFF:['Read offload','cost','Move eligible reads only after freshness, access and failure tests. Savings depend on measured use and contract terms.'],
+    CONTROLTOT:['Control totals','risk','The count and sum of all postings, per product and per day. A fast first check: if totals differ, something is wrong.'],
+    BALREC:['Balance reconciliation','risk','Compare account balances at bank-approved cuts. Any difference enters an investigation queue; the bank owns acceptance rules.'],
+    TXNMATCH:['Transaction matching','risk','Matching every posting on both sides by its ID. It shows exactly which posting caused a difference.'],
+    CUT:['Reconciliation cut','risk','A paired source position and event watermark linked by stable posting IDs, with late and missing events checked.'],
+    MATCHRATE:['Match rate','value','The share of postings that match exactly. Even 99.997% can mean hundreds of differences to explain every day.'],
+    BREAK:['Break','risk','A difference between the two sets of books. Every break must be explained before the flip.'],
+    TIMING:['Timing break','value','An in-flight payment may appear on one side first; verify it at the next consistent cut.'],
+    RULEGAP:['Rule gap','risk','The new ledger is missing a rule from the old code, like a rounding rule. Fix the rule, then replay.'],
+    LEGACYBUG:['Legacy bug','risk','Sometimes the mainframe is wrong. We don’t copy the bug by accident: the business decides, and we record why.'],
+    REPLAY:['Replay','value','Re-running approved historical or synthetic events through the corrected rules, then comparing the evidence.'],
+    MONTHEND:['Month-end close','risk','The busiest accounting moment: interest, fees, statements and the general ledger, all at once.'],
+    ACCRUAL:['Interest accrual','risk','Interest earned a little every day and paid at month-end. Tiny rounding differences add up across millions of accounts.'],
+    BUSDAY:['Business day','value','A bank-defined reporting and posting date, including its cut-off, holidays and time zone.'],
+    EDGEDAY:['Edge days','risk','Unusual days like clock changes (23 or 25 hours), leap days and bank holidays. Old systems often have special rules for them.'],
+    TARGET:['TARGET holiday','value','Days when the euro large-value system (T2) is closed. Instant payments (TIPS) still run, so the books still move.'],
+    MIPS:['MIPS','cost','A mainframe capacity measure. Savings require real usage data and a review of the bank’s contract.'],
+    FRESH:['Data freshness','value','How old mirrored data is. The bank approves a tolerance for each read workload.'],
+    CDCLAG:['CDC lag','risk','How far the proposed copy is behind the source. Alert thresholds need testing and bank approval.'],
+    INFLIGHT:['Payments in flight','value','Payments accepted but not yet posted. Balance views must use bank-approved pending-item logic.'],
+    DIRECTREAD:['Direct DB read','risk','A downstream system reading DB2 directly. Map its rules before changing the interface.'],
+    EXIT:['Exit criteria','risk','The evidence that must be true before the flip. Agreed at the start, not invented at the end.'],
+    COND:['Not yet','risk','An open evidence item holds the cutover until the bank’s authorized owners decide.'],
+    EVIDPACK:['Evidence pack','risk','All proof in one place: daily reports, break logs, drills and sign-offs. Locked once signed.'],
+    REVERSECDC:['Reverse CDC','risk','After the flip, changes flow from AWS back to DB2, so the mainframe stays a fallback for a while.'],
+    SUPERVISOR:['Supervisor notification','risk','Compliance determines whether notice or approval applies in this bank and jurisdiction.'],
+  },
+  slides:[
+    {icon:'🪞',kicker:'EP19 · 1/7 · WHY',title:'Why a Shadow Ledger',time:'00:00 – 01:55',draw:d1,
+     key:'Prove it before you trust it — to the cent.',next:'🔜 Next: how the parallel run works',
+     open:'Welcome to phase two: the shadow ledger.',
+     land:'Phase two turns opinion into evidence.',
+     gloss:[['SOR',[1,2]],['SHADOW',[3]],['PARRUN',[3]],['RECON',[4]],['AUDIT',[5]]],
+     demo:['build a synthetic source and shadow with approved sample events; no bank deployment is implied',
+           'validate mirror lag, event mapping and comparison cuts in a sandbox'],
+     steps:[['You are here','Reference Phase 2; the legacy ledger remains authoritative.'],
+            ['The ledger is special','Posting and reporting rules are bank-owned.'],
+            ['A second set of books','AWS builds its own balances from the same payments.'],
+            ['Compare to the cent','Every day, until nothing is left to explain.'],
+            ['Prove it to people','Same balances, same totals, hard days, sign-offs.']]},
+    {icon:'🔁',kicker:'EP19 · 2/7 · HOW IT WORKS',title:'How the Parallel Run Works',time:'01:55 – 04:10',draw:d2,
+     key:'Compute, don’t copy — and never write back.',next:'🔜 Next: three levels of reconciliation',
+     open:'Here is how the parallel run works.',
+     land:'AWS writes nothing back. Compute, don’t copy. Compare at the same cut.',
+     gloss:[['CDC',[2]],['MIRROR',[2]],['REPOST',[3]],['NOWRITE',[7]],['READOFF',[6]]],
+     demo:['prototype CDC and independent event replay with synthetic data, then check paired cuts',
+           'validate MSK, EKS and Aurora assumptions under the bank’s controls'],
+     steps:[['Still the official books','CICS posts to DB2; the mainframe stays in charge.'],
+            ['Copy every change','CDC reads the DB2 log into Kafka → the mirror.'],
+            ['Same events, approved rules','The engine computes from bank-approved events.'],
+            ['Compare to the cent','Mirror vs shadow, plus the end-of-day totals.'],
+            ['Breaks and reports','Differences go to a queue; reports go to Finance.'],
+            ['Test read offload','Bank approves eligible reads; savings are measured.'],
+            ['Three rules','No write-back · independent compute · paired cuts.']]},
+    {icon:'⚖️',kicker:'EP19 · 3/7 · RECONCILIATION',title:'Three Levels, Every Day',time:'04:10 – 06:10',draw:d3,
+     key:'Totals tell you something is wrong. Postings tell you where.',next:'🔜 Next: breaks — find, classify, fix',
+     open:'Reconciliation has three levels.',
+     land:'Every one of them must be explained.',
+     gloss:[['CONTROLTOT',[1]],['BALREC',[2]],['TXNMATCH',[3]],['CUT',[4]],['MATCHRATE',[6]]],
+     demo:['prototype reconciliation of synthetic totals, balances and postings; list every break',
+           'test a proposed <b>EKS</b> job, <b>S3</b> results and <b>Athena</b> query path'],
+     steps:[['Totals first','Count and sum per product and day: 14.2 M postings.'],
+            ['Every account','4.1 M balances, to the cent: 37 differ.'],
+            ['Every posting','Matched by ID: 390 unmatched enter investigation.'],
+            ['Same cut','Link source position to event watermark and posting IDs.'],
+            ['How often','Minutes, daily, and every month-end.'],
+            ['Daily scorecard','Match rate, breaks, unexplained, oldest break.']]},
+    {icon:'🚩',kicker:'EP19 · 4/7 · BREAKS',title:'Find, Classify, Fix Every Break',time:'06:10 – 07:55',draw:d4,
+     key:'Explain every break. Never copy a bug by accident.',next:'🔜 Next: month-end and the hard days',
+     open:'A difference between the two books is called a break.',
+     land:'A break is closed only after replay and a clean re-check.',
+     gloss:[['BREAK',[1]],['TIMING',[3]],['RULEGAP',[4]],['LEGACYBUG',[5]],['REPLAY',[4,7]]],
+     demo:['inject a rounding bug into synthetic events; test classification, replay and re-check',
+           'evaluate whether <b>Bedrock</b> can group breaks with traceable suggestions for owners'],
+     steps:[['Falling week by week','From hundreds a day to zero by week 19.'],
+            ['Four kinds','Timing, rule gap, data, legacy bug.'],
+            ['Verify timing','In-flight cases need a clean next-cut check.'],
+            ['Fix and replay','Fix the rule or data, re-run past days.'],
+            ['Legacy bug: decide','The business decides; we record why.'],
+            ['AI groups breaks','Thousands of breaks → a few likely causes.'],
+            ['Closed after replay','Only a clean re-check closes a break.']]},
+    {icon:'📅',kicker:'EP19 · 5/7 · HARD DAYS',title:'Month-End and the Hard Days',time:'07:55 – 09:45',draw:d5,
+     key:'Easy days prove little. Hard days prove the ledger.',next:'🔜 Next: move the reads, cut the MIPS',
+     open:'A normal Tuesday proves very little.',
+     land:'Reconcile by business day. Trace by timestamp.',
+     gloss:[['MONTHEND',[2]],['ACCRUAL',[5]],['TARGET',[3]],['EDGEDAY',[4]],['BUSDAY',[6,7]]],
+     demo:['design sample month-end, clock-change and holiday cases with bank rule owners',
+           'test approved event snapshots in <b>S3</b> and a repeatable replay path'],
+     steps:[['Hard days','Month-, quarter- and year-end, payroll, holidays, clock changes.'],
+            ['Month-end','Interest, fees and statements, all at once.'],
+            ['Payroll & holidays','Peak volume; T2 closed but instant still runs.'],
+            ['Clock change','A day with 23 or 25 hours.'],
+            ['Interest and fees','Tiny rounding adds up across millions of accounts.'],
+            ['Two kinds of day','Bank-defined business date and event timestamp.'],
+            ['Record both dates','Business date + exact timestamp on every posting.']]},
+    {icon:'🔻',kicker:'EP19 · 6/7 · COST HYPOTHESIS',title:'Test Read Offload and MIPS',time:'09:45 – 11:20',draw:d6,
+     key:'Test read offload and measure any savings.',next:'🔜 Next: go / no-go for the flip',
+     open:'Read offload may be useful before the flip, if bank controls allow it.',
+     land:'Prove freshness and cost before claiming savings.',
+     gloss:[['MIPS',[3,4]],['FRESH',[1,5]],['INFLIGHT',[1]],['DIRECTREAD',[1]],['CDCLAG',[5,6]]],
+     demo:['rehearse mirror lag with synthetic data and test eligible-read routing',
+           'measure CDC lag and prove fallback capacity before enabling a feature flag'],
+     steps:[['Reads move first','Only bank-approved balance views, statements or reports.'],
+            ['Money checks stay exact','Funds checks stay on the mainframe until the flip.'],
+            ['Test cost impact','Measure mainframe use and contract effect.'],
+            ['Example −22%','Illustrative 100-to-78 unit scenario.'],
+            ['Freshness watched','CDC lag p99 under 5 s, alarm at 30 s.'],
+            ['Rehearsed fallback','Lag may route eligible reads back if capacity allows.']]},
+    {icon:'🚦',kicker:'EP19 · 7/7 · GO / NO-GO',title:'Ready to Flip?',time:'11:20 – 12:55',draw:d7,
+     key:'Evidence, not opinion, earns the flip.',next:'🔜 Next episode: EP20 — The Flip, Segment by Segment',
+     open:'So, are we ready to flip?',
+     land:'Evidence, not opinion, earns the flip.',
+     gloss:[['EXIT',[1]],['COND',[2]],['REVERSECDC',[1,5]],['SUPERVISOR',[1]],['EVIDPACK',[4]]],
+     demo:['define scorecard fields and link each criterion to a source record',
+           'test evidence retention and access rules before any sign-off'],
+     steps:[['Eight exit criteria','Month-ends, zero breaks, drills, rollback, sign-offs.'],
+            ['Not yet','Final evidence is still a draft; bank owners decide.'],
+            ['Bank authority','Finance, risk, technology and operations roles.'],
+            ['AI drafts, people check','Verify each claim against source evidence.'],
+            ['Next: proposed flip','Segment by segment, with rehearsed recovery.']]},
+  ],
+};
+startDeck(DECK);
+</script>
+</body>
+</html>

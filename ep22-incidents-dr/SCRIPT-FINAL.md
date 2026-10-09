@@ -1,0 +1,165 @@
+# EP 22 · Incidents & DR Drills: Final Script
+
+**Series:** Core Payments Modernization — execution architecture (Stage 6: Operate). **Delivery:** clear English for global technology leaders. Incident and DR figures are synthetic scenarios; bank operations, Compliance and payments SMEs own live policy and acceptance.
+
+**How to read it**
+- **Bold** = stress this word.
+- A full stop = a short pause.
+- A new **[tag]** = a longer pause. Draw your arrow with the pen here.
+- Times are written as words, so they are easy to read aloud.
+
+## Time plan
+
+<!-- TIMETABLE -->
+| Slide | Words | Length | Timestamp |
+|---|---|---|---|
+| 1 · Every Incident, the Same Five Steps | 208 | 01:45 | 00:00 – 01:45 |
+| 2 · Detect Fast — Without the Noise | 223 | 01:55 | 01:45 – 03:40 |
+| 3 · INC-0412: Stuck Payments | 258 | 02:10 | 03:40 – 05:50 |
+| 4 · Stop the Bleeding: Safe Switches | 212 | 01:50 | 05:50 – 07:40 |
+| 5 · Game Day: Lose a Whole Region | 257 | 02:10 | 07:40 – 09:50 |
+| 6 · Learn Without Blame | 182 | 01:35 | 09:50 – 11:25 |
+| 7 · Getting Better Every Quarter | 160 | 01:25 | 11:25 – 12:50 |
+| **Total** | **1500** | **12:50** | at 125 words per minute, plus 6 s per slide for drawing |
+
+---
+
+<!-- slide:1 -->
+## Slide 1 · Every Incident, the Same Five Steps
+
+**[tag ①]** At the operate stage, the question is how teams respond when a critical service fails. In the large enterprise systems I have worked on, a clear response pattern matters: detect, triage, mitigate, resolve, and learn. This slide applies that pattern to a **reference payments scenario**. The bank defines its own playbook and decision rights.
+
+**[tag ②]** Severity should describe customer and financial impact. The SEV levels and thirty-minute executive update on this slide are **example runbook settings**, not a bank policy. Operations, Risk and Communications would agree the real triggers and cadence.
+
+**[tag ③]** In a serious incident, name the incident commander, technical lead, communications lead, Compliance lead and scribe. AI may help draft a timeline from logs, but people verify it. Each role needs an agreed authority before a crisis.
+
+**[tag ④]** EU reporting can create a **regulatory clock**. Under DORA, the financial entity classifies the incident against formal criteria. Compliance owns that assessment and the current reporting procedure; an engineering severity label is not the legal classification.
+
+**[tag ⑤]** A major incident may require staged notifications and reports under the applicable DORA rules. I would build a visible timeline, owner and evidence trail into the response workflow. Compliance checks the current deadlines and submits the reports; the commander runs mitigation. These are different responsibilities.
+<!-- /slide -->
+
+---
+
+<!-- slide:2 -->
+## Slide 2 · Detect Fast — Without the Noise
+
+**[tag ①]** You cannot fix what you cannot see. I would page for **customer-facing symptoms**: fast SLO burn, payments with unknown status, a reject spike or a reconciliation break. The bank chooses thresholds from its baseline and risk appetite.
+
+**[tag ②]** A busy server or one restarted pod usually belongs on a dashboard. But a tested dependency alert may deserve a page if it predicts customer harm soon. The rule is to page for actionable risk, with thresholds tuned to avoid alert fatigue.
+
+**[tag ③]** The proposed stuck-payment detector tracks time since submission and current status. Thirty seconds is an **illustrative alert threshold** from episode five; the scheme and bank operations set the real inquiry and escalation windows.
+
+**[tag ④]** The diagram shows a **policy-controlled status inquiry** path, such as pacs.028 where valid. Whether that message is valid, and when to send it, comes from the chosen scheme profile and bank-approved process. The thirty-second sample alert is not an automatic inquiry trigger.
+
+**[tag ⑤]** The half-percent, two-minute and SEV-two values are sample alert settings. I would tune them against real traffic, customer impact and operations capacity.
+
+**[tag ⑥]** Several alerts may describe one failure. AI could group the six alerts in this example and draft an impact summary, with links to the raw signals. The commander checks whether they truly share one cause.
+
+**[tag ⑦]** But the incident commander checks the draft, and decides. AI only drafts.
+<!-- /slide -->
+
+---
+
+<!-- slide:3 -->
+## Slide 3 · INC-0412: Stuck Payments
+
+**[tag ①]** Let's walk through a **synthetic incident**. At two minutes past six on a Friday, the example dashboard shows two point one percent of payments without a final status. This is a scenario for testing the response, not a bank incident I have handled.
+
+**[tag ②]** The sample runbook escalates from SEV two to SEV one as impact grows. The app banner illustrates customer communication. In a real bank, severity and wording need authorised owners and verified customer impact.
+
+**[tag ③]** In the scenario, the team traces the failure to an **expired TLS certificate** on an external connection. Certificate monitoring is an engineering control; the actual external behaviour depends on the network contract.
+
+**[tag ④]** The simulated timeline shows a certificate replacement and recovery by twenty-four minutes past. The twenty-two-minute impact is a **scenario result**, not measured production performance.
+
+**[tag ⑤]** What about the uncertain payments? Do not guess. The one-thousand-two-hundred-and-forty count is synthetic. Payments operations and the scheme guide determine which inquiries are allowed and how to avoid flooding the network.
+
+**[tag ⑥]** The chart splits those cases into confirmed, not found and unresolved groups. But "not found" alone may not authorise an automatic funds release. The bank's scheme and ledger rules define when to release a hold, when to retry and when operations must investigate. The desired evidence is zero unexplained debits, not an unverified claim of zero loss.
+
+**[tag ⑦]** Compliance would classify the real incident against current DORA criteria and record its reasoning. The diagram shows that review as an open decision. Customer care and the review team use verified impact and timeline, not the synthetic numbers.
+<!-- /slide -->
+
+---
+
+<!-- slide:4 -->
+## Slide 4 · Stop the Bleeding: Safe Switches
+
+**[tag ①]** During an incident, the first goal is to limit customer harm. A runbook should show candidate actions and their risks. No switch is **safe by default**; its effect has to be tested and approved for the situation.
+
+**[tag ②]** If the new route fails, a feature flag may send **new** eligible payments to the old route. This only helps if capacity, ownership and in-flight payments have been tested; it does not undo payments already started.
+
+**[tag ③]** If fraud scoring fails, continuing payments in degraded mode is a **Risk decision**, not an engineering default. The bank may instead pause a segment. Either path needs approved limits, monitoring and an exit plan.
+
+**[tag ④]** A bad release may be rolled back after checking data compatibility. If the scheme link is down, pausing instant sending may be safer; offering another transfer type depends on product, scheme and customer-communication policy.
+
+**[tag ⑤]** The diagram lists candidate switches for route, instant sending, fraud mode, limits and stand-in processing. I would require a test and an owner for each before treating it as an incident control.
+
+**[tag ⑥]** The bank sets who may activate each switch. The commander follows the runbook; automation records the action; a second approver checks high-risk moves where policy requires. Every switch needs a rehearsed reversal and a way to see unintended effects.
+<!-- /slide -->
+
+---
+
+<!-- slide:5 -->
+## Slide 5 · Game Day: Lose a Whole Region
+
+**[tag ①]** Now a **proposed game-day scenario**: the primary AWS Region fails. The aim is to test the people, tooling, data position and customer path before a real outage. It is not a drill I claim to have run for a bank.
+
+**[tag ②]** The architecture proposes a warm standby in a second Region. Whether it can scale in time is part of the drill, not an assumption.
+
+**[tag ③]** Aurora Global Database and MSK Replicator use **asynchronous** cross-Region replication. Lag can vary. We must measure both streams and plan for records that have not reached the standby.
+
+**[tag ④]** The timeline is synthetic: outage, alert, SEV declaration, then a **human** failover decision. The real decision would weigh customer impact, replication lag and the risk of split-brain writes.
+
+**[tag ⑤]** Automation may promote the database and restart consumers from a known replicated position. The six- and eight-minute marks are **targets** to test, not reliable platform guarantees.
+
+**[tag ⑥]** Routing controls could then move customer traffic. The ten-minute mark needs end-to-end validation, including clients, DNS behaviour and dependencies.
+
+**[tag ⑦]** The slide shows thirteen minutes against a fifteen-minute **RTO target** and zero-point-eight seconds of possible data gap. These are synthetic figures. Asynchronous failover can lose unreplicated writes, and MSK consumers may replay records. Reconciliation and idempotent processing must handle uncertain payments across database, Kafka and external scheme state; any pacs.028 inquiry follows scheme rules. Zero duplicate debits is an acceptance goal, not a result shown here.
+
+**[tag ⑧]** A later failback drill should check data convergence and customer routing with the same care. A recovery plan needs measured evidence before leaders rely on it.
+<!-- /slide -->
+
+---
+
+<!-- slide:6 -->
+## Slide 6 · Learn Without Blame
+
+**[tag ①]** After an incident, gather verified facts: chat, alerts, logs, notes and recent changes. This slide continues the **synthetic certificate scenario**.
+
+**[tag ②]** AI could draft a timeline and questions from authorised, masked records. People verify timestamps and impact figures before any external or executive report.
+
+**[tag ③]** The diagram proposes a **blameless** review within five working days. That is an example internal target. The purpose is to understand why controls failed and which actions reduce repeat risk.
+
+**[tag ④]** We use the five whys. Why were payments stuck? The scheme refused our connection. Why? Our certificate had expired. Why? It was renewed by hand, once a year. Why was there no warning? Expiry was not monitored. Why? Certificates were not in the platform inventory. Now we have a cause we can **fix**.
+
+**[tag ⑤]** Candidate actions include automated renewal, expiry alerts, a complete certificate inventory and a failure test. Each action needs an owner, deadline and verification step.
+
+**[tag ⑥]** We never blame people, and AI never writes the conclusions. People review and sign the post-mortem.
+
+**[tag ⑦]** Share the reviewed lessons with teams that have the same dependency, under the bank's information-handling rules.
+<!-- /slide -->
+
+---
+
+<!-- slide:7 -->
+## Slide 7 · Getting Better Every Quarter
+
+**[tag ①]** To know whether resilience improves, measure detection, restoration, severity and action closure over time. The two-minute detection, twenty-four-minute recovery and eighty-seven-percent closure on this chart are **synthetic example values**, not bank results.
+
+**[tag ②]** The decline from nineteen to seven incidents over six quarters is an **illustrative trend**. A real scorecard needs consistent definitions and a stable reporting baseline.
+
+**[tag ③]** I would watch **repeat** incidents closely. A repeat may mean an action was incomplete, untested or aimed at the wrong cause. Zero is a goal, not a promised outcome.
+
+**[tag ④]** Here is the improvement loop. An incident leads to a blameless post-mortem, and the post-mortem creates actions in the backlog.
+
+**[tag ⑤]** A game day can test whether a control works under a chosen failure. The next real incidents show whether risk has truly fallen.
+
+**[tag ⑥]** The bank chooses who reviews the scorecard and how decisions reach the backlog. That is operational resilience as an execution loop. Episode twenty-three looks at the cost of operating the platform.
+<!-- /slide -->
+
+---
+
+## Presenter notes
+
+- Use the incident and DR numbers only as synthetic exercise data.
+- DORA classification and reporting: [EU DORA](https://eur-lex.europa.eu/eli/reg/2022/2554/oj) and [Delegated Regulation 2025/301](https://eur-lex.europa.eu/eli/reg_del/2025/301/oj/eng). Compliance confirms current applicability and deadlines.
+- For unplanned recovery, see [AWS Aurora failover guidance](https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-global-database-disaster-recovery.html) and [AWS MSK multi-Region considerations](https://docs.aws.amazon.com/msk/latest/developerguide/msk-replicator-bp-multi-region.html). Both replication paths can have lag.

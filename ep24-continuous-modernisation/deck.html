@@ -1,0 +1,438 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EP24 Continuous Modernisation</title>
+<link rel="stylesheet" href="../shared/deck.css">
+</head>
+<body>
+<script src="../shared/deck.js"></script>
+<script>
+/* ============================================================
+   EP24 · Continuous Modernisation with AI — diagrams (1280x800)
+   ============================================================ */
+const poly=(pts,col,w=2.6,extra='')=>`<polyline points="${pts.map(p=>p.join(',')).join(' ')}" fill="none" stroke="${col}" stroke-width="${w}" stroke-linejoin="round" stroke-linecap="round" ${extra}/>`;
+const diamond=(x,y,col='#E8B931')=>`<rect x="${x-7}" y="${y-7}" width="14" height="14" transform="rotate(45 ${x} ${y})" fill="${col}" stroke="#222530" stroke-width="1.4"/>`;
+
+/* 1 · Modern today, legacy tomorrow? */
+function d1(){
+  const X=t=>700+t*104, Y=v=>470-v*3.4;
+  const none=[[0,5],[1,12],[2,24],[3,42],[4,66],[5,96]], small=[[0,5],[1,8],[2,9],[3,9],[4,10],[5,11]];
+  const P=a=>a.map(([t,v])=>[X(t),Y(v)]);
+  return [
+    group({x:10,y:30,w:620,h:500,k:'neutral',label:'🔄 WHAT CHANGES EVERY YEAR'}),
+    box({x:240,y:200,w:150,h:140,k:'aws',i:'☁️',t:'New\nplatform',s:'reference\nscenario'}),
+    box({x:30,y:70,w:190,h:100,k:'risk',i:'📜',t:'Scheme rulebooks',s:'new versions\nevery year'}),
+    box({x:30,y:220,w:190,h:100,k:'risk',i:'⚖️',t:'Regulation',s:'new laws\nnew guidance'}),
+    box({x:30,y:370,w:190,h:100,k:'bad',i:'🛡️',t:'Security threats',s:'new weaknesses\nevery week'}),
+    box({x:410,y:70,w:200,h:100,k:'neutral',i:'☕',t:'Frameworks',s:'Java · Spring\nKafka clients'}),
+    box({x:410,y:220,w:200,h:100,k:'neutral',i:'🚢',t:'Cloud platform',s:'Kubernetes versions\nAWS services'}),
+    box({x:410,y:370,w:200,h:100,k:'ai',i:'🤖',t:'AI models',s:'new versions\nold ones retired'}),
+    arrow([[220,120],[262,200]],{k:'risk',st:2}), arrow([[220,270],[240,270]],{k:'risk',st:2}), arrow([[220,420],[262,340]],{k:'bad',st:2}),
+    arrow([[410,120],[368,200]],{k:'neutral',st:2}), arrow([[410,270],[390,270]],{k:'neutral',st:2}), arrow([[410,420],[368,340]],{k:'ai',st:2}),
+    txt(320,505,'Change never stops — it only changes speed.','note','middle'),
+
+    group({x:650,y:30,w:620,h:500,k:'bad',label:'📉 IF WE STOP CHANGING · EXAMPLE'}),
+    `<rect x="700" y="${Y(100)}" width="530" height="${Y(75)-Y(100)}" fill="rgba(192,57,43,.12)"/>`,
+    txt(1222,152,'NEW LEGACY','hd','end','#C0392B'),
+    `<path d="M700 470 L1238 470" stroke="#222530" stroke-width="2"/>`,`<path d="M700 470 L700 118" stroke="#222530" stroke-width="2"/>`,
+    `<text class="cl" x="682" y="300" transform="rotate(-90 682 300)" style="text-anchor:middle">UPGRADE DEBT</text>`,
+    ...['flip','1','2','3','4','5 years'].map((t,i)=>txt(X(i),490,t,'cl','middle')),
+    poly(P(none),'#C0392B',3.4), poly(P(small),'#2E8B57',3.4),
+    txt(1096,232,'do nothing','kl','end','#C0392B'),
+    txt(1222,422,'small and often','kl','end','#2E8B57'),
+
+    group({x:10,y:550,w:1260,h:230,k:'good',label:'🎯 THE GOAL OF THIS EPISODE'}),
+    box({x:30,y:596,w:390,h:160,k:'good',i:'🔁',t:'Change in smaller steps',s:'on an approved cadence\nwith testable evidence'}),
+    box({x:445,y:596,w:390,h:160,k:'ai',i:'🤖',t:'AI can draft',s:'impact notes · code\nand evidence links'}),
+    box({x:860,y:596,w:390,h:160,k:'human',i:'👥',t:'People keep control',s:'the same guardrails\nas the build'}),
+
+    tag(1,250,200,'Day 2 starts now'),
+    tag(2,600,30,'Six sources of change','r'),
+    tag(3,712,172,'Do nothing = new legacy'),
+    tag(4,900,508,'Small and often','c'),
+    tag(5,1250,550,'AI + people','r'),
+  ].join('');
+}
+
+/* 2 · The yearly change calendar */
+function d2(){
+  const X=m=>250+m*82, RY=r=>92+r*54;
+  const rows=[
+    ['📜 SEPA rulebooks',[[2,10,'aws','build & test the changes']],[[10.5,'go-live']]],
+    ['🌍 SWIFT standards',[[5,10,'aws','test with partners']],[[10.6,'release']]],
+    ['☕ Java & frameworks',[],[[2.5,'review'],[5.5,'review'],[8.5,'check support dates'],[11.5,'review']]],
+    ['🚢 Kubernetes (EKS)',[],[[1.5,'review'],[5.5,'review'],[9.5,'review']]],
+    ['🛡️ Security patches',[[0,12,'risk','risk-based response · bank policy']],[]],
+    ['🤖 AI models',[],[[3.5,'new model → evaluate'],[8.2,'new model → evaluate']]],
+    ['🧪 DR drills & audit',[[0.5,2,'human','annual audit']],[[4.5,'DR drill'],[9.5,'DR drill']]],
+    ['🚫 Freeze windows',[[0,0.15,'bad',''],[10.75,11.05,'bad',''],[11.45,12,'bad','']],[]],
+  ];
+  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const out=[group({x:10,y:30,w:1260,h:520,k:'neutral',label:'📅 THE CHANGE CALENDAR · EXAMPLE YEAR',lp:'b'}),
+    `<rect x="${X(10)}" y="82" width="82" height="438" fill="rgba(232,185,49,.18)"/>`];
+  months.forEach((m,i)=>out.push(txt(X(i)+41,74,m,'cl','middle')));
+  for(let i=0;i<=12;i++) out.push(`<line x1="${X(i)}" y1="82" x2="${X(i)}" y2="520" stroke="rgba(34,37,48,.09)"/>`);
+  rows.forEach(([label,bars,marks],r)=>{
+    const y=RY(r);
+    out.push(txt(20,y+23,label,'kl'));
+    bars.forEach(([a,b,k,t])=>{const c=K[k];
+      out.push(`<rect x="${X(a)}" y="${y}" width="${X(b)-X(a)}" height="34" rx="7" fill="${c.f}" stroke="${c.s}" stroke-width="2"/>`);
+      if(t) out.push(`<text x="${(X(a)+X(b))/2}" y="${y+22}" text-anchor="middle" font-size="13" font-weight="700" fill="${c.t}">${esc(t)}</text>`);});
+    marks.forEach(([m,t])=>{out.push(diamond(X(m),y+17));
+      if(t) out.push(txt(X(m)+14,y+22,t,'cl'));});
+  });
+  out.push(txt(X(10.75)-8,RY(7)+22,'peak week · year-end','cl','end','#C0392B'),
+    txt(X(10.5),536,'crowded November','cl','middle','#8A6A10'),
+    group({x:10,y:570,w:1260,h:210,k:'good',label:'💡 WHAT THE CALENDAR TELLS US'}),
+    box({x:30,y:612,w:390,h:146,k:'good',i:'📅',t:'Change is predictable',s:'plan it like payroll day'}),
+    box({x:445,y:612,w:390,h:146,k:'risk',i:'🧩',t:'Check date clashes',s:'provider releases may meet\nbank peak or freeze windows'}),
+    box({x:860,y:612,w:390,h:146,k:'aws',i:'⏪',t:'Plan backwards',s:'land every change\nbefore the freeze starts'}),
+    tag(1,X(2)+6,RY(0),'Scheme rules: yearly'),
+    tag(2,X(8.2),RY(1),'SWIFT: November'),
+    tag(3,X(6)+4,RY(2),'Frameworks: often'),
+    tag(4,X(6.4),RY(3),'Check support windows'),
+    tag(5,X(9),RY(4),'Risk-based patches'),
+    tag(6,X(7),RY(7),'Freeze windows'),
+    tag(7,1250,570,'Plan backwards','r'),
+  );
+  return out.join('');
+}
+
+/* 3 · Every change, the same path */
+function d3(){
+  const st=[['📥','Signal','rulebook · CVE\nend of support','neutral','tool'],['🤖','Impact analysis','AI + knowledge graph\n+ traceability','ai','AI'],
+            ['🤖','Draft the change','code · tests\ndocs · stories','ai','AI'],['🚦','CI gates','golden · contract\nNFR · security','good','tools'],
+            ['👥','Approve','Payments SME\nCompliance · Tech · SRE','human','people'],['🚀','Canary + evidence','release safely\nstore the proof','aws','tools']];
+  const out=[group({x:10,y:30,w:1260,h:330,k:'neutral',label:'🔁 EVERY CHANGE TAKES THE SAME PATH'})];
+  st.forEach((s,i)=>{
+    const x=30+i*208;
+    out.push(box({x,y:80,w:190,h:120,k:s[3],i:s[0],t:s[1],s:s[2]}));
+    out.push(txt(x+95,226,s[4].toUpperCase(),'hd','middle',K[s[3]].s));
+    if(i<5) out.push(arrow([[x+190,140],[x+208,140]],{k:s[3],st:i+2}));
+  });
+  out.push(
+    arrow([[680,200],[680,262],[540,262],[540,200]],{k:'bad',st:4,dash:1,label:'test fails → fix the draft',lx:610,ly:262}),
+    txt(640,334,'Same guardrails as the build: AI drafts, tools check, people decide.','kl','middle'),
+
+    group({x:10,y:380,w:1260,h:400,k:'aws',label:'🔎 PUBLIC SWIFT CHANGE · SYNTHETIC PROJECT IMPACT'}),
+    box({x:30,y:426,w:330,h:264,k:'risk',i:'📣',t:'Public change',s:'after 14 Nov 2026,\nfully unstructured postal\naddresses are removed for\ncross-border payments\n\nstructured or hybrid\nformats remain'}),
+    table({x:390,y:426,w:560,hh:28,rh:46,cols:[['IMPACT HYPOTHESIS',0],['SAMPLE OUTPUT',250]],
+      rows:[['Services','3 · gateway, initiation, validation'],['Contracts (EP08)','2 message schemas'],['Stories & tests','4 stories · 11 tests'],
+            ['Customer data','split addresses into fields'],['Deadline','November 2026']],hl:{4:'risk'}}),
+    box({x:980,y:426,w:270,h:264,k:'good',i:'⏱️',t:'Analysis target',s:'AI + graph: hours?\nmanual baseline: test\n\nnot measured'}),
+    arrow([[360,558],[390,558]],{k:'risk',st:7}),
+    arrow([[950,558],[980,558]],{k:'good',st:7}),
+    txt(640,742,'Verify each graph link with owners; coverage is not automatic.','kl','middle'),
+
+    tag(1,40,80,'A signal arrives'),
+    tag(2,248,80,'AI finds the impact'),
+    tag(3,456,80,'AI drafts'),
+    tag(4,664,80,'Tests challenge'),
+    tag(5,872,80,'People approve'),
+    tag(6,1080,80,'Proof stored'),
+    tag(7,1250,380,'Public change','r'),
+  );
+  return out.join('');
+}
+
+/* 4 · Small and often beats big and rare */
+function d4(){
+  const XL=t=>70+t*100, XR=t=>710+t*100, Y=v=>320-v*2;
+  const saw=[]; for(let i=0;i<20;i++){const t=i*0.25; saw.push([XR(t),Y(0)],[XR(t+0.25),Y(6)]);} saw.push([XR(5),Y(0)]);
+  const axes=(x0)=>`<path d="M${x0} 320 L${x0+520} 320" stroke="#222530" stroke-width="2"/><path d="M${x0} 320 L${x0} 110" stroke="#222530" stroke-width="2"/>`+
+    `<text class="cl" x="${x0-18}" y="215" transform="rotate(-90 ${x0-18} 215)" style="text-anchor:middle">VERSION GAP</text>`+
+    txt(x0,340,'today','cl','middle')+txt(x0+500,340,'5 years','cl','middle');
+  return [
+    group({x:10,y:30,w:620,h:330,k:'bad',label:'💥 BIG AND RARE'}),
+    axes(70),
+    poly([[XL(0),Y(0)],[XL(5),Y(90)],[XL(5),Y(0)]],'#C0392B',3.6),
+    txt(560,128,'one huge, risky jump','kl','end','#C0392B'),
+    txt(330,300,'old versions · old skills · long freeze','note','middle'),
+    group({x:650,y:30,w:620,h:330,k:'good',label:'🔁 SMALL AND OFTEN'}),
+    axes(710),
+    poly(saw,'#2E8B57',2.4),
+    txt(1210,230,'smaller steps, approved cadence','kl','end','#2E8B57'),
+    txt(970,300,'smaller reviews · reversal still needs planning','note','middle'),
+
+    group({x:10,y:380,w:1260,h:250,k:'aws',label:'🤖 THE UPGRADE PIPELINE'}),
+    box({x:30,y:426,w:290,h:120,k:'neutral',i:'🤖',t:'A bot proposes a PR',s:'Renovate or Dependabot\nwithin approved scope'}),
+    box({x:340,y:426,w:290,h:120,k:'ai',i:'🧠',t:'AI suggests changes',s:'source-linked release notes\nengineers verify fixes'}),
+    box({x:650,y:426,w:290,h:120,k:'good',i:'🧪',t:'Tests decide',s:'golden · contract\nNFR budgets'}),
+    box({x:960,y:426,w:290,h:120,k:'aws',i:'🚀',t:'Canary release',s:'merge · release\nwatch the SLOs'}),
+    arrow([[320,486],[340,486]],{k:'ai',st:4}), arrow([[630,486],[650,486]],{k:'good',st:5}), arrow([[940,486],[960,486]],{k:'aws',st:5}),
+    txt(640,592,'Java, Spring Boot, Kafka clients and EKS share governance; each needs its own compatibility test.','kl','middle'),
+
+    group({x:10,y:650,w:1260,h:130,k:'risk',label:'🛡️ SECURITY PATCH POLICY · EXAMPLE'}),
+    kpi({x:30,y:690,w:390,h:64,k:'bad',i:'🚨',t:'Critical weakness',v:'≤ 7 days'}),
+    kpi({x:445,y:690,w:390,h:64,k:'risk',i:'⚠️',t:'High weakness',v:'≤ 30 days'}),
+    kpi({x:860,y:690,w:390,h:64,k:'aws',i:'📋',t:'SBOM coverage goal',v:'all in scope'}),
+
+    tag(1,600,30,'Big and rare = risky','r'),
+    tag(2,1250,30,'Smaller reviews','r'),
+    tag(3,40,426,'Bots open PRs'),
+    tag(4,350,426,'AI suggests'),
+    tag(5,660,426,'Tests decide'),
+    tag(6,1250,650,'Patch policy','r'),
+  ].join('');
+}
+
+/* 5 · Keep the AI guardrails current */
+function d5(){return [
+  group({x:10,y:30,w:1260,h:340,k:'ai',label:'🔁 THE AI GUARDRAIL LOOP'}),
+  box({x:30,y:76,w:380,h:110,k:'neutral',i:'🆕',t:'New model or tool',s:'a vendor update · an old model retired'}),
+  box({x:450,y:76,w:380,h:110,k:'ai',i:'🧪',t:'Evaluation suite',s:'“golden tests” for AI'}),
+  box({x:870,y:76,w:380,h:110,k:'human',i:'✍️',t:'Bank governance review',s:'sign-off if required by policy'}),
+  box({x:870,y:236,w:380,h:110,k:'aws',i:'🚀',t:'Roll out',s:'one team first; expand\nafter measured results'}),
+  box({x:450,y:236,w:380,h:110,k:'good',i:'📊',t:'Monitor',s:'acceptance rate · defects · incidents'}),
+  box({x:30,y:236,w:380,h:110,k:'ai',i:'📘',t:'Review local guidance',s:'lessons may become rules + tests'}),
+  arrow([[410,131],[450,131]],{k:'ai',st:2}), arrow([[830,131],[870,131]],{k:'human',st:3}),
+  arrow([[1060,186],[1060,236]],{k:'aws',st:4}), arrow([[870,291],[830,291]],{k:'good',st:5}),
+  arrow([[450,291],[410,291]],{k:'ai',st:5}), arrow([[220,236],[220,186]],{k:'neutral',st:5,dash:1}),
+
+  group({x:10,y:390,w:620,h:390,k:'neutral',label:'🧪 AI EVALUATION · SYNTHETIC SCORES'}),
+  table({x:30,y:426,w:580,hh:28,rh:46,cols:[['CHECK',0],['TARGET',330],['SAMPLE',450]],
+    rows:[['Rules found in known COBOL','≥ 95%','97%'],['Citations pass the checker','100%','100%'],['Customer data in prompts','0','0'],
+          ['Invented rules','≤ 1%','0.6%'],['AGENTS.md rules followed','≥ 98%','96%']],hl:{4:'bad'}}),
+  txt(320,736,'Sample: one critical gate fails → hold rollout pending review.','kl','middle','#C0392B'),
+
+  group({x:650,y:390,w:620,h:390,k:'risk',label:'🔁 HYPOTHETICAL AI FAILURE → REVIEWED CONTROL'}),
+  box({x:670,y:436,w:580,h:90,k:'bad',i:'🐞',t:'Hypothetical failure',s:'AI draft skipped the outbox in one service'}),
+  box({x:670,y:546,w:580,h:90,k:'ai',i:'📘',t:'New rule in AGENTS.md',s:'“Never call Kafka directly from domain code.”'}),
+  box({x:670,y:656,w:580,h:90,k:'good',i:'🧪',t:'Proposed ArchUnit test',s:'blocks this code pattern after review'}),
+  arrow([[960,526],[960,546]],{k:'ai',st:7}), arrow([[960,636],[960,656]],{k:'good',st:7}),
+
+  tag(1,40,76,'Models change'),
+  tag(2,460,76,'Evaluate first'),
+  tag(3,880,76,'Governance review'),
+  tag(4,880,346,'Roll out slowly'),
+  tag(5,40,346,'Review lessons'),
+  tag(6,600,390,'Critical gate fails','r'),
+  tag(7,1250,390,'Incident → rule → test','r'),
+].join('')}
+
+/* 6 · Audit evidence, always on */
+function d6(){
+  const src=[['🔗','Traceability matrix','law → story → test (EP04)'],['🧪','Test results','every release'],['✍️','Approvals','pull request reviews'],
+             ['🌍','DR drill reports','bank-set cadence'],['📊','SLO history','availability · latency'],['🤖','Governed AI records','under retention policy'],['📋','Change records','what changed, when and why']];
+  return [
+    group({x:10,y:30,w:360,h:560,k:'neutral',label:'📥 PROPOSED EVIDENCE INPUTS',lp:'b'}),
+    ...src.map((s,i)=>box({x:24,y:48+i*72,w:332,h:62,k:'neutral',i:s[0],t:s[1],s:s[2]})),
+    box({x:410,y:200,w:300,h:200,k:'aws',i:'🗄️',t:'Controlled evidence store',s:'access + retention\nset by the bank\n\ntamper resistance tested'}),
+    group({x:750,y:30,w:520,h:560,k:'good',label:'📦 PROPOSED AUDIT PACK · EXAMPLE'}),
+    box({x:770,y:76,w:480,h:90,k:'human',i:'🧑‍⚖️',t:'“Show me how you meet REG-VOP.”',s:'an auditor’s question'}),
+    lines(790,214,['🔗 obligation, source and named owner','🧪 sample: 2 stories · 4 tests · results','✍️ release approvals to verify','📊 VoP latency needs measured evidence','📦 minutes is a target, not a result'],'kl',42),
+    kpi({x:770,y:440,w:480,h:56,k:'good',i:'⏱️',t:'Time to answer an auditor',v:'target: hours'}),
+    kpi({x:770,y:514,w:480,h:56,k:'risk',i:'📋',t:'DORA ICT provider register',v:'bank-owned'}),
+    arrow([[356,300],[410,300]],{k:'aws',st:2}),
+    arrow([[710,300],[750,300]],{k:'good',st:3}),
+
+    group({x:10,y:610,w:1260,h:170,k:'ai',label:'🤖 AI HELPS · PEOPLE SIGN'}),
+    box({x:30,y:650,w:390,h:110,k:'ai',i:'🤖',t:'AI assembles the pack',s:'finds and links the evidence'}),
+    box({x:445,y:650,w:390,h:110,k:'human',i:'👩‍⚖️',t:'Compliance checks it',s:'before it goes out'}),
+    box({x:860,y:650,w:390,h:110,k:'bad',i:'⛔',t:'AI cannot invent facts',s:'source systems create evidence\npeople approve external use'}),
+
+    tag(1,360,30,'Evidence as a by-product','r'),
+    tag(2,420,200,'Controlled store'),
+    tag(3,780,76,'Ask, get a pack'),
+    tag(4,780,440,'Time target'),
+    tag(5,780,514,'DORA register'),
+    tag(6,1250,610,'AI collects, people sign','r'),
+  ].join('');
+}
+
+/* 7 · The full circle */
+function d7(){return [
+  group({x:10,y:20,w:850,h:560,k:'neutral',label:'🔁 EXECUTION ARCHITECTURE · REFERENCE JOURNEY',lp:'b'}),
+  box({x:315,y:40,w:230,h:96,k:'aws',i:'🔍',t:'Discover',s:'rules catalog · estate map\nEP02–EP03'}),
+  box({x:620,y:140,w:230,h:96,k:'aws',i:'📋',t:'Requirements',s:'backlog · NFRs · security\nEP04–EP06'}),
+  box({x:620,y:360,w:230,h:96,k:'aws',i:'📐',t:'Design & Plan',s:'ADRs · contracts · roadmap\nEP07–EP09'}),
+  box({x:315,y:460,w:230,h:96,k:'aws',i:'🛠️',t:'Build',s:'platform · services · bridge\nEP10–EP16'}),
+  box({x:20,y:360,w:230,h:96,k:'aws',i:'🚀',t:'Test & Deploy',s:'tests · CI/CD · shadow · flip\nEP17–EP20'}),
+  box({x:20,y:140,w:230,h:96,k:'good',i:'🔧',t:'Operate',s:'SRE · DR · FinOps · change\nEP21–EP24'}),
+  `<circle cx="430" cy="298" r="108" fill="rgba(109,79,209,.08)" stroke="#6D4FD1" stroke-width="2.2"/>`,
+  txt(430,262,'AI SDLC','bigt','middle'),
+  txt(430,296,'🤖 AI drafts','kl','middle'),
+  txt(430,324,'🧰 tools check','kl','middle'),
+  txt(430,352,'👥 people decide','kl','middle'),
+  arrow([[545,88],[735,88],[735,140]],{k:'aws',st:2}),
+  arrow([[735,236],[735,360]],{k:'aws',st:3}),
+  arrow([[735,456],[735,508],[545,508]],{k:'aws',st:4}),
+  arrow([[315,508],[135,508],[135,456]],{k:'aws',st:5}),
+  arrow([[135,360],[135,236]],{k:'aws',st:6}),
+  arrow([[135,140],[135,88],[315,88]],{k:'good',st:6,label:'and again',lx:225,ly:88}),
+
+  group({x:880,y:20,w:390,h:560,k:'good',label:'🎯 FIVE PRINCIPLES'}),
+  box({x:900,y:62,w:350,h:86,k:'good',i:'📒',t:'Evidence at every gate',s:'bank owners verify each move'}),
+  box({x:900,y:162,w:350,h:86,k:'good',i:'🔗',t:'Every rule has an owner',s:'approved meaning and source'}),
+  box({x:900,y:262,w:350,h:86,k:'good',i:'🧪',t:'Every target has a test',s:'measure before claiming proof'}),
+  box({x:900,y:362,w:350,h:86,k:'good',i:'🤖',t:'AI drafts, people decide',s:'and tools check'}),
+  box({x:900,y:462,w:350,h:86,k:'good',i:'🔁',t:'Change small and often',s:'never build a new legacy'}),
+
+  `<rect x="10" y="600" width="1260" height="180" rx="16" fill="#FFFDF8" stroke="#222530" stroke-width="2"/>`,
+  `<rect x="40" y="625" width="130" height="130" rx="18" fill="#FFFDF8" stroke="#222530" stroke-width="2"/>`,
+  `<image href="../shared/jo-logo.png" x="48" y="633" width="114" height="114"/>`,
+  `<text x="200" y="672" font-size="30" font-weight="800" fill="#222530">Thank you for following the series</text>`,
+  txt(200,708,'Reference payments scenario · my own views, not an organisation’s','kl','start','#5E6573'),
+  `<text x="200" y="748" font-size="21" font-weight="800" fill="#0F7F77">Roadmap · expert leadership · end-to-end delivery</text>`,
+
+  tag(1,325,40,'Discover'),
+  tag(2,630,140,'Requirements'),
+  tag(3,630,360,'Design & Plan'),
+  tag(4,325,460,'Build'),
+  tag(5,30,360,'Test & Deploy'),
+  tag(6,30,140,'Operate'),
+  tag(7,1260,20,'Five principles','r'),
+  tag(8,1250,600,'Thank you','r'),
+].join('')}
+
+/* ============================================================
+   Episode config
+   ============================================================ */
+const DECK={
+  brand:'🏦 CORE BANKING PAYMENTS MODERNIZATION · AWS',
+  ep:'EP 24', epShort:'EP24', title:'Continuous Modernisation with AI', subtitle:'Execution Architecture · Reference Scenario',
+  seriesTitle:'Core Payments Modernization · Execution Architecture',
+  logo:'../shared/jo-logo.png', background:'../shared/background.png',
+  stages:[['🔍','Discover'],['📋','Requirements'],['📐','Design & Plan'],['🛠️','Build'],['🚀','Test & Deploy'],['🔧','Operate']],
+  stage:6,
+  glossary:{
+    TECHDEBT:['Technical debt','cost','Work we postpone, like an upgrade. Like money debt, it grows interest: the longer we wait, the more it costs.'],
+    NEWLEGACY:['Tomorrow’s legacy','risk','A modern system that stops changing becomes the next mainframe problem — just younger.'],
+    EOL:['End of support','risk','The date a vendor stops fixing a version. After it, new security holes stay open.'],
+    CVE:['CVE','risk','A public ID for a known security weakness, like CVE-2021-44228 (Log4Shell). New ones appear every day.'],
+    RULEBOOK:['Scheme rulebook','risk','The rules of a payment scheme, like SEPA Instant. New versions arrive regularly, and banks must follow them by the date.'],
+    CHANGECAL:['Change calendar','value','One view of every planned change for the year. It shows clashes before they happen.'],
+    STDREL:['SWIFT Standards Release','risk','An annual standards change. The bank confirms the applicable Swift service, profile and test window.'],
+    LTS:['LTS (long-term support)','value','A vendor-supported release. Verify current support dates for each Java and framework version.'],
+    EKSVER:['Kubernetes versions','risk','Cluster versions have provider support windows. Read the current EKS schedule before planning upgrades.'],
+    FREEZE:['Change freeze','risk','A bank-approved period for limited changes, with an emergency path when necessary.'],
+    IMPACT:['Impact analysis','value','Finding everything a change touches: services, contracts, stories, tests and data.'],
+    KG:['Knowledge graph','value','A proposed map of systems, rules and tests. Owners must verify its links and coverage.'],
+    TRACE:['Traceability','risk','Links from approved obligations to stories and tests. Gaps still need owner review.'],
+    STRUCTADDR:['Structured address','risk','A postal address split into fields — street, town, country — not free text. Better for sanctions screening and automation.'],
+    CANARY:['Canary release','risk','A controlled small release. Rollback depends on data and message compatibility.'],
+    DEPBOT:['Dependency bot','value','A tool like Renovate or Dependabot that opens a pull request when a library has a new version.'],
+    BREAKING:['Breaking change','risk','An update that makes old code stop working. AI reads the release notes and suggests the fix; tests confirm it.'],
+    PATCHSLA:['Patch policy','risk','Bank security owners set deadlines and exceptions for each finding and exposure.'],
+    SBOM:['SBOM','risk','An inventory of software components. Coverage and response time must be measured.'],
+    SMALLOFTEN:['Small and often','value','Regular smaller changes can be easier to review, but each still needs a tested reversal path.'],
+    MODELVER:['Model version','risk','AI providers release new models and retire old ones. A switch can change behaviour, so it is tested like any other change.'],
+    EVALS:['AI evaluation suite','risk','A fixed set of tasks with known answers, run before any model change. Golden tests, but for AI.'],
+    DRIFT:['Drift','risk','When AI results slowly change or get worse over time. Monitoring catches it before it causes harm.'],
+    MRM:['Model governance','risk','The bank decides which AI changes require sign-off and what evidence is needed.'],
+    FEEDBACK:['Lessons → rules','value','Useful lessons can become reviewed local guidance and regression tests; no control prevents every recurrence.'],
+    CONTCOMP:['Continuous compliance','risk','Proof comes from everyday work — tests, approvals, logs — not from a special project before the audit.'],
+    EVIDENCE:['Audit evidence','risk','Records that prove a requirement was met: tests, approvals, drill reports and logs.'],
+    WORM:['Controlled evidence store','risk','Retention, access and tamper resistance are configured and tested under bank policy.'],
+    AUDITPACK:['Audit pack','value','A proposed set of linked records for one question, checked by Compliance before external use.'],
+    DORAREG:['DORA register','risk','The bank’s official ICT third-party register, scoped and maintained by Compliance and Procurement.'],
+    AISDLC:['AI SDLC','value','The software lifecycle with AI in every stage: AI drafts, tools check, people decide.'],
+    LIVINGDOC:['Living documentation','value','Catalogs, maps and evidence updated with change controls and owner review.'],
+    STRANG:['Strangler Fig','risk','Move selected traffic in slices. Reversibility depends on state, data and downstream effects.'],
+    HITL:['Human-in-the-loop','risk','AI suggests; a named person decides. AI never approves, merges or deploys.'],
+    CONTMOD:['Continuous modernisation','value','Regular tested changes to manage age, risk and new requirements.'],
+  },
+  slides:[
+    {icon:'🌱',kicker:'EP24 · 1/7 · DAY 2',title:'Modern Today, Legacy Tomorrow?',time:'00:00 – 01:45',draw:d1,
+     key:'A platform that stops changing becomes the next legacy.',next:'🔜 Next: the change calendar',
+     open:'Imagine an approved cutover in this reference journey. What happens next?',
+     land:'Change small and often, with AI — and with the same guardrails.',
+     gloss:[['NEWLEGACY',[1,3]],['RULEBOOK',[2]],['CVE',[2]],['EOL',[2]],['TECHDEBT',[3,4]]],
+     demo:['inventory software components and verify support dates from providers',
+           'test upgrade impact before setting a release date'],
+     steps:[['Day 2 starts now','The new platform starts ageing on the day it goes live.'],
+            ['Six sources of change','Rulebooks, laws, threats, frameworks, cloud, AI models.'],
+            ['Do nothing = new legacy','Upgrade debt grows until one big, risky project.'],
+            ['Small and often','Use a bank-approved, risk-based cadence.'],
+            ['AI + people','AI drafts; accountable people decide.']]},
+    {icon:'📅',kicker:'EP24 · 2/7 · THE CALENDAR',title:'The Yearly Change Calendar',time:'01:45 – 03:25',draw:d2,
+     key:'Confirm external dates, then plan backwards.',next:'🔜 Next: every change, the same path',
+     open:'Some change is predictable, once the current dates are confirmed.',
+     land:'Plan backwards from validated dates and bank windows.',
+     gloss:[['CHANGECAL',[1]],['STDREL',[2]],['LTS',[3]],['EKSVER',[4]],['FREEZE',[6,7]]],
+     demo:['draft a change calendar from confirmed provider and scheme dates',
+           'test bank freeze and emergency-change rules against proposed releases'],
+     steps:[['Scheme rules: yearly','Build and test through the year; go live on the scheme date.'],
+            ['SWIFT: November','The yearly Standards Release.'],
+            ['Frameworks: often','Review vendor support dates regularly.'],
+            ['Check support windows','Upgrade before the provider window ends.'],
+            ['Risk-based patches','Bank security policy sets priority and exceptions.'],
+            ['Freeze windows','Bank calendar includes an emergency path.'],
+            ['Plan backwards','Allow tests, partner review and rollback time.']]},
+    {icon:'🔁',kicker:'EP24 · 3/7 · THE CHANGE PIPELINE',title:'Every Change, the Same Path',time:'03:25 – 05:15',draw:d3,
+     key:'AI suggests impact. Owners verify it; tests and people gate release.',next:'🔜 Next: keep the platform current',
+     open:'Every change, big or small, takes the same path.',
+     land:'The graph is a hypothesis until owners verify coverage.',
+     gloss:[['IMPACT',[2,7]],['KG',[2]],['TRACE',[2]],['STRUCTADDR',[7]],['CANARY',[6]]],
+     demo:['prototype address impact analysis on a verified sample graph',
+           'compare AI findings to an owner-reviewed inventory and baseline time'],
+     steps:[['A signal arrives','A new rulebook, a new CVE, an end of support.'],
+            ['AI suggests impact','Verify graph links and missing dependencies.'],
+            ['AI drafts the change','Code, tests, documents and stories.'],
+            ['Tests challenge','Golden, contract, NFR and security gates.'],
+            ['People approve','Payments SMEs, Compliance, architecture and SRE.'],
+            ['Proof stored','Capture test and release evidence under bank controls.'],
+            ['Public change','Swift rule is real; project counts and hours are synthetic.']]},
+    {icon:'🔧',kicker:'EP24 · 4/7 · KEEP IT CURRENT',title:'Small and Often Beats Big and Rare',time:'05:15 – 06:50',draw:d4,
+     key:'Use smaller reviewed upgrades on an approved cadence.',next:'🔜 Next: keep the AI guardrails current',
+     open:'Software gets old, even when nobody touches it.',
+     land:'An SBOM helps locate exposure; response time must be measured.',
+     gloss:[['SMALLOFTEN',[1,2]],['DEPBOT',[3]],['BREAKING',[4]],['PATCHSLA',[6]],['SBOM',[6]]],
+     demo:['trial dependency PRs and verify compatibility with tests',
+           'measure inventory coverage, scan quality and upgrade rollback'],
+     steps:[['Big and rare = risky','The version gap grows, then one huge jump.'],
+            ['Smaller reviews','Each change still needs a reversal plan.'],
+            ['Bots open PRs','Renovate or Dependabot watch approved libraries.'],
+            ['AI suggests','Engineers verify release-note and code changes.'],
+            ['Tests decide','Golden tests, contracts, NFR budgets — then a canary.'],
+            ['Patch policy','Sample windows; bank security owners set real dates.']]},
+    {icon:'🤖',kicker:'EP24 · 5/7 · AI GUARDRAILS',title:'Keep the AI Guardrails Current',time:'06:50 – 08:25',draw:d5,
+     key:'Evaluate a model change before wider use.',next:'🔜 Next: audit evidence, always on',
+     open:'AI changes faster than anything else in this platform.',
+     land:'A reviewed rule and test reduce the chance of recurrence.',
+     gloss:[['MODELVER',[1]],['EVALS',[2,6]],['MRM',[3]],['DRIFT',[5]],['FEEDBACK',[5,7]]],
+     demo:['design an approved evaluation set with known technical and domain answers',
+           'compare model versions, critical gates and named approval requirements'],
+     steps:[['Models change','New versions arrive; old ones are retired.'],
+            ['Evaluate first','A fixed evaluation suite — golden tests for AI.'],
+            ['Governance review','Bank policy decides when sign-off is required.'],
+            ['Roll out slowly','Start with one team; expand after measured results.'],
+            ['Review lessons','Useful findings may become guidance and tests.'],
+            ['Critical gate fails','Hold the new model and investigate.'],
+            ['Failure → control','Hypothetical outbox error becomes a reviewed test.']]},
+    {icon:'🗄️',kicker:'EP24 · 6/7 · AUDIT EVIDENCE',title:'Audit Evidence, Always On',time:'08:25 – 10:10',draw:d6,
+     key:'Evidence should be a by-product of everyday work.',next:'🔜 Next: the full circle',
+     open:'Audit evidence should be a routine output of controlled work.',
+     land:'AI links records; Compliance verifies the pack.',
+     gloss:[['CONTCOMP',[1]],['WORM',[2]],['AUDITPACK',[3]],['EVIDENCE',[4]],['DORAREG',[5]]],
+     demo:['prototype an evidence pack from approved sample records',
+           'test retention, access, completeness and Compliance review'],
+     steps:[['Evidence as a by-product','Traceability, tests, approvals, drills, SLOs, AI logs, changes.'],
+            ['Controlled store','Bank sets retention, access and tamper resistance.'],
+            ['Ask, get a pack','A VoP example with source links to verify.'],
+            ['Time target','Hours rather than weeks is a hypothesis.'],
+            ['DORA register','Compliance and Procurement own completeness.'],
+            ['AI collects, people sign','AI drafts links; Compliance checks facts.']]},
+    {icon:'🎬',kicker:'EP24 · 7/7 · THE FULL CIRCLE',title:'The Full Circle',time:'10:10 – 11:50',draw:d7,
+     key:'Start small. Prove it. Change often.',next:'🎬 End of the series — thank you for watching',
+     open:'Let’s close the circle.',
+     land:'Start small. Prove it. Change often.',
+     gloss:[['AISDLC',[1,7]],['LIVINGDOC',[2,3]],['STRANG',[5]],['HITL',[7]],['CONTMOD',[6,8]]],
+     demo:['trace one bank-owned rule through design, code, tests and operations',
+           'build and measure a real proof slice before claiming results'],
+     steps:[['Discover','The rules catalog and the estate map.'],
+            ['Requirements','Backlog, NFRs, security by design.'],
+            ['Design & Plan','ADRs, contracts, roadmap, guardrails.'],
+            ['Build','Platform, services, mainframe bridge.'],
+            ['Test & Deploy','Evidence gates and a proposed cutover.'],
+            ['Operate','SRE, DR, FinOps — and continuous change.'],
+            ['Five principles','Rule owners, tests, evidence gates, people, safe change.'],
+            ['Thank you','My views · discuss roadmap or delivery leadership.']]},
+  ],
+};
+startDeck(DECK);
+</script>
+</body>
+</html>

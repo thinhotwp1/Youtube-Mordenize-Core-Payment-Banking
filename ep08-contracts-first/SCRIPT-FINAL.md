@@ -1,0 +1,152 @@
+# EP 08 · Contracts First: Final Script
+
+**Series:** Core Payments Modernization on AWS (reference scenario). **Speed:** about 120–130 words per minute. **Level:** clear international English.
+
+**How to read it**
+- **Bold** = stress this word.
+- A full stop = a short pause.
+- A new **[tag]** = a longer pause. Draw your arrow with the pen here.
+- Numbers are written as words, so they are easy to read aloud.
+
+## Time plan
+
+<!-- TIMETABLE -->
+| Slide | Words | Length | Timestamp |
+|---|---|---|---|
+| 1 · Why Contracts Come First | 260 | 02:10 | 00:00 – 02:10 |
+| 2 · The Contract Map for Slice 1 | 189 | 01:35 | 02:10 – 03:45 |
+| 3 · Anatomy of the Payment API | 205 | 01:45 | 03:45 – 05:30 |
+| 4 · Event Contracts That Don't Break | 215 | 01:50 | 05:30 – 07:20 |
+| 5 · Speaking ISO 20022 | 233 | 02:00 | 07:20 – 09:20 |
+| 6 · Contract Tests & Governance | 184 | 01:35 | 09:20 – 10:55 |
+| 7 · Version, Approve, Hand Over | 211 | 01:45 | 10:55 – 12:40 |
+| **Total** | **1497** | **12:40** | at 125 words per minute, plus 6 s per slide for drawing |
+
+---
+
+<!-- slide:1 -->
+## Slide 1 · Why Contracts Come First
+
+**[tag ①]** In this episode, I show how I design **contracts** between systems. A contract defines what one side sends and the other returns. I have seen large systems lose time when teams agree this too late: field names differ, money formats conflict, and retry behavior is unclear. This is an execution problem I can address without pretending to define a bank's payment rules.
+
+**[tag ②]** My approach is to agree the technical contract **first**: OpenAPI for request-and-response APIs, AsyncAPI and Avro for events, and a scheme-approved ISO 20022 profile at the external boundary.
+
+**[tag ③]** Then teams can build in **parallel**. A mobile team can use a mock generated from the draft contract, while backend and test teams work against the same version. Mocks prove compatibility with an agreement; they do not prove the business rule is correct.
+
+**[tag ④]** Inputs include proposed stories, NFRs, security controls, and business rules that the bank's specialists have confirmed. The ISO 20022 standard is another input, but the applicable scheme profile and meaning of each field need domain review.
+
+**[tag ⑤]** AI can draft fields and examples. I require every important field and rule to link back to a named source and owner.
+
+**[tag ⑥]** API consumers, security, and architecture review the technical contract. Payments and scheme specialists approve the business meaning before it is used.
+
+**[tag ⑦]** Versioned contracts, mocks, tests, and documentation live together. That gives teams one technical **reference**, with clear links to the bank's authoritative policies and business rules.
+
+**[validation plan]** Prism can serve a mock from the contract. I use it to expose integration gaps early, then validate behavior with the real implementation.
+<!-- /slide -->
+
+---
+
+<!-- slide:2 -->
+## Slide 2 · The Contract Map for Slice 1
+
+**[tag ①]** Here is the contract map for the reference first slice. Each arrow needs an owner and a version. The mobile app uses request-and-response APIs for payment initiation, a possible payee-name check, and status. The bank confirms which calls belong in its product flow.
+
+**[tag ②]** Inside the proposed platform, services exchange **events** on Kafka. An event records a named state change; its exact meaning must be defined by the bank. AsyncAPI describes the topics and Avro describes message shape, while tests check producer and consumer compatibility.
+
+**[tag ③]** The diagram shows a pacs.008 request and pacs.002 response at an ISO 20022 boundary. Those are reference messages, not a claim about every scheme route. Scheme experts must confirm the applicable profile and status semantics.
+
+**[tag ④]** The legacy ledger sits behind an adapter. Its copybook format can remain inside that boundary. I would aim for a stable contract, but a change in ledger semantics may still require a contract change and a bank review.
+
+**[tag ⑤]** This example maps five main contracts: Payments API, payment events, fraud API, ledger adapter, and scheme messages. Before delivery, I would identify an **owner**, every consumer, and the business authority for each.
+<!-- /slide -->
+
+---
+
+<!-- slide:3 -->
+## Slide 3 · Anatomy of the Payment API
+
+**[tag ①]** Let's inspect a proposed payment-start contract: POST slash payments. The example returns **two-oh-two, Accepted**, meaning accepted for processing, not paid or settled. The app follows a Location link for status. The bank must confirm that wording and customer journey.
+
+**[tag ②]** This contract requires an Idempotency-Key. A retry with the same key and body should replay the first result rather than create another instruction. A changed body must be rejected with a defined error. We test concurrent retries, because a header alone cannot guarantee safety.
+
+**[tag ③]** The example serialises money as decimal **text**, such as "250.00", with a currency. Binary floating-point can introduce rounding errors. A lint rule blocks it in this contract.
+
+**[tag ④]** The proposed API uses problem details for errors. An ISO reason code may be included where the bank's scheme specialists confirm it applies. A familiar code with the wrong business meaning is worse than no code.
+
+**[tag ⑤]** Security is part of the contract. The diagram proposes a payments-write scope and evidence of customer authentication. The bank's identity and compliance teams define the actual proof required.
+
+**[tag ⑥]** The extension fields link this contract to the story, latency budget, and confirmed rules. That trace lets a reviewer see **why** a field or response exists, and who can change it.
+<!-- /slide -->
+
+---
+
+<!-- slide:4 -->
+## Slide 4 · Event Contracts That Don't Break
+
+**[tag ①]** Event contracts need care because one producer may have **many** readers. This example shows PaymentInitiated version one in Avro. A unique event ID gives consumers a key for detecting repeats; the consumer still has to implement and test that behavior.
+
+**[tag ②]** The payment ID is the Kafka **key**. It routes events for one payment to a partition, where order is preserved for that partition. We still test producer order and replay behavior.
+
+**[tag ③]** Personal data is **tagged**. The creditor IBAN is marked as sensitive in this example, and logging controls should mask it. The bank's data policy decides whether that field belongs in the event at all.
+
+**[tag ④]** AsyncAPI records the topic, key, partitions, publisher, and consumers. The four consumers on the diagram are illustrative. A real inventory must be checked before a schema changes.
+
+**[tag ⑤]** The proposed pipeline checks each schema version in a registry. Compatibility checks can block known breaking changes in the **build**. Consumer tests are still needed because a schema can remain valid while its meaning changes.
+
+**[tag ⑥]** The working rule is: add carefully, then test. An optional field with a default may be compatible, but changes in meaning can still break a reader. For a major change, version two can run beside version one during a controlled move, with each consumer owner agreeing the plan.
+<!-- /slide -->
+
+---
+
+<!-- slide:5 -->
+## Slide 5 · Speaking ISO 20022
+
+**[tag ①]** The diagram proposes a **canonical model** inside the platform, with names aligned where useful to ISO 20022. This is an engineering boundary. It can reduce repeated mappings, but I would not assume that external scheme meaning maps one-to-one into an internal model.
+
+**[tag ②]** At the scheme edge, the gateway must follow the **applicable** ISO 20022 profile, not just generic XML. The diagram uses pacs.008 and pacs.002 as an example. Scheme specialists own the message rules and the meaning of an accepted or rejected status.
+
+**[tag ③]** The reference legacy ledger uses a copybook format. Its adapter translates at that edge. The bank's ledger team must confirm which fields and states can be represented without losing meaning.
+
+**[tag ④]** This field map is a **working example**. It shows an end-to-end ID, creditor name, IBAN validation, and a debtor name sourced from account data. The character limits and source of each field must be checked against the bank's chosen scheme profile and customer-data rules.
+
+**[tag ⑤]** AI can draft mappings and flag **gaps**, such as a customer name that is too long for the chosen outbound field. I would treat every flag as a question for the bank's scheme and product experts, not an automatic truncation rule.
+
+**[tag ⑥]** Tests should cover approved sample messages, field boundaries, and the official XML schema. Schema validation proves structure, not scheme acceptance or business correctness. The bank's scheme owner must sign off the mapping before live traffic.
+<!-- /slide -->
+
+---
+
+<!-- slide:6 -->
+## Slide 6 · Contract Tests & Governance
+
+**[tag ①]** A contract is useful only when code **keeps** it. My proposed change path is a pull request, automated checks, named reviews, and controlled publication.
+
+**[tag ②]** Spectral can lint style and technical rules: names, idempotency key, error format, and decimal money representation. These are checks I can implement from the agreed contract.
+
+**[tag ③]** A diff tool compares API versions, while the schema registry checks events. A removed field or new required field can be caught **before** merge. Semantic changes still need human review.
+
+**[tag ④]** Pact can run consumer-driven tests. The mobile team defines its expectations, and the provider checks them in CI. Before deployment, we ask whether known consumers are compatible. A passing Pact result is useful evidence, but it cannot approve a payment rule.
+
+**[tag ⑤]** A mock server lets the mobile team test integration early. It helps expose field and error mismatches before the backend is complete.
+
+**[tag ⑥]** AI can draft a contract, review its style, and suggest edge-case tests. It must use confirmed stories and rules as sources. **People** approve changes, including business meaning. The desired result is fewer surprises in integration, measured by contract failures and rework.
+<!-- /slide -->
+
+---
+
+<!-- slide:7 -->
+## Slide 7 · Version, Approve, Hand Over
+
+**[tag ①]** Contracts will change. An optional field may fit a minor version, such as one point one, but we still test consumers. Compatibility is an outcome to verify, not an assumption.
+
+**[tag ②]** A breaking change needs a versioned migration, such as version two. Running versions **side by side** gives consumers a controlled path, if the cost and operational risk are acceptable.
+
+**[tag ③]** Version one can then be deprecated. A Sunset header may publish the date. Six months on this slide is only an example window; the bank and consumer owners agree the real schedule.
+
+**[tag ④]** Before publication, the API owner, consumers, security, and architecture review their parts. For payment semantics and scheme fields, the bank's domain owner also gives explicit approval. The governance diagram is a proposal, not a completed signoff.
+
+**[tag ⑤]** AI can invent fields, use floats for money, expose personal data, or introduce breaking changes. Schema validation, linting, data review, and diffs catch many of these errors. Scheme specialists still check meaning against the applicable profile.
+
+**[tag ⑥]** The target for this reference slice is five reviewed contracts, mocks where useful, and contract checks in each pipeline. This is a delivery checklist, not a claim that a bank has published them. Episode nine looks at how to plan the work so squads can move in **parallel**.
+<!-- /slide -->
+

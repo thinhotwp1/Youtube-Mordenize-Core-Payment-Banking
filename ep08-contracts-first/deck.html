@@ -1,0 +1,456 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EP08 Contracts First</title>
+<link rel="stylesheet" href="../shared/deck.css">
+</head>
+<body>
+<script src="../shared/deck.js"></script>
+<script>
+/* ============================================================
+   EP08 · Contracts First — diagrams (1280x800 canvas)
+   ============================================================ */
+const IND='      ';
+
+/* 1 · Why contracts come first */
+function d1(){return [
+  group({x:10,y:30,w:620,h:360,k:'bad',label:'❌ CODE FIRST · CONTRACT LATE'}),
+  box({x:30,y:76,w:280,h:76,k:'neutral',i:'⚙️',t:'Backend builds',s:'picks its own field names'}),
+  box({x:330,y:76,w:280,h:76,k:'neutral',i:'📱',t:'Mobile waits',s:'or guesses the API'}),
+  box({x:30,y:176,w:580,h:90,k:'bad',i:'💥',t:'Integration week',s:'“amount” vs “amt” · float money · no Idempotency-Key'}),
+  box({x:30,y:286,w:580,h:84,k:'bad',i:'🔁',t:'Rework',s:'weeks lost · bugs found late'}),
+  arrow([[170,152],[170,176]],{k:'bad',st:1}),
+  arrow([[470,152],[470,176]],{k:'bad',st:1}),
+  arrow([[320,266],[320,286]],{k:'bad',st:1}),
+
+  group({x:650,y:30,w:620,h:360,k:'good',label:'✅ CONTRACT FIRST'}),
+  box({x:670,y:76,w:580,h:76,k:'good',i:'📜',t:'Agree the contract first',s:'OpenAPI · AsyncAPI · Avro · scheme profile'}),
+  box({x:670,y:176,w:180,h:90,k:'aws',i:'📱',t:'Mobile',s:'builds on a mock'}),
+  box({x:870,y:176,w:180,h:90,k:'aws',i:'⚙️',t:'Backend',s:'builds to the contract'}),
+  box({x:1070,y:176,w:180,h:90,k:'aws',i:'🧪',t:'Testers',s:'write tests now'}),
+  box({x:670,y:286,w:580,h:84,k:'good',i:'🎯',t:'Integration goal',s:'catch mismatches early with contract tests'}),
+  arrow([[760,152],[760,176]],{k:'good',st:3}),
+  arrow([[960,152],[960,176]],{k:'good',st:3}),
+  arrow([[1160,152],[1160,176]],{k:'good',st:3}),
+
+  group({x:10,y:410,w:1260,h:370,k:'neutral',label:'🛤️ WHERE CONTRACTS COME FROM',lp:'b'}),
+  ...[['📝','EP04 user stories','bank-reviewed needs'],['🎯','EP05 NFRs','example targets'],['📖','EP02 rules','bank-confirmed meaning'],
+      ['📨','ISO 20022','the standard messages'],['🔐','Security (EP06)','scopes · SCA · personal data']]
+     .map((s,i)=>box({x:30,y:434+i*60,w:270,h:50,k:'neutral',i:s[0],t:s[1],s:s[2]})),
+  box({x:340,y:470,w:260,h:200,k:'ai',i:'🤖',t:'AI drafts',s:'OpenAPI · AsyncAPI · Avro\nISO 20022 mappings\nevery field links back'}),
+  box({x:640,y:470,w:260,h:200,k:'human',i:'👥',t:'People review',s:'API · consumers · security\nbank domain owner'}),
+  box({x:940,y:440,w:310,h:270,k:'good',i:'📦',t:'Contract repo',s:'one Git repo · versioned\n\n→ mock servers\n→ contract tests\n→ API docs'}),
+  arrow([[300,570],[340,570]],{k:'ai',st:5}),
+  arrow([[600,570],[640,570]],{k:'human',st:6}),
+  arrow([[900,570],[940,570]],{k:'good',st:7}),
+
+  tag(1,600,30,'Late = rework','r'),
+  tag(2,1250,30,'Agree first','r'),
+  tag(3,680,266,'Build in parallel'),
+  tag(4,40,410,'Inputs we already have'),
+  tag(5,350,470,'AI drafts'),
+  tag(6,650,470,'People approve'),
+  tag(7,950,440,'Technical reference'),
+].join('')}
+
+/* 2 · The contract map for slice 1 */
+function d2(){
+  const leg=(y,col,dash,t)=>`<path d="M24 ${y} L64 ${y}" stroke="${col}" stroke-width="3" ${dash}/>`+txt(72,y+5,t,'kl');
+  return [
+    leg(46,'#0F7F77','','OpenAPI · ask & answer'),
+    leg(72,'#2E8B57','stroke-dasharray="8 6"','AsyncAPI + Avro · events'),
+    leg(98,'#C9661E','','ISO 20022 XML · outside'),
+    leg(124,'#7B8190','stroke-dasharray="3 5"','ACL contract · mainframe'),
+    box({x:20,y:300,w:160,h:90,k:'neutral',i:'📱',t:'Mobile app'}),
+    box({x:220,y:280,w:220,h:130,k:'aws',i:'🚪',t:'Payments API',s:'POST /payments\nGET /payments/{id}\nPOST /payee-checks'}),
+    box({x:220,y:150,w:220,h:80,k:'neutral',i:'🔎',t:'VoP service',s:'payee name check'}),
+    box({x:480,y:150,w:170,h:80,k:'risk',i:'🛡️',t:'Fraud API',s:'150 ms target'}),
+    box({x:480,y:300,w:170,h:90,k:'aws',i:'📥',t:'Initiation'}),
+    box({x:690,y:300,w:170,h:90,k:'aws',i:'🔄',t:'Orchestrator'}),
+    box({x:900,y:300,w:170,h:90,k:'aws',i:'🛡️',t:'Ledger adapter',s:'anti-corruption layer'}),
+    box({x:900,y:150,w:170,h:80,k:'legacy',i:'🏛️',t:'Mainframe',s:'copybook format'}),
+    box({x:1100,y:300,w:150,h:90,k:'aws',i:'📤',t:'Scheme\ngateway'}),
+    box({x:1100,y:150,w:150,h:80,k:'neutral',i:'🌐',t:'Scheme',s:'SEPA Inst'}),
+    box({x:480,y:450,w:770,h:64,k:'good',i:'🧵',t:'Kafka · payment events',s:'initiated · screened · funds-reserved · submitted · settled · failed'}),
+
+    arrow([[180,345],[220,345]],{k:'aws',st:1}),
+    arrow([[330,280],[330,230]],{k:'aws',st:1}),
+    arrow([[440,345],[480,345]],{k:'aws',st:1}),
+    arrow([[565,390],[565,450]],{k:'good',st:2,dash:1}),
+    arrow([[775,450],[775,390]],{k:'good',st:2,dash:1,both:1}),
+    arrow([[1175,450],[1175,390]],{k:'good',st:2,dash:1,both:1}),
+    arrow([[985,450],[985,390]],{k:'good',st:2,dash:1,both:1}),
+    arrow([[740,300],[740,262],[600,262],[600,230]],{k:'aws',st:1}),
+    arrow([[1175,300],[1175,230]],{k:'risk',st:3,both:1,label:'pacs.008 / 002',ly:265}),
+    arrow([[985,300],[985,230]],{k:'legacy',st:4,both:1,dash:1,label:'ACL',ly:265}),
+
+    group({x:10,y:540,w:1260,h:240,k:'neutral',label:'📋 REFERENCE SLICE CONTRACTS · ASSIGN OWNERS'}),
+    table({x:30,y:576,w:1220,hh:30,rh:32,
+      cols:[['CONTRACT',0],['FORMAT',300],['OWNER',620],['CONSUMERS',900]],
+      rows:[['🚪 Payments API','OpenAPI 3.1 · REST','Initiation squad','mobile app · internet banking'],
+            ['🧵 Payment events','AsyncAPI 3 · Avro','Orchestration squad','4 services'],
+            ['🛡️ Fraud score API','OpenAPI 3.1 · REST','Fraud team','orchestrator'],
+            ['🏛️ Ledger adapter (ACL)','OpenAPI + copybook map','Ledger squad','orchestrator'],
+            ['🌐 Scheme messages','ISO 20022 XML','Scheme gateway squad','SEPA Inst']]}),
+
+    tag(1,230,280,'Ask & answer'),
+    tag(2,490,528,'Events'),
+    tag(3,1250,136,'Outside: ISO 20022','r'),
+    tag(4,890,190,'Mainframe behind ACL','r'),
+    tag(5,1250,540,'One owner each','r'),
+  ].join('');
+}
+
+/* 3 · Anatomy of the payment API (OpenAPI) */
+function d3(){return [
+  code({x:20,y:30,w:620,h:470,title:'payments-api.yaml · OpenAPI 3.1',lines:[
+    ['','paths:'],
+    ['','  /payments:'],
+    ['','    post:'],
+    ['','      summary: Start an instant payment'],
+    ['','      x-stories: [US-101, US-125]','y'],
+    ['','      x-latency-budget-ms: 500','y'],
+    ['','      parameters:'],
+    ['','        - name: Idempotency-Key','o'],
+    ['','          in: header'],
+    ['','          required: true','o'],
+    ['','      responses:'],
+    ['','        "202": Accepted · Location header','y'],
+    ['','        "409": first request still running'],
+    ['','        "422": same key, different body'],
+    ['','      security:'],
+    ['','        - oauth2: [payments:write]'],
+  ]}),
+  code({x:20,y:520,w:620,h:260,title:'components/schemas/PaymentRequest',lines:[
+    ['','required: [debtorAccountId, creditor, amount]'],
+    ['','creditor:  { name: max 70, iban: IBAN }'],
+    ['','amount:'],
+    ['','  value:    { type: string, format: decimal }','y'],
+    ['','  currency: { enum: [EUR] }'],
+    ['','endToEndId: { maxLength: 35 }'],
+    ['','x-rules: [BR-014, BR-031]','y'],
+  ]}),
+  box({x:660,y:36,w:610,h:110,k:'good',i:'✅',t:'202 Accepted, not 200 OK',s:'accepted for processing — not paid or settled\nthe app follows the Location link for status'}),
+  box({x:660,y:160,w:610,h:110,k:'risk',i:'🔑',t:'Idempotency-Key is required',s:'same key + same body → stored answer\nchanged body → 422 · in progress → 409'}),
+  box({x:660,y:284,w:610,h:110,k:'risk',i:'💶',t:'Money is text, never a float',s:'"250.00" — exact to the cent\na lint rule blocks floating-point amounts'}),
+  box({x:660,y:408,w:610,h:110,k:'aws',i:'🚨',t:'One error format',s:'problem details: type · title · status · detail\nISO reason code only after bank validation'}),
+  box({x:660,y:532,w:610,h:110,k:'neutral',i:'🔐',t:'Security in the contract',s:'example OAuth scope: payments:write\nbank defines authentication evidence'}),
+  box({x:660,y:656,w:610,h:110,k:'human',i:'🔗',t:'Links back',s:'x-stories → EP04 · x-latency-budget → EP05\nx-rules → EP02 rules catalog'}),
+  tag(1,670,36,'202 Accepted'),
+  tag(2,670,160,'Idempotency-Key'),
+  tag(3,670,284,'Money as text'),
+  tag(4,670,408,'One error format'),
+  tag(5,670,532,'Security scopes'),
+  tag(6,670,656,'Links back'),
+].join('')}
+
+/* 4 · Event contracts that don't break */
+function d4(){return [
+  code({x:20,y:30,w:570,h:440,title:'PaymentInitiated · v1 (Avro)',lh:30,lines:[
+    ['','record PaymentInitiated'],
+    ['','  eventId      : string   # unique · dedup','y'],
+    ['','  paymentId    : string   # Kafka key','y'],
+    ['','  uetr         : string   # tracking'],
+    ['','  occurredAt   : timestamp-millis'],
+    ['','  amount       : decimal(18,2)'],
+    ['','  currency     : string'],
+    ['','  creditorIban : string   # PII','o'],
+    ['','  channel      : string = "MOBILE"','y'],
+    ['','                 # added in v1.1, optional'],
+    ['','                 # test compatibility and meaning'],
+  ]}),
+  box({x:610,y:30,w:660,h:200,k:'good',i:'🗂️',t:'AsyncAPI · payments.events.v1',s:'key = paymentId · 12 partitions\npublishers: Initiation · Orchestrator\nsubscribers: Orchestrator · Ledger adapter\nScheme gateway · Notifications'}),
+  group({x:610,y:250,w:660,h:220,k:'neutral',label:'📚 EVERY SCHEMA CHANGE IS CHECKED'}),
+  box({x:630,y:300,w:180,h:100,k:'aws',i:'📥',t:'Producer',s:'new schema version'}),
+  box({x:840,y:300,w:200,h:100,k:'neutral',i:'📚',t:'Schema registry',s:'compatibility check'}),
+  box({x:1070,y:286,w:180,h:60,k:'good',i:'✅',t:'Compatible',s:'consumer tests next'}),
+  box({x:1070,y:362,w:180,h:60,k:'bad',i:'⛔',t:'Breaking',s:'build fails'}),
+  arrow([[810,350],[840,350]],{k:'aws',st:5}),
+  arrow([[1040,336],[1055,336],[1055,316],[1070,316]],{k:'good',st:5}),
+  arrow([[1040,364],[1055,364],[1055,392],[1070,392]],{k:'bad',st:5}),
+
+  group({x:10,y:490,w:1260,h:290,k:'neutral',label:'📏 RULES FOR CHANGING EVENTS'}),
+  table({x:30,y:526,w:1220,hh:30,rh:44,
+    cols:[['CHANGE',0],['ALLOWED?',480],['WHY',700]],
+    rows:[['➕ Add an optional field with a default','⚠️ test','schema may pass; meaning may change'],
+          ['➕ Add a required field','⛔ no','old messages don’t have it'],
+          ['✂️ Rename or remove a field','⛔ no','consumers break'],
+          ['🔄 Change a type (text → number)','⛔ no','old data can’t be read'],
+          ['🧱 A big change is really needed','➡️ topic v2','publish v1 and v2 during the move']],
+    hl:{0:'good',4:'aws'}}),
+
+  tag(1,580,30,'One event, one schema','r'),
+  tag(2,580,142,'paymentId = key','r'),
+  tag(3,580,292,'PII is tagged','r'),
+  tag(4,1260,30,'Who uses it','r'),
+  tag(5,1260,250,'Registry checks','r'),
+  tag(6,1260,490,'Add, don’t break','r'),
+].join('')}
+
+/* 5 · Speaking ISO 20022 */
+function d5(){return [
+  group({x:10,y:30,w:1260,h:290,k:'neutral',label:'🔁 ONE PAYMENT · THREE FORMATS'}),
+  box({x:30,y:80,w:250,h:100,k:'aws',i:'📱',t:'Our API (JSON)',s:'simple · camelCase'}),
+  box({x:340,y:80,w:270,h:100,k:'good',i:'🧩',t:'Canonical model',s:'internal model\nmap meaning carefully'}),
+  box({x:670,y:80,w:260,h:100,k:'risk',i:'📨',t:'pacs.008 (XML)',s:'the payment, to the scheme'}),
+  box({x:990,y:80,w:260,h:100,k:'neutral',i:'🌐',t:'Scheme · SEPA Inst',s:'answers with pacs.002'}),
+  box({x:340,y:214,w:270,h:70,k:'legacy',i:'🏛️',t:'Mainframe copybook',s:'only inside the ledger adapter'}),
+  box({x:670,y:214,w:260,h:70,k:'good',i:'📬',t:'pacs.002 → status',s:'accepted · or reason code'}),
+  arrow([[280,130],[340,130]],{k:'aws',st:1,label:'translate once',ly:112}),
+  arrow([[610,130],[670,130]],{k:'risk',st:2}),
+  arrow([[930,130],[990,130]],{k:'risk',st:2}),
+  arrow([[1120,180],[1120,249],[930,249]],{k:'neutral',st:2}),
+  arrow([[475,180],[475,214]],{k:'legacy',st:3,both:1,dash:1}),
+
+  group({x:10,y:340,w:800,h:440,k:'neutral',label:'🗺️ FIELD MAPPING · SCHEME PROFILE TO VALIDATE'}),
+  table({x:30,y:376,w:760,hh:30,rh:50,
+    cols:[['OUR FIELD',0],['ISO 20022 (pacs.008 / 002)',190],['RULE',480]],
+    rows:[['endToEndId','PmtId / EndToEndId','max 35 characters'],
+          ['uetr','PmtId / UETR','a UUID, for tracking'],
+          ['amount.value','IntrBkSttlmAmt','2 decimals · EUR'],
+          ['creditor.name','Cdtr / Nm','max 70 · scheme characters'],
+          ['creditor.iban','CdtrAcct / Id / IBAN','valid IBAN checksum'],
+          ['debtor.name','Dbtr / Nm','from the account, not the app'],
+          ['reject reason','StsRsnInf / Rsn / Cd','AC06 · AM04 · …']],
+    hl:{3:'risk'}}),
+
+  group({x:830,y:340,w:440,h:440,k:'ai',label:'🤖 AI DRAFTS · BANK VALIDATES'}),
+  box({x:850,y:380,w:400,h:84,k:'ai',i:'🤖',t:'AI drafts the mapping',s:'from the ISO 20022 definitions'}),
+  box({x:850,y:478,w:400,h:84,k:'ai',i:'🚩',t:'AI flags gaps',s:'name longer than 70 · characters not allowed'}),
+  box({x:850,y:576,w:400,h:84,k:'good',i:'🧪',t:'Tests check structure',s:'sample messages · official XML schema'}),
+  box({x:850,y:674,w:400,h:84,k:'human',i:'👀',t:'Bank scheme review',s:'specialists approve mapping meaning'}),
+
+  tag(1,350,80,'One internal language'),
+  tag(2,680,80,'Standard to the scheme'),
+  tag(3,350,284,'Mainframe via ACL'),
+  tag(4,790,340,'Every field mapped','r'),
+  tag(5,860,478,'AI flags gaps'),
+  tag(6,860,576,'Tests + domain review'),
+].join('')}
+
+/* 6 · Contract tests & governance */
+function d6(){
+  const steps=[['📝','Pull request','a contract change'],['🧹','Lint','Spectral style guide'],['🔍','Breaking check','oasdiff · registry'],
+               ['🤝','Contract tests','Pact · known consumers'],['✍️','Reviews','domain · API · security'],['📚','Publish','after approval']];
+  const fails=[['','',''],['bad','fails if','float money · no Idempotency-Key'],['bad','fails if','field removed · new required field'],
+               ['bad','fails if','a consumer test · fails'],['human','needs','named bank approvals'],['good','creates','catalog · mock server · docs']];
+  const out=[group({x:10,y:30,w:1260,h:310,k:'neutral',label:'🚦 EVERY CONTRACT CHANGE · ONE PIPELINE'})];
+  steps.forEach((s,i)=>{
+    const x=30+i*206;
+    out.push(box({x,y:76,w:180,h:110,k:i===0?'neutral':'aws',i:s[0],t:s[1],s:s[2]}));
+    if(i<5) out.push(arrow([[x+180,131],[x+206,131]],{k:'aws',st:Math.min(i+2,4)}));
+    if(fails[i][0]) out.push(box({x,y:214,w:180,h:100,k:fails[i][0],t:fails[i][1],s:fails[i][2].replace(' · ','\n')}));
+  });
+  out.push(
+    group({x:10,y:360,w:620,h:420,k:'human',label:'🤝 CONSUMER-DRIVEN CONTRACT TESTS'}),
+    box({x:30,y:406,w:270,h:90,k:'neutral',i:'📱',t:'Mobile team',s:'writes what it expects'}),
+    box({x:340,y:406,w:270,h:90,k:'neutral',i:'📚',t:'Pact Broker',s:'stores every expectation'}),
+    box({x:30,y:530,w:270,h:90,k:'aws',i:'⚙️',t:'Payments API',s:'verifies them in its pipeline'}),
+    box({x:340,y:530,w:270,h:90,k:'good',i:'✅',t:'Can I deploy?',s:'known consumers + bank gate'}),
+    box({x:30,y:654,w:580,h:100,k:'aws',i:'🧪',t:'Mock server from the contract',s:'the mobile team builds before the backend exists'}),
+    arrow([[300,451],[340,451]],{k:'human',st:4}),
+    arrow([[475,496],[475,513],[165,513],[165,530]],{k:'human',st:4}),
+    arrow([[300,575],[340,575]],{k:'good',st:4}),
+
+    group({x:650,y:360,w:620,h:420,k:'ai',label:'🤖 AI IN THE CONTRACT PIPELINE'}),
+    box({x:670,y:406,w:580,h:80,k:'ai',i:'✍️',t:'Drafts contracts',s:'from stories (EP04), NFRs (EP05) and rules (EP02)'}),
+    box({x:670,y:500,w:580,h:80,k:'ai',i:'🔍',t:'Reviews pull requests',s:'style guide · naming · missing error cases'}),
+    box({x:670,y:594,w:580,h:80,k:'ai',i:'🧪',t:'Generates examples & tests',s:'happy path + edge cases from EP02'}),
+    box({x:670,y:688,w:580,h:76,k:'human',i:'👀',t:'People merge',s:'AI never merges a contract'}),
+
+    tag(1,1250,30,'Every change, one path','r'),
+    tag(2,246,186,'Lint'),
+    tag(3,452,186,'No breaking changes'),
+    tag(4,40,530,'Consumers decide'),
+    tag(5,40,654,'Mock from day one'),
+    tag(6,1250,360,'AI drafts, people merge','r'),
+  );
+  return out.join('');
+}
+
+/* 7 · Version, approve, hand over */
+function d7(){return [
+  group({x:10,y:30,w:620,h:360,k:'neutral',label:'🏷️ CHANGE WITHOUT BREAKING ANYONE'}),
+  `<line x1="40" y1="96" x2="600" y2="96" stroke="#222530" stroke-width="2"/>`,
+  ...[[70,'v1 example'],[220,'v2 proposed'],[400,'v1 sunset'],[570,'v1 retired']].map(([x,t])=>
+    `<circle cx="${x}" cy="96" r="7" fill="#222530"/>`+txt(x,82,t,'cl','middle')),
+  `<rect x="70" y="116" width="330" height="26" rx="6" fill="rgba(15,127,119,.25)" stroke="#0F7F77" stroke-width="1.6"/>`,
+  `<rect x="400" y="116" width="170" height="26" rx="6" fill="rgba(201,102,30,.20)" stroke="#C9661E" stroke-width="1.6" stroke-dasharray="6 4"/>`,
+  `<rect x="220" y="152" width="380" height="26" rx="6" fill="rgba(46,139,87,.25)" stroke="#2E8B57" stroke-width="1.6"/>`,
+  txt(80,134,'v1','cl'), txt(410,134,'v1 + Sunset header','cl'), txt(230,170,'v2','cl'),
+  kpi({x:30,y:200,w:580,h:52,k:'good',i:'➕',t:'Add an optional field',v:'v1.1 · minor'}),
+  kpi({x:30,y:262,w:580,h:52,k:'risk',i:'✂️',t:'Remove or rename a field',v:'v2 · major'}),
+  kpi({x:30,y:324,w:580,h:52,k:'aws',i:'⏳',t:'Deprecation window (example)',v:'6 months'}),
+
+  group({x:650,y:30,w:620,h:360,k:'human',label:'✍️ REVIEWS BEFORE PUBLISHING · EXAMPLE'}),
+  box({x:670,y:72,w:580,h:66,k:'human',i:'🧭',t:'API owner',s:'purpose · names · lifecycle'}),
+  box({x:670,y:150,w:580,h:66,k:'human',i:'📱',t:'Consumer teams',s:'“it works for us”'}),
+  box({x:670,y:228,w:580,h:66,k:'human',i:'🔐',t:'Security',s:'scopes · personal data · SCA'}),
+  box({x:670,y:306,w:580,h:66,k:'human',i:'📐',t:'Architect',s:'fits the target design (EP07)'}),
+
+  group({x:10,y:410,w:620,h:370,k:'risk',label:'⚠️ AI RISKS HERE · AND THE GUARDRAILS'}),
+  lines(36,464,['🤖 invents fields that ISO 20022 doesn’t have',IND+'→ checked against the official schema','🤖 uses floats for money',IND+'→ a lint rule blocks it','🤖 puts personal data into events',IND+'→ PII tags + security review','🤖 sneaks in a breaking change',IND+'→ automatic diff + registry check'],'kl',38),
+
+  group({x:650,y:410,w:620,h:370,k:'good',label:'📦 HAND OVER · REFERENCE TARGETS'}),
+  kpi({x:670,y:454,w:580,h:48,k:'aws',i:'📜',t:'Contracts to review',v:'5'}),
+  kpi({x:670,y:510,w:580,h:48,k:'aws',i:'🧪',t:'Mock servers planned',v:'5'}),
+  kpi({x:670,y:566,w:580,h:48,k:'aws',i:'🤝',t:'Example test cases',v:'46'}),
+  box({x:670,y:640,w:180,h:116,k:'aws',i:'🗺️',t:'EP09',s:'roadmap · team'}),
+  box({x:870,y:640,w:180,h:116,k:'aws',i:'🏗️',t:'EP10',s:'platform'}),
+  box({x:1070,y:640,w:180,h:116,k:'aws',i:'🛠️',t:'EP11–16',s:'build the services'}),
+
+  tag(1,600,200,'Add, don’t break','r'),
+  tag(2,230,192,'Side by side'),
+  tag(3,560,96,'Sunset date','r'),
+  tag(4,1250,30,'Review owners','r'),
+  tag(5,600,410,'AI risks, guarded','r'),
+  tag(6,1250,410,'Targets to meet','r'),
+].join('')}
+
+/* ============================================================
+   Episode config
+   ============================================================ */
+const DECK={
+  brand:'🏦 CORE BANKING PAYMENTS MODERNIZATION · AWS',
+  ep:'EP 08', epShort:'EP08', title:'Contracts First', subtitle:'Reference scenario',
+  seriesTitle:'Core Payments Modernization · Reference',
+  logo:'../shared/jo-logo.png', background:'../shared/background.png',
+  stages:[['🔍','Discover'],['📋','Requirements'],['📐','Design & Plan'],['🛠️','Build'],['🚀','Test & Deploy'],['🔧','Operate']],
+  stage:3,
+  glossary:{
+    API:['API','value','A defined way for one system to ask another for something. Like a menu: you can only order what is on it.'],
+    CFIRST:['Contract-first','value','Agree API and message formats before coding. Teams can work in parallel while tests expose integration gaps early.'],
+    MOCK:['Mock server','value','A fake service generated from the contract. The mobile team can build and test before the real backend exists.'],
+    LATEINT:['Late integration','risk','When teams connect their parts only at the end. Different names and formats appear late, and weeks are lost.'],
+    CONSPROV:['Consumer & provider','value','The provider offers an API; consumers use it. A contract is the agreement between them.'],
+    REST:['REST API (synchronous)','value','Ask and wait for the answer, like a phone call. Used when the customer is waiting, like “start a payment”.'],
+    EVENT:['Event (asynchronous)','value','A message recording a defined state change. Delivery can repeat, so consumers need idempotency.'],
+    TOPIC:['Kafka topic','value','A named stream of events, like “payment events”. Many services can read it, each at its own speed.'],
+    ISOMSG:['ISO 20022 message','value','A message standard with scheme-specific profiles. Bank specialists validate which message and meaning apply.'],
+    ACLC:['ACL contract','risk','The contract of the anti-corruption layer. It hides the mainframe format, so the rest of the platform never sees it.'],
+    OPENAPI:['OpenAPI','value','The standard way to describe a REST API in one file: paths, fields, errors, security. Tools read it to make docs, mocks and tests.'],
+    IDEMKEY:['Idempotency-Key','risk','A unique key the app sends with each payment. If the same request comes again, the bank returns the first answer — not a second payment.'],
+    PROBLEM:['Problem details (RFC 9457)','value','One standard format for errors. Every team reports problems the same way, so apps can handle them simply.'],
+    SCOPE:['OAuth 2.0 scope','risk','A permission inside an access token, like “payments:write”. The contract states which scope each call needs.'],
+    DECIMAL:['Decimal money','risk','Amounts sent as exact text, like "250.00", never as floating-point numbers. Floats can create tiny rounding errors.'],
+    ASYNCAPI:['AsyncAPI','value','Like OpenAPI, but for events: which topics exist, what the messages look like, who publishes and who listens.'],
+    AVRO:['Avro','value','A compact format for event data with a strict schema. Every message must match its schema.'],
+    REGISTRY:['Schema registry','risk','A central store of event schemas. It checks configured compatibility; semantic changes still need consumer review.'],
+    BACKCOMPAT:['Backward compatibility','risk','New versions can still read old data. Consumers keep working while producers improve their events.'],
+    PKEY:['Partition key','value','The key sends related events to one Kafka partition. Producer ordering and replay behavior still need tests.'],
+    PAIN001:['pain.001','value','ISO 20022 message from a customer to its bank: “please make this payment”. Corporate files often use it.'],
+    PACS008:['pacs.008','value','ISO 20022 message from bank to bank: the payment itself, sent through the scheme.'],
+    PACS002:['pacs.002','value','ISO 20022 status report. The applicable scheme profile defines status and reason-code meaning.'],
+    CANON:['Canonical model','value','One internal data language for all services. We translate at the edges, not inside every service.'],
+    SCHEMERULES:['Scheme field rules','risk','Field length and character rules depend on the chosen scheme profile. Bank specialists approve the mapping.'],
+    LINT:['Linting (Spectral)','value','Automatic style checks on a contract: names, required headers, error format, no float money.'],
+    BREAKING:['Breaking change','risk','A change that may break consumers. Automated diffs catch structural changes; semantic changes need human review.'],
+    PACT:['Consumer-driven contract test','risk','Each consumer writes down what it expects from an API. The provider must pass all of them before it deploys.'],
+    CANDEPLOY:['“Can I deploy?”','value','A check that asks: does this version still satisfy every consumer? If not, the deployment stops.'],
+    DRIFT:['Contract drift','risk','When the code slowly stops matching the contract. Contract tests catch it on every change.'],
+    SEMVER:['Semantic versioning','value','Version numbers that mean something: 1.1 adds features safely; 2.0 contains breaking changes.'],
+    SUNSET:['Deprecation & Sunset','risk','Announcing that an old version will close, with a date in the Sunset header. Consumers get time to move.'],
+    APIOWNER:['API owner','value','The person accountable for an API as a product: its purpose, quality and lifecycle.'],
+    PII:['PII tagging','risk','Mark sensitive fields in the contract; bank policy decides whether to publish them and tests whether logs mask them.'],
+    CATALOG:['API catalog','value','One place to find every API and event, with docs, owners and status. Teams reuse instead of rebuilding.'],
+  },
+  slides:[
+    {icon:'📜',kicker:'EP08 · 1/7 · WHY',title:'Why Contracts Come First',time:'00:00 – 02:10',draw:d1,
+     key:'Agree the contract first — then build in parallel.',next:'🔜 Next: the contract map for slice 1',
+     open:'Before we build, we agree how the parts will talk.',
+     land:'One versioned technical reference for every team.',
+     gloss:[['API',[1,2]],['LATEINT',[1]],['CFIRST',[2]],['MOCK',[3]],['CONSPROV',[6]]],
+     demo:['proof plan: version contracts in Git and use <b>Prism</b> to expose field mismatches',
+           '<b>API Gateway</b> could import the reviewed OpenAPI definition'],
+     steps:[['Late = rework','Code first: names and formats clash in integration week.'],
+            ['Agree first','OpenAPI, AsyncAPI, Avro and ISO 20022 — before code.'],
+            ['Build in parallel','Mobile on a mock, backend to the contract, testers start now.'],
+            ['Inputs we already have','Proposed stories, NFRs, bank rules, scheme profile, security.'],
+            ['AI drafts','Contracts drafted from those inputs, with links back.'],
+            ['People approve','API, consumers, security and bank domain owner.'],
+            ['Technical reference','Versioned contracts, mocks, tests and docs.']]},
+    {icon:'🗺️',kicker:'EP08 · 2/7 · THE MAP',title:'The Contract Map for Slice 1',time:'02:10 – 03:45',draw:d2,
+     key:'Every arrow is a contract. Every contract has an owner.',next:'🔜 Next: anatomy of the payment API',
+     open:'Here are all the conversations in slice one.',
+     land:'Every contract has one owner, and we know every consumer.',
+     gloss:[['REST',[1]],['EVENT',[2]],['TOPIC',[2]],['ISOMSG',[3]],['ACLC',[4]]],
+     demo:['proposed repository: OpenAPI, AsyncAPI, Avro and reviewed scheme mappings',
+           'candidate tools: <b>Glue Schema Registry</b> and <b>API Gateway</b>'],
+     steps:[['Ask & answer','The app calls the Payments API and waits — OpenAPI.'],
+            ['Events','Services announce what happened on Kafka — AsyncAPI + Avro.'],
+            ['Outside: ISO 20022','Example pacs.008 / pacs.002; scheme profile to confirm.'],
+            ['Mainframe behind ACL','Its copybook format never leaves the adapter.'],
+            ['One owner each','Five example contracts; assign owners and consumers.']]},
+    {icon:'🚪',kicker:'EP08 · 3/7 · OPENAPI',title:'Anatomy of the Payment API',time:'03:45 – 05:30',draw:d3,
+     key:'A good contract carries the rules, not just the fields.',next:'🔜 Next: event contracts',
+     open:'Let’s open the most important contract: start a payment.',
+     land:'The contract carries the rules, not just the fields.',
+     gloss:[['OPENAPI',[1]],['IDEMKEY',[2]],['DECIMAL',[3]],['PROBLEM',[4]],['SCOPE',[5]]],
+     demo:['test plan: <b>Spectral</b> lint plus a <b>Prism</b> mock for 202 and error paths',
+           'request validation still needs integration and consumer tests'],
+     steps:[['202 Accepted','Accepted, not finished. The app follows the Location link.'],
+            ['Idempotency-Key','Replay same body; changed body → 422; in progress → 409.'],
+            ['Money as text','"250.00" — never a float.'],
+            ['One error format','Problem details; reason code after bank validation.'],
+            ['Security scopes','Example scope; bank defines auth evidence.'],
+            ['Links back','Stories, NFR budgets and EP02 rules — inside the file.']]},
+    {icon:'🧵',kicker:'EP08 · 4/7 · ASYNCAPI & AVRO',title:'Event Contracts That Don’t Break',time:'05:30 – 07:20',draw:d4,
+     key:'Check schema and meaning before an event change ships.',next:'🔜 Next: speaking ISO 20022',
+     open:'Now the events. They are harder, because one producer has many readers.',
+     land:'Add, don’t break.',
+     gloss:[['AVRO',[1]],['PKEY',[2]],['ASYNCAPI',[4]],['REGISTRY',[5]],['BACKCOMPAT',[6]]],
+     demo:['test plan: reject an incompatible schema in <b>Apicurio</b>',
+           'a bank could apply configured registry checks plus consumer tests'],
+     steps:[['One event, one schema','PaymentInitiated, version 1, in Avro.'],
+            ['paymentId = key','Related events share a partition; test producer order.'],
+            ['PII is tagged','Bank policy decides fields; test log masking.'],
+            ['Who uses it','AsyncAPI: topic, key, partitions, publishers, subscribers.'],
+            ['Registry checks','Schema check, then consumer and meaning review.'],
+            ['Add, don’t break','Test optional fields; use v2 for major change.']]},
+    {icon:'📨',kicker:'EP08 · 5/7 · ISO 20022',title:'Speaking ISO 20022',time:'07:20 – 09:20',draw:d5,
+     key:'Translate at the edges. Test every field.',next:'🔜 Next: contract tests & governance',
+     open:'The internal model maps to a bank-approved scheme profile.',
+     land:'If the scheme rejects our message, the customer feels it.',
+     gloss:[['CANON',[1]],['PAIN001',[1]],['PACS008',[2]],['PACS002',[2]],['SCHEMERULES',[4,5]]],
+     demo:['test plan: validate sample pacs.008 messages against the applicable XSD',
+           'scheme specialists must approve field meaning and test cases'],
+     steps:[['One internal language','A canonical model with ISO 20022 names.'],
+            ['Standard to the scheme','Example pacs messages; bank confirms status meaning.'],
+            ['Mainframe via ACL','Canonical ↔ copybook — only inside the adapter.'],
+            ['Every field mapped','Our field, its ISO path, and its rule.'],
+            ['AI flags gaps','Names too long, characters not allowed.'],
+            ['Tests + domain review','XSD checks structure; bank reviews semantics.']]},
+    {icon:'🚦',kicker:'EP08 · 6/7 · GOVERNANCE',title:'Contract Tests & Governance',time:'09:20 – 10:55',draw:d6,
+     key:'If a change breaks a consumer, it doesn’t ship.',next:'🔜 Next: version, approve & hand over',
+     open:'A contract is only useful if the code keeps it.',
+     land:'Integration becomes boring — and boring is good.',
+     gloss:[['DRIFT',[1]],['LINT',[2]],['BREAKING',[3]],['PACT',[4]],['CANDEPLOY',[4]]],
+     demo:['proposed CI: <b>Spectral</b> → <b>oasdiff</b> → <b>Pact</b>',
+           'deployment needs results from known consumers and bank approval'],
+     steps:[['Every change, one path','Pull request, checks, approvals, publish.'],
+            ['Lint','Style rules: names, headers, errors, no floats.'],
+            ['No breaking changes','Compare versions before anything merges.'],
+            ['Consumers decide','Pact: every consumer’s expectations must pass.'],
+            ['Mock from day one','Mobile builds before the backend exists.'],
+            ['AI drafts, people merge','AI drafts and reviews; it never merges.']]},
+    {icon:'🏷️',kicker:'EP08 · 7/7 · VERSION & HAND OVER',title:'Version, Approve, Hand Over',time:'10:55 – 12:40',draw:d7,
+     key:'Change contracts without breaking anyone.',next:'🔜 Next episode: EP09 — Roadmap, Team & AI Guardrails',
+     open:'Contracts will change. The question is how.',
+     land:'Now the squads can build — in parallel.',
+     gloss:[['SEMVER',[1]],['SUNSET',[2,3]],['APIOWNER',[4]],['PII',[5]],['CATALOG',[6]]],
+     demo:['versioning plan: test a Sunset header and side-by-side APIs',
+           'bank and consumer owners agree the real migration window'],
+     steps:[['Add, don’t break','A new optional field is a minor version.'],
+            ['Side by side','A breaking change is v2, running next to v1.'],
+            ['Sunset date','v1 closes after an announced window.'],
+            ['Review owners','API, consumers, security, architecture, bank domain.'],
+            ['AI risks, guarded','Schema checks, lint, PII tags, automatic diff.'],
+            ['Targets to meet','5 example contracts, mocks and checks before build.']]},
+  ],
+};
+startDeck(DECK);
+</script>
+</body>
+</html>

@@ -1,0 +1,349 @@
+﻿===== Slide 1 · Overnight Engine. Real-Time World.  (00:00 – 02:55) =====
+
+[tag ①]
+This series uses an illustrative bank to examine a real engineering question: how do you change a critical system while it keeps running?
+I have built and operated large enterprise systems, but I have not directly modernized a core banking system.
+The bank owns its payment rules and obligations.
+My role here is to show how those rules become architecture, code, tests, release controls, and operating decisions.
+In our reference scenario, COBOL and CICS process payments, DB2 holds balances, and a nightly batch completes some work.
+A real bank would first confirm this picture against its own estate.
+
+[tag ②]
+First, business opportunity.
+A bank may want faster payment products, but the target depends on its market, scheme, and customers.
+The architecture must support the product decision the bank actually makes.
+
+[tag ③]
+Second, cost.
+Mainframe usage can be expensive, but the saving from moving a workload is not automatic.
+We need a measured baseline, a cost model, and proof that old capacity can really be removed.
+
+[tag ④]
+Third, change risk.
+Legacy knowledge may sit with a few people, and release cycles can be slow.
+We must discover the hidden rules before replacing behavior.
+
+[tag ⑤]
+A single cutover concentrates too much risk in one moment.
+The safer starting point is to identify a small, reversible slice, define its failure modes, and agree what evidence is required before more traffic moves.
+That is an engineering proposal, not a claim that every bank should follow the same sequence.
+
+[tag ⑥]
+One useful pattern is the Strangler Fig: route one well-defined flow through a new path while the old one still runs.
+Its engineering lessons can transfer from other large systems, but payment semantics do not map one-to-one.
+Bank specialists must define the flow and its controls.
+
+[tag ⑦]
+We then measure outcomes the bank selects: customer impact, release frequency, cost, and operational risk.
+Targets come from its baseline and risk appetite.
+Throughout the series, I will show the decisions and the evidence I would put in front of a leadership team.
+
+[validation plan]
+Versioned code, contracts, and tests would provide engineering evidence for the reference design.
+The proposed checks here are not evidence that this design is running in a bank.
+
+===== Slide 2 · What "Done" Looks Like  (02:55 – 05:45) =====
+
+[tag ①]
+Before design, the bank and engineering team must agree what "done" means.
+For this reference scenario, assume twelve million payments a day and a possible peak of five thousand per second.
+These are planning inputs, not observed bank volumes.
+A real programme would replace them with measured traffic, seasonal peaks, and growth forecasts.
+
+[tag ②]
+What must the flow do?
+This diagram shows intake, checks, funds control, network submission, and customer status.
+The bank's product, scheme, fraud, sanctions, and operations experts must define the actual order, messages, and exception rules.
+ISO 20022 is a message standard, not a substitute for those decisions.
+
+[tag ③]
+How well must it work?
+This example uses a p99 internal response target of half a second, an end-to-end target of ten seconds, and a ninety-nine point nine nine percent availability target.
+These numbers are proposed targets for discussion.
+The bank must validate them against its scheme rules, customer promise, cost, and operating capacity.
+
+[tag ④]
+Recovery also needs explicit RPO and RTO targets: how much data loss is tolerable, and how long recovery may take.
+Zero data loss and fifteen minutes are useful design challenges here.
+They are not guarantees; tests must prove the chosen design.
+
+[tag ⑤]
+Idempotency is a critical engineering control.
+A client may retry after a timeout.
+The platform must not create a second debit for the same authorised request.
+The bank must define when two requests count as the same payment, and operations needs a way to investigate uncertain outcomes.
+
+[tag ⑥]
+Team design follows ownership.
+In this example, delivery squads own bounded parts of the flow, while a platform team owns shared infrastructure.
+Bank product, operations, risk, and compliance owners remain accountable for the rules and approvals.
+Engineering owns implementation and measurable reliability.
+
+[tag ⑦]
+Legacy specialists are essential.
+They know which behavior is deliberate and which is historical.
+Their time must be funded for discovery, review, and tests, alongside keeping the current system safe.
+
+[validation plan]
+A load test and retry test can validate the engineering approach in a reference environment.
+Production targets still require bank data and production-like testing.
+
+===== Slide 3 · Strangle, Don't Rewrite  (05:45 – 08:45) =====
+
+[tag ①]
+Here is a possible current-state design, not a description of a specific bank.
+Channels feed IBM MQ, COBOL programs run in CICS, DB2 stores balances, and some outputs leave in a nightly batch.
+The first task is to verify every interface and dependency.
+In large systems, hidden dependencies make even a small change risky.
+
+[tag ②]
+Step one is routing.
+A gateway authenticates callers and carries an idempotency key.
+A router chooses the old or new path using controlled flags.
+The bank would approve the routing criteria, such as product or pilot group, and the fallback conditions.
+A flag can reverse traffic only while state and external effects remain safe to reverse; it is not a promise of one-click rollback.
+
+[tag ③]
+Step two is decoupling.
+Amazon MSK, managed Kafka, can carry versioned events between services.
+That gives us an audit-friendly history and reduces direct coupling, but it also creates delivery, ordering, and replay questions.
+Schemas, retention, access controls, and failure tests matter as much as the broker choice.
+
+[tag ④]
+In this option, services run on Amazon EKS.
+Initiation, orchestration, screening integration, and the scheme gateway have clear contracts and data ownership.
+Separate databases may reduce coupling, but only if the team can operate the extra complexity.
+The bank and engineering team should choose the boundary together.
+
+[tag ⑤]
+Step three is connecting old and new.
+Change data capture, if the source supports it safely, can publish changes to the new path.
+An adapter translates commands to the legacy interface.
+We would measure lag, missing records, and retry behavior before trusting either link.
+These mechanisms are hypotheses until the estate and data owners validate them.
+
+[tag ⑥]
+The ledger is the highest-risk boundary in this scenario.
+One possible sequence moves orchestration first, builds a shadow ledger for comparison, and considers the system-of-record cutover only after evidence and bank sign-off.
+The sequence may change once we understand the bank's accounting and operations.
+
+[tag ⑦]
+Resilience needs a tested design across zones and, where justified, regions.
+Encryption and end-to-end tracing are design controls.
+Recovery claims must come from drills and reconciliation, not a diagram.
+
+[validation plan]
+A reference build using Spring, Kafka, Postgres, Debezium, and simulated interfaces can test these contracts.
+It does not prove the bank's production integration.
+
+===== Slide 4 · Phase 2: Prove It Before We Trust It  (08:45 – 11:05) =====
+
+[tag ①]
+Phase two is about earning trust in the new path while the current ledger remains authoritative.
+In this reference design, DB2 is the system of record.
+The bank's finance and operations owners must define what that means in their actual system.
+Mainframe cost can be measured, but a shadow path may add cost before it removes any.
+
+[tag ②]
+First, we propose copying relevant changes through CDC.
+We must confirm source permissions, latency, completeness, and what happens when the feed stops.
+A customer should see no difference only after those controls are proven.
+
+[tag ③]
+A proposed shadow ledger processes the same inputs without deciding customer balances.
+It gives us a comparison path.
+The bank's accounting specialists define the posting rules and acceptable differences.
+
+[tag ④]
+Reconciliation compares records, balances, and end-of-day totals at an agreed cadence.
+Differences are classified, owned, and resolved.
+Finance defines the tolerances; engineering makes the comparison repeatable.
+
+[tag ⑤]
+Some read workloads might move to the copy after data freshness and access rules are approved.
+That may reduce mainframe work, but we would verify the actual savings against the extra cloud and dual-run cost.
+
+[tag ⑥]
+When the two paths disagree, we do not hide the difference.
+We trace source data, timing, and rules, then replay after the bank approves a correction.
+A mismatch may reveal a defect in either system or an assumption we got wrong.
+
+[tag ⑦]
+The exit gate needs evidence, not optimism: stable reconciliation across the bank's chosen cycles, peak and recovery tests, open-risk review, and sign-off from the bank's accountable owners.
+The exact gate belongs to that bank.
+
+[validation plan]
+A Postgres and Debezium reference test can show how a CDC gap is detected.
+A real DB2 integration needs separate validation with the bank's specialists.
+
+===== Slide 5 · Phase 3: Flip Safely. Fail Gracefully.  (11:05 – 14:05) =====
+
+[tag ①]
+Phase three is a possible cutover, when the bank may approve a new system of record.
+We would begin with a controlled group and grow only after agreed checks pass.
+Customer segments here are illustrative.
+A feature flag can redirect new traffic, but it cannot undo a settled external payment.
+The rollback plan must distinguish reversible routing from irreversible business effects.
+
+[tag ②]
+The shadow ledger becomes authoritative only after the bank proves posting accuracy, operations, controls, and recovery, then formally approves the change.
+
+[tag ③]
+The old path may remain available for an agreed fallback period.
+Decommissioning comes later, after reconciliation and dependency checks.
+We would measure any cost reduction rather than assume it.
+
+[tag ④]
+How do we handle a flow across services and an external network?
+A global two-phase commit is usually a poor fit: we cannot hold one transaction open across organisations, and locks would harm availability.
+The engineering choice needs an explicit state model, retries, and compensating actions, with bank approval for uncertain outcomes.
+
+[tag ⑤]
+A saga is one option for coordinating local steps.
+Some steps can be reversed; others need a new business action, not an automatic undo.
+ISO 20022 gives message structures, while each scheme and bank determines valid states and actions.
+I would encode those rules in a reviewed state machine.
+
+[tag ⑥]
+If an external response is missing, we mark the outcome unknown.
+We do not release a hold or retry blindly.
+The bank's scheme specialists define the permitted status-inquiry path; a pacs.028 may be part of that path in a relevant flow.
+Engineering then makes the inquiry idempotent, observable, and timed.
+
+[tag ⑦]
+After an external acceptance, a correction may require a recall or investigation.
+A camt.056 may be relevant, but eligibility, timing, and outcome depend on the scheme and case.
+The bank defines that policy.
+The platform records every request and response without promising the funds will return.
+
+[tag ⑧]
+The engineering goal is a visible state, a stable tracking ID, and a complete audit trail for each exception.
+Operations owns the procedure and the human decision points.
+
+[validation plan]
+A scheme simulator can exercise acceptance, rejection, timeout, and inquiry paths.
+It is proof of state handling, not proof of scheme certification.
+
+===== Slide 6 · Consistency Without Two-Phase Commit  (14:05 – 16:40) =====
+
+[tag ①]
+Now we look at the execution detail.
+We cannot use one atomic transaction across Kafka, a service database, a legacy system, and an external party.
+We must design for partial failure.
+
+[tag ②]
+A payment orchestrator can own the state machine and record each decision.
+This diagram shows one possible path: initiated, screened, funds reserved, submitted, accepted, settled.
+The bank must confirm the exact states, names, and transitions.
+
+[tag ③]
+For a confirmed rejection, the bank may authorise release of the hold.
+That action becomes a new recorded event; history is never deleted.
+The rule must account for timing and any external response still in flight.
+
+[tag ④]
+The dotted line marks a proposed commitment boundary.
+Before it, some internal steps may be reversible.
+After it, correction may require a separate scheme process.
+Bank operations and scheme experts must define the real boundary; it cannot be inferred from a generic diagram.
+
+[tag ⑤]
+A timeout means unknown, not failed.
+We hold a safe state and use the bank-approved inquiry process before releasing funds or resubmitting.
+
+[tag ⑥]
+At the bottom is a transferable engineering failure mode: the dual write.
+If a service writes its database and Kafka separately, a crash between them can leave missing or misleading events.
+I have seen this class of problem in large systems beyond banking.
+
+[tag ⑦]
+A transactional outbox stores the state change and an event record in one database transaction.
+Debezium can publish that record to Kafka.
+We still need monitoring for lag and failures, and a clear replay procedure.
+
+[tag ⑧]
+The same event can arrive more than once.
+Consumers use stable IDs and idempotent writes so retries do not create another business effect.
+We test this under crashes and replay; saying "exactly once" without the business boundary would overstate the guarantee.
+
+[validation plan]
+A proposed timeout test would inspect the event trail and check that no unsafe release occurs while status is unknown.
+
+===== Slide 7 · AI Drafts. Experts Approve. Tests Enforce.  (16:40 – 18:45) =====
+
+[tag ①]
+Where can AI help?
+In a bank-approved environment, it can draft a candidate rules catalog from code and documents.
+It cannot know every hidden rule, or decide what a rule means to the bank.
+
+[tag ②]
+Each candidate links to a source line and a test.
+Mainframe and business experts check the meaning, resolve gaps, and approve it.
+A citation proves where text came from; it does not prove the interpretation.
+
+[tag ③]
+AI can then draft interface contracts and architecture decision records, or ADRs.
+Engineering validates compatibility and failure behavior.
+Bank owners validate the business meaning of every field and state.
+
+[tag ④]
+AI can help write Java services, but the value is in enforced design rules.
+In the proposed reference build, business code would publish through the outbox, and an unhandled event type would fail the build.
+These are engineering controls to implement, not claims about running code.
+
+[tag ⑤]
+We would document those constraints for coding agents, and ArchUnit tests could check them automatically.
+Reviewers would inspect generated code for correctness and security.
+
+[tag ⑥]
+The proposed pipeline would block a merge after a failed architecture check.
+That makes the design testable.
+Production release would still need the bank's approvals, operational readiness, and evidence.
+
+[tag ⑦]
+The proposed proof is specific: send the same request twice in a reference environment, then inspect the response, database, and event stream.
+If the result matches the contract under retries and crashes, we have evidence for that boundary.
+A bank would still need load, failure, integration, and scheme tests.
+
+===== Slide 8 · Trade-offs & Takeaways  (18:45 – 20:45) =====
+
+[tag ①]
+Every architecture has trade-offs.
+First, eventual consistency.
+Different systems may show different states for a time.
+The bank must define what the customer sees, what can be accepted, and how status is tracked.
+A status API helps; the identifier and message rules depend on the payment flow.
+
+[tag ②]
+Second, operational complexity.
+Kafka, CDC, and a saga add failure modes.
+They need a funded team, runbooks, monitoring, and on-call capability.
+If those cannot be sustained, choose a simpler design.
+
+[tag ③]
+Third, orchestration cost.
+Managed workflow pricing depends on volume and transitions.
+This reference design keeps the state machine in an orchestrator and reserves managed workflows for other flows.
+A bank should model both options using its volume, support needs, and team skills.
+
+[tag ④]
+Fourth, dual-run cost.
+Running old and new paths together can increase spend before it reduces risk or cost.
+Leadership needs a baseline, a decommissioning plan, and a measure of capacity actually removed.
+
+[validation plan]
+A reference build could support design review through code and tests.
+Any future results should state the exact conditions and limits.
+
+[tag ⑤]
+Three takeaways.
+One: treat the ledger cutover as a bank-owned decision that needs evidence and rehearsed recovery.
+
+[tag ⑥]
+Two: define idempotency with business owners, then enforce it in contracts, state, and tests.
+
+[tag ⑦]
+Three: use AI to draft, while named experts approve meaning and the pipeline checks implementation.
+
+The method is to make one decision, prove it, and operate it safely before scaling further.
+

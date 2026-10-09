@@ -1,0 +1,157 @@
+# EP 04 · From Regulation to User Stories: Final Script
+
+**Series:** Enterprise modernization reference scenario (Stage 2: Requirements). **Speed:** 120–130 words per minute. **Voice:** clear English for technology and business leaders.
+
+**How to read it**
+- **Bold** = stress this word.
+- A full stop = a short pause.
+- A new **[tag]** = a longer pause. Draw your arrow with the pen here.
+- Numbers are written as words, so they are easy to read aloud.
+
+## Time plan
+
+<!-- TIMETABLE -->
+| Slide | Words | Length | Timestamp |
+|---|---|---|---|
+| 1 · From Rules to Requirements | 179 | 01:30 | 00:00 – 01:30 |
+| 2 · What the Law Asks For | 245 | 02:05 | 01:30 – 03:35 |
+| 3 · How the Backlog Is Built | 175 | 01:30 | 03:35 – 05:05 |
+| 4 · Story Map for Slice 1 | 215 | 01:50 | 05:05 – 06:55 |
+| 5 · Anatomy of a Good Story | 199 | 01:40 | 06:55 – 08:35 |
+| 6 · Law → Story → Test | 202 | 01:45 | 08:35 – 10:20 |
+| 7 · Ready for Sprint Planning | 146 | 01:15 | 10:20 – 11:35 |
+| **Total** | **1361** | **11:35** | at 125 words per minute, plus 6 s per slide for drawing |
+
+---
+
+<!-- slide:1 -->
+## Slide 1 · From Rules to Requirements
+
+**[tag ①]** We now move from discovery to **requirements**. The bank has the domain knowledge and the authority to interpret its obligations. My execution role is to make those approved decisions buildable and testable. The risk is a broken chain: a rule is agreed in a meeting, but the architecture, backlog, and tests do not carry it through.
+
+**[tag ②]** Five inputs shape the work: the reviewed rules catalog, the proposed slice boundary, obligations interpreted by bank compliance, customer journeys, and the bank's product plan. Each input needs an owner and a version.
+
+**[tag ③]** AI can draft epics, stories, and acceptance criteria from approved sources. Each draft cites a rule, decision, or compliance interpretation. AI does **not** decide what a regulation means.
+
+**[tag ④]** People decide: the product owner validates behavior, compliance validates obligations, and the architect validates feasibility and controls.
+
+**[tag ⑤]** The target is an approved, traceable backlog for one slice, with testable acceptance criteria and unresolved questions shown clearly. Traceability makes a decision reviewable; it does not replace domain judgment.
+
+**[validation plan]** Versioned rule cards, decision records, and test cases are engineering evidence for the proposed process.
+<!-- /slide -->
+
+---
+
+<!-- slide:2 -->
+## Slide 2 · What the Law Asks For
+
+**[tag ①]** This slide uses **EU instant credit transfers** as a reference case. Its legal and scheme rules change over time, and their application depends on the bank and flow. The bank's compliance team first confirms the current text and its interpretation. Engineering then turns an agreed time and availability obligation into budgets, monitoring, and failure handling.
+
+**[tag ②]** **Verification of Payee** is a separate customer interaction to model. Compliance and product owners define when it applies, what response can be shown, and how the customer proceeds. Engineering owns the API, timing, and test cases.
+
+**[tag ③]** **Pricing** is another bank decision constrained by applicable rules. Product and legal teams define the fee policy; we ensure the right version reaches channels, billing, and tests.
+
+**[tag ④]** **Limits** need precise ownership. The bank decides which limits a customer may set and which risk limits the bank applies. The platform enforces and audits the approved rule.
+
+**[tag ⑤]** **Sanctions controls** must be interpreted by the bank's compliance specialists for the applicable jurisdiction and flow. We should not infer from a diagram that every payment-level check disappears. Engineering needs the approved screening cadence, data feed, exception path, and evidence.
+
+**[tag ⑥]** Authentication and message standards add further requirements. Bank SMEs define which controls and ISO 20022 messages apply at each boundary. Engineering translates them into contracts and tests.
+
+**[tag ⑦]** AI may summarise source text, but it cannot **interpret** it for the bank. Compliance assigns each approved obligation an ID, version, source, and owner. Those IDs anchor the backlog and release evidence.
+<!-- /slide -->
+
+---
+
+<!-- slide:3 -->
+## Slide 3 · How the Backlog Is Built
+
+**[tag ①]** The backlog starts with **bank-approved obligation records**. AI may propose IDs such as REG-10S or REG-VOP, but compliance confirms wording, scope, jurisdiction, and effective version before any story is built.
+
+**[tag ②]** AI then drafts epics, stories, and acceptance criteria. Each item cites an approved REG-ID or business rule ID. Missing sources remain questions, not invented requirements.
+
+**[tag ③]** Tools check whether sources exist, criteria are testable, and duplicates appear. They cannot decide whether the bank's policy is correct.
+
+**[tag ④]** The sample shows a **possible conflict**: BR-040 moves payments after five-thirty to the next day, while the proposed instant flow is always available. The bank must decide whether BR-040 applies, is replaced, or has exceptions. We record the decision instead of silently dropping the old rule.
+
+**[tag ⑤]** Three roles review the result. Compliance confirms legal meaning; product confirms behavior and priority; architecture checks feasibility, dependencies, and non-functional needs.
+
+**[tag ⑥]** Seven epics, twenty-two stories, and fifty-eight criteria are **illustrative backlog counts** in this diagram. The quality test is whether each item has an owner, source, clear behavior, and a way to verify it.
+<!-- /slide -->
+
+---
+
+<!-- slide:4 -->
+## Slide 4 · Story Map for Slice 1
+
+**[tag ①]** This **story map** is one possible customer journey: start, verify payee, authorise, apply limits, send, confirm, and handle exceptions. Product and payments owners must validate the sequence for the chosen market and scheme.
+
+**[tag ②]** The line marks a proposed **pilot** boundary. A small release is only safe if it includes the controls and operational support that the bank requires.
+
+**[tag ③]** Under "verify payee", the sample stories cover showing a result and handling a mismatch. Compliance and product approve the exact warning and customer choice; engineering implements the states and tests.
+
+**[tag ④]** Under "check and limits", approved rules from discovery become stories. The frozen-account and duplicate examples need bank-validated meaning before they become acceptance criteria.
+
+**[tag ⑤]** Exceptions need stories from **day one**. A timeout needs an unknown-state path and an approved inquiry process. A rejected payment needs a customer status the bank can explain. I would design and test these paths early because they are where state and ownership become unclear.
+
+**[tag ⑥]** Below the line are candidate later releases: saved payees, inbound flows, and recalls. Their timing is a product and risk decision, not an engineering shortcut.
+
+**[tag ⑦]** The bottom row holds operational work customers may not see: screening, support coverage, and fees. Bank owners decide which are required for go-live, and the release gate must show evidence for each approved control.
+<!-- /slide -->
+
+---
+
+<!-- slide:5 -->
+## Slide 5 · Anatomy of a Good Story
+
+**[tag ①]** US-105 is a **sample** Verification of Payee story. The customer needs a clear result before confirmation. The bank's product and compliance owners decide how that result is presented and what action follows.
+
+**[tag ②]** Its REG-VOP source points to the bank-approved interpretation and current legal text. That gives reviewers a trace from source to implementation.
+
+**[tag ③]** The sample criteria use four result states: match, close match, no match, and unable to check. Whether the app may show a returned name or proceed in each state must be confirmed by the bank. Engineering makes every approved state testable.
+
+**[tag ④]** The "no match" case is especially sensitive. This diagram proposes a warning and a customer decision, but I would not claim that risk simply moves to the customer. Compliance and legal owners must approve the wording, liability treatment, and allowed next step.
+
+**[tag ⑤]** The proposed Definition of Ready requires a source, testable criteria, edge cases, non-functional needs, dependencies, and named approval. A sprint-size story is useful only after the underlying rule is settled.
+
+**[tag ⑥]** AI could draft these scenarios and suggest the "unable to check" case. The bank's compliance and product owners would review and approve the final behavior; this slide does not claim they already have.
+<!-- /slide -->
+
+---
+
+<!-- slide:6 -->
+## Slide 6 · Law → Story → Test
+
+**[tag ①]** The **traceability matrix** starts with an approved obligation or business rule, then links the epic, story, test, owner, and status. It lets leaders see which decisions have implementation evidence and which remain open.
+
+**[tag ②]** One obligation can create several stories. The diagram shows two sample Verification of Payee stories and four tests; the real count depends on the bank's interpretation.
+
+**[tag ③]** One row remains open: which sanctions lists and cadence apply to this flow. Compliance owns the answer and a due date. Engineering does not fill that gap with an assumption.
+
+**[tag ④]** The frozen-account and duplicate examples enter the same matrix only after bank approval. Their stories and tests then share the same traceability rules as legal obligations.
+
+**[tag ⑤]** BR-040 is shown as "not applicable" to the proposed pilot. That status needs a bank owner, reason, and approval. A rule can be retired deliberately, but not by omission.
+
+**[tag ⑥]** The sample coverage view shows linked obligations and tests, with one legal question open. In real delivery, we would publish both coverage and unresolved scope; a green percentage must not hide an unanswered high-risk question.
+
+**[tag ⑦]** A release snapshot preserves the approved matrix as evidence. When an interpretation changes, versioned links show which contracts, stories, and tests need review.
+<!-- /slide -->
+
+---
+
+<!-- slide:7 -->
+## Slide 7 · Ready for Sprint Planning
+
+**[tag ①]** The bank's governance decides who must approve each story. In this reference flow, product checks value, priority, and clear customer behavior.
+
+**[tag ②]** Compliance owns the legal interpretation and signs the version used by the team.
+
+**[tag ③]** The architect checks feasibility, contracts, non-functional needs, and dependencies, then shows the trade-offs to the owners.
+
+**[tag ④]** AI can invent requirements, misread law, or copy old defects. Source checks, named interpretation, and tests reduce these risks. We reject unsupported stories and keep an open decision when the bank has not settled a rule.
+
+**[tag ⑤]** The numbers on this slide are an **illustrative backlog**, not a completed bank delivery. Sprint planning begins only for approved stories; the open legal question remains blocked.
+
+**[tag ⑥]** Next, we translate bank-approved service needs into measurable NFRs, security controls, architecture, and contracts. My value is this translation from domain decision to executable evidence. The bank keeps ownership of the domain decision.
+<!-- /slide -->
+
+---

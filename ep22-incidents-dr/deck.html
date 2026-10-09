@@ -1,0 +1,455 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EP22 Incidents & DR Drills</title>
+<link rel="stylesheet" href="../shared/deck.css">
+</head>
+<body>
+<script src="../shared/deck.js"></script>
+<script>
+/* ============================================================
+   EP22 · Incidents & DR Drills — diagrams (1280x800 canvas)
+   ============================================================ */
+function toggle(x,y,on,label,states){
+  const c=on?'#2E8B57':'#C9661E';
+  return `<g><rect x="${x}" y="${y}" width="58" height="30" rx="15" fill="${on?'rgba(46,139,87,.25)':'rgba(201,102,30,.25)'}" stroke="${c}" stroke-width="2"/>`+
+    `<circle cx="${on?x+43:x+15}" cy="${y+15}" r="11" fill="${c}"/>`+
+    txt(x+76,y+21,label,'kl')+txt(x+540,y+21,states,'cl','end')+'</g>';
+}
+
+/* 1 · Every incident, the same five steps */
+function d1(){
+  const stg=[['🚨','Detect','alerts on symptoms','risk'],['🧭','Triage','severity · commander','human'],['🧯','Mitigate','stop the bleeding','aws'],['🔧','Resolve','fix the cause','aws'],['📚','Learn','blameless review','good']];
+  const out=[group({x:10,y:30,w:1260,h:190,k:'neutral',label:'🔁 THE INCIDENT LIFECYCLE'})];
+  stg.forEach((s,i)=>out.push(chevron({x:36+i*246,y:84,w:240,h:96,k:s[3],t:s[0]+' '+s[1],s:s[2],first:i===0})));
+  out.push(
+    group({x:10,y:240,w:760,h:300,k:'risk',label:'🚨 SEVERITY · IN PAYMENT TERMS · EXAMPLE'}),
+    table({x:30,y:276,w:720,hh:30,rh:54,cols:[['SEV',0],['WHAT IT MEANS',90],['RESPONSE',440]],
+      rows:[['SEV 1','instant payments down · or wrong money moved','page now · exec update every 30 min'],
+            ['SEV 2','slow · one channel down · stuck payments rising','page now · commander named'],
+            ['SEV 3','a few customers · a workaround exists','next working hours'],
+            ['SEV 4','no customer impact','ticket in the backlog']],hl:{0:'bad',1:'risk'}}),
+    group({x:790,y:240,w:480,h:300,k:'human',label:'👥 ROLES IN A SEV 1'}),
+    ...[['🧭','Incident commander','runs the response · decides'],['🛠️','Ops lead','hands on the keyboard'],['📣','Comms lead','customers · staff · executives'],
+        ['⚖️','Compliance','the regulatory clock'],['📝','Scribe + AI notes','the timeline, as it happens']]
+       .map((r,i)=>box({x:810,y:276+i*52,w:440,h:44,k:'human',i:r[0],t:r[1]+' · '+r[2]})),
+    group({x:10,y:560,w:1260,h:220,k:'risk',label:'⏰ APPLICABLE REPORTING · COMPLIANCE OWNS THE CLOCK'}),
+    box({x:30,y:606,w:280,h:120,k:'risk',i:'🏷️',t:'Classify',s:'is it “major”?\nofficial DORA criteria'}),
+    box({x:340,y:606,w:280,h:120,k:'bad',i:'📨',t:'Initial notification',s:'Compliance confirms\ncurrent deadline'}),
+    box({x:650,y:606,w:280,h:120,k:'risk',i:'📄',t:'Intermediate report',s:'verified impact\nand updates'}),
+    box({x:960,y:606,w:290,h:120,k:'neutral',i:'📚',t:'Final report',s:'root cause + actions\nunder applicable rules'}),
+    arrow([[310,666],[340,666]],{k:'bad',st:5}),
+    arrow([[620,666],[650,666]],{k:'risk',st:5}),
+    arrow([[930,666],[960,666]],{k:'neutral',st:5}),
+    txt(640,758,'Other countries have their own rules — Compliance owns the clock.','note','middle'),
+    tag(1,1250,30,'Five stages','r'),
+    tag(2,740,240,'Severity in business words','r'),
+    tag(3,1250,240,'Clear roles','r'),
+    tag(4,40,606,'Is it major?'),
+    tag(5,350,606,'Report on time'),
+  );
+  return out.join('');
+}
+
+/* 2 · Detect fast, without the noise */
+function d2(){
+  const alerts=['scheme-gw timeouts ×212','stuck payments 2.1%','pacs.028 volume ↑','TLS handshake errors','p99 accept time ↑','reject rate ↑'];
+  return [
+    group({x:10,y:30,w:620,h:420,k:'neutral',label:'📡 PAGE ON IMPACT OR TESTED PREDICTORS'}),
+    box({x:30,y:76,w:280,h:350,k:'good',i:'📟',t:'Page on symptoms',s:'SLO burning too fast\npayments with no final status\nreject rate jumps\nreconciliation breaks'}),
+    box({x:330,y:76,w:280,h:350,k:'risk',i:'⚠️',t:'Tune dependency alerts',s:'CPU, restarts and disk\nusually aid diagnosis\npage if a tested trend\npredicts customer harm'}),
+    group({x:650,y:30,w:620,h:420,k:'aws',label:'🧊 THE STUCK-PAYMENT DETECTOR'}),
+    box({x:670,y:76,w:580,h:64,k:'aws',i:'🔄',t:'Saga state',s:'every payment: status + age'}),
+    box({x:670,y:160,w:580,h:64,k:'risk',i:'⏳',t:'No final status after 30 seconds?',s:'sample alert threshold; investigate status'}),
+    box({x:670,y:244,w:280,h:84,k:'aws',i:'🔎',t:'Approved inquiry',s:'separate bank + scheme rule'}),
+    box({x:970,y:244,w:280,h:84,k:'risk',i:'📟',t:'Stuck > 0.5% for 2 min',s:'page on-call · SEV 2'}),
+    box({x:670,y:348,w:580,h:80,k:'neutral',i:'📊',t:'Dashboard',s:'stuck count · age · by scheme · by bank'}),
+    arrow([[960,140],[960,160]],{k:'aws',st:3}),
+    arrow([[810,224],[810,244]],{k:'aws',st:4,dash:1,label:'if allowed',lx:862,ly:234}),
+    arrow([[1110,224],[1110,244]],{k:'risk',st:5}),
+
+    group({x:10,y:470,w:1260,h:310,k:'ai',label:'🤖 ONE INCIDENT, NOT FIFTY ALERTS'}),
+    ...alerts.map((a,i)=>mini({x:30,y:514+i*42,w:300,h:34,k:'risk',t:'🚨 '+a})),
+    box({x:370,y:560,w:260,h:150,k:'ai',i:'🤖',t:'AI groups alerts',s:'same time · same path\nsame payments'}),
+    `<rect x="670" y="510" width="580" height="250" rx="14" fill="#FFFDF8" stroke="#6D4FD1" stroke-width="2.2"/>`,
+    txt(690,542,'📋 INC-0412 · SEV 2 · AI DRAFT','rc-h','start','#2E1F66'),
+    txt(690,576,'WHAT','rc-l'), txt(690,598,'SEPA Inst sends delayed since 18:02','rc-t'),
+    txt(690,628,'IMPACT','rc-l'), txt(690,650,'2.1% of payments with no final status','rc-t'),
+    txt(690,680,'LOOK FIRST','rc-l'), txt(690,702,'scheme gateway → TLS errors on the scheme link','rc-t'),
+    txt(690,740,'detected in 2 min · acknowledged in 3 min','note'),
+    arrow([[330,632],[370,632]],{k:'ai',st:6}),
+    arrow([[630,632],[670,632]],{k:'ai',st:6}),
+
+    tag(1,600,30,'Impact first','r'),
+    tag(2,340,76,'Silence the noise'),
+    tag(3,680,160,'Stuck after 30 s'),
+    tag(4,680,328,'Policy-based inquiry'),
+    tag(5,980,328,'Page at a threshold'),
+    tag(6,380,560,'AI groups alerts'),
+    tag(7,1240,510,'The commander confirms','r'),
+  ].join('');
+}
+
+/* 3 · Incident INC-0412: stuck payments */
+function d3(){
+  const ev=[['18:02','🚨','stuck payments\n2.1% · alert','risk'],['18:04','🧭','SEV 2 declared\ncommander named','human'],['18:06','📣','app banner:\n“some delays”','human'],
+            ['18:09','🔺','stuck 5%\n→ SEV 1','bad'],['18:12','🔍','cause: expired\nTLS certificate','risk'],['18:19','🔐','new certificate\ndeployed','aws'],
+            ['18:24','✅','traffic\nnormal','good'],['18:40','🧮','payment review\nstill open','risk']];
+  const out=[group({x:10,y:30,w:1260,h:280,k:'neutral',label:'🕒 INC-0412 · SYNTHETIC INCIDENT'})];
+  ev.forEach((e,i)=>{
+    const x=40+i*152;
+    out.push(box({x,y:84,w:140,h:112,k:e[3],i:e[1],t:e[0],s:e[2]}));
+    if(i<7) out.push(arrow([[x+140,140],[x+152,140]],{k:'neutral',st:i<3?1:i<6?3:4}));
+  });
+  [[40,292,'detect & triage','risk'],[344,596,'mitigate','human'],[648,1052,'resolve','aws'],[1104,1244,'clean up','good']].forEach(([a,b,t,k])=>{
+    const c=K[k]; out.push(`<rect x="${a}" y="214" width="${b-a}" height="24" rx="6" fill="${c.f}" stroke="${c.s}" stroke-width="1.5"/>`,
+      `<text x="${(a+b)/2}" y="231" text-anchor="middle" font-size="12.5" font-weight="700" fill="${c.t}">${esc(t)}</text>`);
+  });
+  out.push(
+    txt(250,284,'scenario timeline: 22-minute impact · 38-minute review window','kl'),
+    group({x:10,y:330,w:620,h:450,k:'aws',label:'🧊 WHAT HAPPENED TO THE 1,240 STUCK PAYMENTS'}),
+    box({x:30,y:376,w:580,h:64,k:'risk',i:'⏳',t:'1,240 payments with no final status'}),
+    box({x:30,y:470,w:580,h:64,k:'aws',i:'🔎',t:'Status inquiry where permitted',s:'avoid flooding the scheme'}),
+    box({x:30,y:566,w:180,h:120,k:'good',i:'✅',t:'1,180',s:'final status →\nverify ledger'}),
+    box({x:220,y:566,w:180,h:120,k:'aws',i:'↩️',t:'52',s:'not found →\nrule review'}),
+    box({x:410,y:566,w:200,h:120,k:'risk',i:'🧑‍🔧',t:'8',s:'unclear →\nchecked by people'}),
+    arrow([[320,440],[320,470]],{k:'aws',st:5}),
+    arrow([[120,534],[120,566]],{k:'good',st:6}),
+    arrow([[310,534],[310,566]],{k:'aws',st:6}),
+    arrow([[510,534],[510,566]],{k:'risk',st:6}),
+    txt(320,724,'Acceptance goal: zero unexplained debits.','kl','middle'),
+    txt(320,752,'Customer wording requires bank approval.','note','middle'),
+
+    group({x:650,y:330,w:620,h:450,k:'human',label:'⚖️ AFTER THE FIRE'}),
+    box({x:670,y:376,w:580,h:90,k:'neutral',i:'🏷️',t:'DORA classification · example',s:'Compliance assesses current criteria and records why'}),
+    box({x:670,y:482,w:580,h:90,k:'human',i:'📣',t:'Customer care',s:'a script for calls · status updates in the app'}),
+    box({x:670,y:588,w:580,h:90,k:'good',i:'📝',t:'Post-mortem booked',s:'within 5 working days · blameless'}),
+    box({x:670,y:694,w:580,h:66,k:'risk',i:'🎯',t:'The cause in one line',s:'a certificate expired — and nothing warned us'}),
+
+    tag(1,46,84,'Alert at 18:02'),
+    tag(2,502,84,'Escalate: SEV 1'),
+    tag(3,654,196,'Find the cause'),
+    tag(4,40,278,'Restored'),
+    tag(5,40,470,'Ask, don’t guess'),
+    tag(6,600,330,'Explain every debit','r'),
+    tag(7,1250,330,'Classify and learn','r'),
+  );
+  return out.join('');
+}
+
+/* 4 · Stop the bleeding: safe switches */
+function d4(){return [
+  group({x:10,y:30,w:1260,h:360,k:'neutral',label:'🧯 SYMPTOM → CANDIDATE ACTION · BANK APPROVES'}),
+  table({x:30,y:66,w:1220,hh:30,rh:46,cols:[['SYMPTOM',0],['CANDIDATE ACTION',230],['OWNER',760],['CHECK BEFORE USE',960]],
+    rows:[['New platform failing','route eligible new work to the old path','commander + ops','capacity · in-flight state'],
+          ['Scheme link down','pause sending · review other options','payments owner','scheme · customer rules'],
+          ['Fraud engine slow','pause segment or approved degraded mode','Risk + fraud','limits · monitoring'],
+          ['Mainframe down','consider approved stand-in path (EP07)','Risk + ops','authority · exposure'],
+          ['Bad release','roll back if data remains compatible','on-call engineer','schema · state'],
+          ['Suspected fraud attack','consider limits or channel pause','fraud lead','customer impact']]}),
+
+  group({x:10,y:410,w:620,h:370,k:'aws',label:'🧰 CANDIDATE SWITCHES · TEST BEFORE USE'}),
+  toggle(36,456,true,'Payment route','new ⇄ mainframe'),
+  toggle(36,514,true,'Instant sending','on / paused'),
+  toggle(36,572,false,'Fraud mode','normal / degraded'),
+  toggle(36,630,true,'Customer limits','normal / lowered'),
+  toggle(36,688,true,'Stand-in processing','off / on'),
+  txt(320,758,'Each switch needs an owner, test and reversal plan.','note','middle'),
+
+  group({x:650,y:410,w:620,h:370,k:'human',label:'⚖️ RULES FOR SWITCHES'}),
+  lines(676,462,['🧭 authority follows the bank-approved runbook','🤖 automation records only approved actions','👀 high-risk moves need the required approver','↩️ rehearse a way back and watch side effects','🧪 test switches on a bank-set cadence','🛑 limit harm, then investigate cause'],'kl',50),
+
+  tag(1,1250,30,'Stop the bleeding first','r'),
+  tag(2,1244,122,'Route back','r'),
+  tag(3,1244,214,'Degraded mode','r'),
+  tag(4,1244,306,'Roll back','r'),
+  tag(5,600,410,'Kill switches','r'),
+  tag(6,1250,410,'Rules for switches','r'),
+].join('')}
+
+/* 5 · Game day: lose a region */
+function d5(){return [
+  group({x:10,y:30,w:1260,h:330,k:'neutral',label:'🌍 GAME DAY · LOSE A WHOLE REGION · EXAMPLE'}),
+  group({x:30,y:70,w:500,h:270,k:'bad',label:'🔴 REGION 1 · PRIMARY (SIMULATED LOSS)'}),
+  box({x:50,y:110,w:460,h:56,k:'aws',i:'🚢',t:'EKS services'}),
+  box({x:50,y:180,w:220,h:56,k:'aws',i:'🐘',t:'Aurora (writer)'}),
+  box({x:290,y:180,w:220,h:56,k:'aws',i:'🧵',t:'MSK'}),
+  `<rect x="34" y="92" width="492" height="244" rx="14" fill="rgba(192,57,43,.08)"/>`,
+  box({x:550,y:92,w:180,h:84,k:'human',i:'🚦',t:'Route 53 ARC',s:'routing control'}),
+  group({x:750,y:70,w:500,h:270,k:'good',label:'🟢 REGION 2 · WARM STANDBY'}),
+  box({x:770,y:110,w:460,h:56,k:'aws',i:'🚢',t:'EKS services',s:'scale-up to test'}),
+  box({x:770,y:180,w:220,h:56,k:'aws',i:'🧵',t:'MSK (replica)'}),
+  box({x:1010,y:180,w:220,h:56,k:'aws',i:'🐘',t:'Aurora (reader → writer)'}),
+  arrow([[550,134],[510,134]],{k:'bad',st:6,dash:1,label:'off',lx:530,ly:118}),
+  arrow([[730,134],[770,134]],{k:'good',st:6,label:'on',lx:750,ly:118}),
+  arrow([[400,236],[400,276],[880,276],[880,236]],{k:'aws',st:3,dash:1,label:'MSK Replicator · async lag',lx:640,ly:276}),
+  arrow([[160,236],[160,306],[1120,306],[1120,236]],{k:'aws',st:3,dash:1,label:'Aurora Global DB · async lag',lx:640,ly:306}),
+
+  group({x:10,y:380,w:760,h:400,k:'aws',label:'⏱️ PROPOSED GAME-DAY TIMELINE · SYNTHETIC'}),
+  table({x:30,y:416,w:720,hh:28,rh:40,cols:[['T+',0],['STEP',70]],
+    rows:[['T+0','region 1 stops answering (simulated)'],
+          ['T+2','alerts fire · SEV 1 declared'],
+          ['T+5','decision to fail over — by a person'],
+          ['T+6','Aurora Global DB failover starts'],
+          ['T+8','consumers resume at a verified replicated position'],
+          ['T+10','routing control sends traffic to region 2'],
+          ['T+13','target: first payment in region 2'],
+          ['T+15','reconciliation of in-flight payments']],hl:{2:'human',6:'good'}}),
+
+  group({x:790,y:380,w:480,h:400,k:'good',label:'📋 TARGETS TO VALIDATE · SYNTHETIC'}),
+  kpi({x:810,y:424,w:440,h:46,k:'good',i:'⏱️',t:'RTO target',v:'15 min'}),
+  kpi({x:810,y:478,w:440,h:46,k:'risk',i:'💾',t:'Both streams: synthetic gap',v:'0.8 s example'}),
+  kpi({x:810,y:532,w:440,h:46,k:'good',i:'🔎',t:'In-flight cases to review',v:'3 example'}),
+  kpi({x:810,y:586,w:440,h:46,k:'good',i:'🔁',t:'Duplicate debits goal',v:'0'}),
+  box({x:810,y:650,w:440,h:106,k:'human',i:'🔙',t:'Failback needs a drill',s:'reconcile data and customer routing'}),
+
+  tag(1,1250,30,'Proposed game day','r'),
+  tag(2,1240,70,'Warm standby','r'),
+  tag(3,640,206,'Measure async lag','c'),
+  tag(4,744,547,'A human decides','r'),
+  tag(5,744,587,'Runbook automation','r'),
+  tag(6,744,667,'Traffic moves','r'),
+  tag(7,744,707,'Targets to prove','r'),
+  tag(8,820,650,'Fail back too'),
+].join('')}
+
+/* 6 · Learn without blame */
+function d6(){return [
+  group({x:10,y:30,w:1260,h:250,k:'ai',label:'🤖 AI DRAFTS · PEOPLE OWN THE CONCLUSIONS'}),
+  box({x:30,y:72,w:250,h:44,k:'neutral',i:'💬',t:'Incident chat'}),
+  box({x:30,y:124,w:250,h:44,k:'neutral',i:'📈',t:'Alerts & logs'}),
+  box({x:30,y:176,w:250,h:44,k:'neutral',i:'🗒️',t:'Scribe notes'}),
+  box({x:30,y:228,w:250,h:44,k:'neutral',i:'🎫',t:'Recent changes'}),
+  box({x:330,y:90,w:280,h:160,k:'ai',i:'🤖',t:'AI drafts',s:'timeline from logs and chat\nimpact numbers\nfirst questions to ask'}),
+  box({x:660,y:90,w:280,h:160,k:'human',i:'👥',t:'Blameless review',s:'example target: 5 working days\ncommander · engineers · ops · Risk'}),
+  box({x:990,y:90,w:260,h:160,k:'good',i:'📚',t:'Reviewed lessons',s:'share under bank policy\nactions in the backlog'}),
+  arrow([[280,170],[330,170]],{k:'ai',st:2}),
+  arrow([[610,170],[660,170]],{k:'human',st:3}),
+  arrow([[940,170],[990,170]],{k:'good',st:7}),
+
+  group({x:10,y:300,w:760,h:480,k:'neutral',label:'📝 POST-MORTEM · INC-0412 · EXAMPLE'}),
+  txt(36,350,'IMPACT','rc-l'),
+  txt(36,374,'Synthetic: 22 min delay · 1,240 uncertain · loss still to verify','rc-t'),
+  txt(36,414,'ROOT CAUSE · FIVE WHYS','rc-l'),
+  lines(36,440,['1. Why stuck? The scheme refused our connection.','2. Why? Our TLS certificate had expired.','3. Why? It was renewed by hand, once a year.','4. Why no warning? Expiry was not monitored.','5. Why? Certificates were not in the platform inventory.'],'rc-t',30),
+  `<rect x="30" y="566" width="720" height="36" rx="8" fill="rgba(46,139,87,.14)" stroke="#2E8B57" stroke-width="1.4"/>`,
+  txt(44,590,'→ a cause we can fix in the system, not a person to blame','kl','start','#154A2D'),
+  txt(36,640,'WHAT WENT WELL','rc-l'),
+  txt(36,664,'inquiry and customer wording require bank review','rc-t'),
+  txt(36,704,'WHAT WE CHANGE','rc-l'),
+  txt(36,728,'certificates: automatic renewal, monitoring, inventory, game day','rc-t'),
+
+  group({x:790,y:300,w:480,h:480,k:'good',label:'✅ ACTIONS · OWNER · DATE'}),
+  table({x:810,y:340,w:440,hh:28,rh:48,cols:[['ACTION',0],['OWNER',230],['DUE',340]],
+    rows:[['Auto-renew certificates','Platform','2 weeks'],['Alert 30 days before expiry','SRE','1 week'],
+          ['Every cert in the inventory','Platform','1 month'],['Game day: expired cert','SRE','next month']]}),
+  box({x:810,y:586,w:440,h:80,k:'risk',i:'🙅',t:'No blame',s:'we fix systems, not people'}),
+  box({x:810,y:680,w:440,h:80,k:'ai',i:'🤖',t:'AI guardrails',s:'masked data · every prompt logged · people sign'}),
+
+  tag(1,280,30,'Gather the facts','r'),
+  tag(2,340,90,'AI drafts'),
+  tag(3,670,90,'Blameless review'),
+  tag(4,750,414,'Five whys','r'),
+  tag(5,1250,300,'Actions with owners','r'),
+  tag(6,820,586,'Never blame people'),
+  tag(7,1000,90,'Share the lesson'),
+].join('')}
+
+/* 7 · Getting better every quarter */
+function d7(){
+  const X=i=>730+i*86, Y=v=>360-v*10;
+  const q=[[2,5,12,3],[1,4,10,2],[1,3,9,1],[0,3,7,1],[1,2,6,0],[0,2,5,0]];
+  const out=[
+    group({x:10,y:30,w:620,h:370,k:'neutral',label:'📊 RESILIENCE SCORECARD · SYNTHETIC EXAMPLE'}),
+    kpi({x:30,y:76,w:580,h:52,k:'good',i:'📡',t:'Time to detect (median)',v:'2 min'}),
+    kpi({x:30,y:138,w:580,h:52,k:'good',i:'🔧',t:'Time to restore (median)',v:'24 min'}),
+    kpi({x:30,y:200,w:580,h:52,k:'risk',i:'🚨',t:'SEV 1 incidents',v:'1'}),
+    kpi({x:30,y:262,w:580,h:52,k:'good',i:'📝',t:'Post-mortems within 5 days',v:'100%'}),
+    kpi({x:30,y:324,w:580,h:52,k:'aws',i:'✅',t:'Actions closed on time',v:'87%'}),
+    group({x:650,y:30,w:620,h:370,k:'aws',label:'📈 INCIDENTS PER QUARTER · EXAMPLE'}),
+    `<path d="M700 360 L1250 360" stroke="#222530" stroke-width="2"/>`,
+  ];
+  q.forEach(([s1,s2,s3,rep],i)=>{
+    const x=X(i); let y=360;
+    [[s3,'neutral'],[s2,'risk'],[s1,'bad']].forEach(([v,k])=>{ if(!v) return; const h=v*10; y-=h;
+      out.push(`<rect x="${x}" y="${y}" width="52" height="${h}" fill="${K[k].f.replace(/[\d.]+\)$/,'.45)')}" stroke="${K[k].s}" stroke-width="1.5"/>`); });
+    out.push(txt(x+26,y-8,String(s1+s2+s3),'kl','middle'),txt(x+26,380,'Q'+(i+1),'cl','middle'),
+      `<text x="${x+26}" y="${y-30}" text-anchor="middle" font-size="12" font-weight="800" fill="#6D4FD1">↻${rep}</text>`);
+  });
+  out.push(
+    `<rect x="1080" y="70" width="12" height="12" fill="rgba(192,57,43,.45)" stroke="#C0392B"/>`,txt(1098,81,'SEV 1','cl'),
+    `<rect x="1150" y="70" width="12" height="12" fill="rgba(201,102,30,.45)" stroke="#C9661E"/>`,txt(1168,81,'SEV 2','cl'),
+    `<rect x="1080" y="92" width="12" height="12" fill="rgba(79,93,117,.45)" stroke="#4F5D75"/>`,txt(1098,103,'SEV 3','cl'),
+    txt(1150,103,'↻ repeats','cl','start','#6D4FD1'),
+
+    group({x:10,y:420,w:1260,h:360,k:'human',label:'🔁 PROPOSED IMPROVEMENT LOOP · BANK SETS CADENCE'}),
+    box({x:60,y:470,w:330,h:100,k:'risk',i:'🚨',t:'Incident',s:'contained fast'}),
+    box({x:880,y:470,w:330,h:100,k:'human',i:'📝',t:'Blameless post-mortem',s:'within 5 working days'}),
+    box({x:880,y:650,w:330,h:100,k:'aws',i:'✅',t:'Actions in the backlog',s:'owner + date'}),
+    box({x:60,y:650,w:330,h:100,k:'good',i:'🎮',t:'Game day tests the fix',s:'break it on purpose'}),
+    box({x:470,y:550,w:340,h:120,k:'good',i:'🎯',t:'Improvement goal',s:'shorter, smaller incidents\nfewer repeats'}),
+    arrow([[390,520],[880,520]],{k:'human',st:4}),
+    arrow([[1045,570],[1045,650]],{k:'aws',st:4}),
+    arrow([[880,700],[390,700]],{k:'good',st:5}),
+    arrow([[225,650],[225,570]],{k:'risk',st:5}),
+
+    tag(1,600,30,'Measure it','r'),
+    tag(2,1250,30,'Fewer incidents','r'),
+    tag(3,1250,134,'Repeats → 0','r'),
+    tag(4,890,650,'Close the actions'),
+    tag(5,70,650,'Prove the fix'),
+    tag(6,1250,420,'Quarterly review','r'),
+  );
+  return out.join('');
+}
+
+/* ============================================================
+   Episode config
+   ============================================================ */
+const DECK={
+  brand:'🏦 CORE BANKING PAYMENTS MODERNIZATION · AWS',
+  ep:'EP 22', epShort:'EP22', title:'Incidents & DR Drills', subtitle:'Execution Architecture · Reference Scenario',
+  seriesTitle:'Core Payments Modernization · Execution Architecture',
+  logo:'../shared/jo-logo.png', background:'../shared/background.png',
+  stages:[['🔍','Discover'],['📋','Requirements'],['📐','Design & Plan'],['🛠️','Build'],['🚀','Test & Deploy'],['🔧','Operate']],
+  stage:6,
+  glossary:{
+    LIFECYCLE:['Incident lifecycle','value','Detect, triage, mitigate, resolve, learn. The same five steps every time, so nobody improvises under stress.'],
+    SEV:['Severity level','risk','How bad an incident is, in business words. SEV 1 means payments are down or wrong money has moved.'],
+    IC:['Incident commander','risk','The one person who runs the response and makes the decisions — usually not the person fixing the code.'],
+    COMMSLEAD:['Comms lead','value','Keeps customers, staff and executives informed, so the engineers can focus on the fix.'],
+    DORAREP:['DORA incident reporting','risk','Compliance classifies a relevant ICT incident and confirms current notification and report duties.'],
+    SLOBURN:['Burn-rate alert','risk','An alert when the error budget is being used up too fast. It catches real problems early, with few false alarms.'],
+    SYMPTOM:['Symptom vs cause','value','Page people for what customers feel, like stuck payments — not for every busy server.'],
+    STUCKDET:['Unresolved-payment detector','risk','Tracks payments without final status. Alert and inquiry timing follow the bank and scheme policy.'],
+    ALERTFAT:['Alert fatigue','risk','Too many alerts, so people stop reading them — and the important one gets missed.'],
+    AICORR:['AI alert grouping','value','AI groups many alerts from the same moment and path into one incident, with a first summary for the commander.'],
+    STUCK:['Stuck payment','risk','A payment with no final answer. The customer doesn’t know if the money left — the worst feeling in banking.'],
+    CERT:['TLS certificate','risk','A digital ID card for a secure connection. When it expires, the connection simply stops working.'],
+    MTTR:['MTTR','value','Mean time to restore: how long customers are affected. The number the board cares about most.'],
+    PACS028:['Status inquiry','risk','A scheme-approved inquiry, such as pacs.028 where valid. A reply alone may not settle the ledger state.'],
+    CUSTCOMMS:['Customer communication','value','An honest message in the app, early. It cuts calls and protects trust.'],
+    STOPBLEED:['Stop the bleeding','risk','First limit the harm to customers; look for the root cause later.'],
+    ROUTEBACK:['Route back','risk','Send eligible new work to the old path only after capacity, ownership and in-flight tests.'],
+    DEGRADED:['Degraded mode','risk','A bank Risk decision to continue with approved limits and monitoring, or pause the affected segment.'],
+    KILLSWITCH:['Kill switch','risk','A prepared, tested switch that turns a feature off or routes around a problem in seconds.'],
+    RUNBOOK:['Runbook','value','Step-by-step instructions for a known problem. Many steps are automated, and every run is logged.'],
+    GAMEDAY:['Game day','risk','A planned practice of a real failure, like losing a region, with the real team and the real tools.'],
+    WARMSTANDBY:['Warm standby','cost','A proposed smaller second-Region footprint. Scale-up time and cost need testing.'],
+    AURORAGDB:['Aurora Global Database','risk','Asynchronous cross-Region replication. Lag and unreplicated writes must be planned for.'],
+    ARC:['Routing control','risk','A switch (Route 53 Application Recovery Controller) that moves customer traffic from one region to another.'],
+    FAILBACK:['Fail back','risk','Returning to the first region after a failover. It is just as risky, so it is practised too.'],
+    AIDRAFT:['AI incident summary','value','AI drafts the timeline and impact from logs and chat. People check it and own the conclusions.'],
+    BLAMELESS:['Blameless','risk','We ask why the system allowed the problem, not who made a mistake. People speak openly, so we learn more.'],
+    FIVEWHYS:['Five whys','value','Ask “why?” again and again until you reach a cause you can fix in the system.'],
+    ACTION:['Action item','risk','A concrete fix with an owner and a date. A post-mortem without actions changes nothing.'],
+    POSTMORTEM:['Post-mortem','value','A written review after an incident: what happened, why, and what we change. Shared with all teams.'],
+    MTTD:['MTTD','value','Mean time to detect: how long until we know something is wrong. Minutes matter in payments.'],
+    REPEAT:['Repeat incident','risk','A recurring problem that warrants review of the earlier cause, action and test.'],
+    RESREVIEW:['Resilience review','risk','A quarterly meeting with the CRO about incidents, game days and open actions.'],
+    OPRES:['Operational resilience','risk','The bank’s ability to keep critical services running through any disruption. Regulators test it.'],
+  },
+  slides:[
+    {icon:'🧯',kicker:'EP22 · 1/7 · THE PLAYBOOK',title:'Every Incident, the Same Five Steps',time:'00:00 – 01:45',draw:d1,
+     key:'Same steps, clear roles — and a clock that never stops.',next:'🔜 Next: detect fast',
+     open:'In this reference payment system, the question is how teams respond to failure.',
+     land:'Compliance owns the clock. The commander owns the response.',
+     gloss:[['LIFECYCLE',[1]],['SEV',[2]],['IC',[3]],['COMMSLEAD',[3]],['DORAREP',[4,5]]],
+     demo:['draft a severity matrix and incident template from bank-owned impact definitions',
+           'test on-call escalation, evidence capture and communication owners'],
+     steps:[['Five stages','Detect, triage, mitigate, resolve, learn.'],
+            ['Severity in business words','SEV 1 = payments down, or wrong money moved.'],
+            ['Clear roles','Commander, ops lead, comms lead, compliance, scribe.'],
+            ['Is it major?','Compliance classifies with the official DORA criteria.'],
+            ['Report on time','Compliance confirms applicable deadlines.']]},
+    {icon:'📡',kicker:'EP22 · 2/7 · DETECT',title:'Detect Fast — Without the Noise',time:'01:45 – 03:40',draw:d2,
+     key:'Page on customer impact and tested predictors.',next:'🔜 Next: a synthetic incident',
+     open:'You cannot fix what you don’t see.',
+     land:'The commander decides. AI only drafts.',
+     gloss:[['SYMPTOM',[1]],['ALERTFAT',[2]],['STUCKDET',[3,4,5]],['SLOBURN',[5]],['AICORR',[6,7]]],
+     demo:['prototype unresolved-payment and burn-rate alerts on synthetic data',
+           'tune alerts to bank thresholds, false pages and customer impact'],
+     steps:[['Impact first','Page for symptoms or tested predictive trends.'],
+            ['Silence the noise','Use dependency signals with context.'],
+            ['Stuck after 30 s','Thirty seconds is an example alert threshold.'],
+            ['Policy-based inquiry','Scheme profile and bank owners set the path.'],
+            ['Page at a threshold','Over 0.5% stuck for 2 minutes → SEV 2.'],
+            ['AI groups alerts','Six alerts become one incident, with a draft summary.'],
+            ['The commander confirms','A person checks the draft and decides.']]},
+    {icon:'🕒',kicker:'EP22 · 3/7 · SYNTHETIC INCIDENT',title:'INC-0412: Stuck Payments',time:'03:40 – 05:50',draw:d3,
+     key:'Ask, verify and reconcile every uncertain payment.',next:'🔜 Next: safe switches',
+     open:'Let’s walk through a synthetic incident.',
+     land:'A certificate expired — and nothing warned us.',
+     gloss:[['STUCK',[1]],['CUSTCOMMS',[2]],['CERT',[3]],['MTTR',[4]],['PACS028',[5,6]]],
+     demo:['simulate an expired external TLS certificate and unresolved payments',
+           'test expiry alerts, approved inquiries and ledger reconciliation'],
+     steps:[['Alert at 18:02','2.1% of payments have no final status.'],
+            ['Escalate: SEV 1','App banner at 18:06; SEV 1 at 18:09.'],
+            ['Find the cause','An expired TLS certificate on the scheme link.'],
+            ['Restored','New certificate at 18:19; normal at 18:24 — 22 minutes.'],
+            ['Ask, don’t guess','Use permitted inquiries without flooding the network.'],
+            ['Explain every debit','1,180 confirmed, 52 need rule review, 8 unclear.'],
+            ['Classify and learn','Compliance assesses the real reporting criteria.']]},
+    {icon:'🧰',kicker:'EP22 · 4/7 · MITIGATE',title:'Stop the Bleeding: Safe Switches',time:'05:50 – 07:40',draw:d4,
+     key:'Every switch needs an owner, test and reversal plan.',next:'🔜 Next: lose a whole region',
+     open:'In an incident, the first goal is not the root cause.',
+     land:'Stop the bleeding first. Root cause later.',
+     gloss:[['STOPBLEED',[1]],['ROUTEBACK',[2]],['DEGRADED',[3]],['KILLSWITCH',[5]],['RUNBOOK',[6]]],
+     demo:['test each candidate switch with failure injection and an owner',
+           'validate configuration, approvals and audit logs before use'],
+     steps:[['Stop the bleeding first','Limit harm to customers, then investigate.'],
+            ['Route back','Only eligible new work, after ownership checks.'],
+            ['Degraded mode','Risk decides whether to continue or pause.'],
+            ['Roll back','Check data compatibility before reverting.'],
+            ['Kill switches','Test owner, effect and reversal before use.'],
+            ['Rules for switches','Bank authority, approvals and logs apply.']]},
+    {icon:'🌍',kicker:'EP22 · 5/7 · DISASTER RECOVERY',title:'Game Day: Lose a Whole Region',time:'07:40 – 09:50',draw:d5,
+     key:'A failover you haven’t practised is only a hope.',next:'🔜 Next: learn without blame',
+     open:'Now a proposed game day: simulate loss of a whole AWS Region.',
+     land:'A failover you have never practised is only a hope.',
+     gloss:[['GAMEDAY',[1]],['WARMSTANDBY',[2]],['AURORAGDB',[3]],['ARC',[6]],['FAILBACK',[8]]],
+     demo:['prototype cross-region loss using synthetic database and event streams',
+           'measure lag, uncertain writes, replay and customer routing in a drill'],
+     steps:[['Proposed game day','Test people, tooling, data position and customer path.'],
+            ['Warm standby','Verify Region 2 can scale in time.'],
+            ['Measure async lag','Database and event streams may differ.'],
+            ['A human decides','Weigh impact, lag and split-brain risk.'],
+            ['Runbook automation','Promote and restart from verified positions.'],
+            ['Traffic moves','Validate routing and client behaviour.'],
+            ['Targets to prove','Synthetic 13 min and 0.8 s are not results.'],
+            ['Fail back too','Reconcile data and routing in a later drill.']]},
+    {icon:'📝',kicker:'EP22 · 6/7 · LEARN',title:'Learn Without Blame',time:'09:50 – 11:25',draw:d6,
+     key:'AI drafts the story. People own the lessons.',next:'🔜 Next: getting better every quarter',
+     open:'In this synthetic incident, the next step is a reviewed lesson.',
+     land:'We publish it for every team.',
+     gloss:[['AIDRAFT',[2]],['BLAMELESS',[3,6]],['FIVEWHYS',[4]],['ACTION',[5]],['POSTMORTEM',[7]]],
+     demo:['test an AI timeline draft against masked source records',
+           'require people to verify facts and approve the review'],
+     steps:[['Gather the facts','Chat, alerts, logs, notes, recent changes.'],
+            ['AI drafts','Timeline, impact numbers, first questions.'],
+            ['Blameless review','Within five working days, with Risk.'],
+            ['Five whys','From “stuck” to “certificates not in the inventory”.'],
+            ['Actions with owners','Auto-renew, alert early, inventory, game day.'],
+            ['Never blame people','AI uses masked data; people sign the conclusions.'],
+            ['Share the lesson','Distribute under bank information rules.']]},
+    {icon:'📈',kicker:'EP22 · 7/7 · IMPROVE',title:'Getting Better Every Quarter',time:'11:25 – 12:50',draw:d7,
+     key:'Measure resilience and test whether actions reduce repeat risk.',next:'🔜 Next episode: EP23 — FinOps: Cost per Payment',
+     open:'How do we know we are getting better?',
+     land:'Next: what each payment really costs.',
+     gloss:[['MTTD',[1]],['MTTR',[1]],['REPEAT',[3]],['RESREVIEW',[6]],['OPRES',[6]]],
+     demo:['design a synthetic scorecard with stable severity and incident definitions',
+           'validate incident data and action closure with bank owners'],
+     steps:[['Measure it','Detect, restore, SEV 1s, post-mortems, actions.'],
+            ['Fewer incidents','Synthetic trend: 19 to 7 over six quarters.'],
+            ['Repeats → 0','Zero repeats is a goal, not a promise.'],
+            ['Close the actions','A post-mortem without actions changes nothing.'],
+            ['Test the fix','Game days challenge important controls.'],
+            ['Quarterly review','Bank leaders set cadence and owners.']]},
+  ],
+};
+startDeck(DECK);
+</script>
+</body>
+</html>

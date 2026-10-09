@@ -1,0 +1,990 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EP01 System Overview</title>
+<style>
+:root{
+  --ink:#222530; --muted:#5E6573; --teal:#0F7F77; --amber:#C9661E; --mustard:#E8B931;
+  --red:#C0392B; --green:#2E8B57; --violet:#6D4FD1; --gray:#7B8190; --blue:#2F6FBF;
+  --card:rgba(255,252,246,.92); --line:rgba(34,37,48,.14);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:#2b2a27;overflow:hidden}
+body{font-family:"Segoe UI","Segoe UI Emoji",system-ui,sans-serif;color:var(--ink)}
+#viewport{position:fixed;inset:0;display:flex;align-items:center;justify-content:center}
+body.export #viewport{display:block}
+
+/* ---------- stage = the 1920x1080 video frame (beige paper) ---------- */
+.stage{width:1920px;height:1080px;position:relative;overflow:hidden;flex:none;
+  background:
+    radial-gradient(1200px 700px at 6% -12%, #FBF7EF, transparent 62%),
+    radial-gradient(1000px 650px at 106% 112%, #E2D2B6, transparent 60%),
+    linear-gradient(160deg,#F5EEE2 0%,#EFE6D6 55%,#E7DBC5 100%);}
+.bgimg{position:absolute;inset:0;background-size:cover;background-position:center}
+.grid{position:absolute;inset:0;
+  background-image:radial-gradient(rgba(34,37,48,.13) 1px,transparent 1.5px);background-size:24px 24px;
+  -webkit-mask-image:radial-gradient(ellipse at center,transparent 38%,#000 90%);mask-image:radial-gradient(ellipse at center,transparent 38%,#000 90%)}
+.has-bg .grid{display:none}
+.frame{position:absolute;inset:10px;border:1.5px solid rgba(34,37,48,.22);border-radius:24px;pointer-events:none}
+.corner{position:absolute;width:46px;height:46px;border:0 solid var(--ink);pointer-events:none}
+.c-tl{top:10px;left:10px;border-top-width:3px;border-left-width:3px;border-top-left-radius:24px}
+.c-tr{top:10px;right:10px;border-top-width:3px;border-right-width:3px;border-top-right-radius:24px}
+.c-bl{bottom:10px;left:10px;border-bottom-width:3px;border-left-width:3px;border-bottom-left-radius:24px}
+.c-br{bottom:10px;right:10px;border-bottom-width:3px;border-right-width:3px;border-bottom-right-radius:24px}
+
+/* ---------- header ---------- */
+.hdr{position:absolute;left:32px;top:20px;width:1856px;height:84px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 18px 0 12px;background:rgba(255,252,246,.78);border:1px solid var(--line);border-radius:16px;box-shadow:0 6px 20px rgba(90,70,40,.10)}
+.brand{display:flex;align-items:center}
+.logo{width:64px;height:64px;border-radius:14px;background:#FFFDF8;border:2px solid var(--ink);overflow:hidden;display:flex;align-items:center;justify-content:center;margin-right:16px;flex:none}
+.logo img{width:54px;height:54px;display:block}
+.brand .kicker{font-size:14px;font-weight:700;letter-spacing:2.2px;color:var(--teal)}
+.brand .ep{font-size:26px;font-weight:700;margin-top:1px}
+.brand .ep span{font-weight:400;color:var(--muted)}
+.progress{display:flex;gap:8px}
+.chip{height:46px;padding:0 14px;white-space:nowrap;border-radius:12px;display:flex;align-items:center;justify-content:center;gap:7px;font-size:15px;font-weight:600;
+  border:1.5px solid rgba(34,37,48,.18);color:var(--muted);background:rgba(255,255,255,.55)}
+.chip .e{font-size:19px}
+.chip.done{color:var(--teal);border-color:rgba(15,127,119,.45)}
+.chip.done::after{content:"";margin-left:0}
+.chip.now{background:var(--ink);border-color:var(--ink);color:#FFF8EC;box-shadow:0 4px 14px rgba(34,37,48,.30)}
+.chip .sub{color:var(--mustard);font-weight:700}
+
+/* ---------- three columns: glossary | diagram | script ---------- */
+.panel{position:absolute;top:116px;height:884px;background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:0 10px 30px rgba(90,70,40,.13)}
+.gloss{left:32px;width:340px;padding:18px 16px 16px;display:flex;flex-direction:column}
+.dia-panel{left:384px;width:1072px;padding:0 12px 12px;display:flex;flex-direction:column}
+.right{left:1468px;width:420px;padding:18px 18px 18px;display:flex;flex-direction:column}
+
+/* glossary (CXO cheat sheet) */
+.g-head .k{font-size:14px;font-weight:800;letter-spacing:2px;color:var(--teal)}
+.g-head .s{font-size:13.5px;color:var(--muted);margin-top:2px}
+.g-list{flex:1;display:flex;flex-direction:column;justify-content:space-between;gap:9px;margin-top:12px}
+.g-card{border-radius:12px;padding:9px 12px 10px;background:rgba(255,255,255,.6);border:1px solid var(--line);border-left:5px solid var(--gray);transition:background .25s,box-shadow .25s}
+.g-card.value{border-left-color:var(--teal)} .g-card.cost{border-left-color:var(--amber)} .g-card.risk{border-left-color:var(--red)}
+.g-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.g-term{font-size:18px;font-weight:800;line-height:1.2}
+.g-lens{flex:none;font-size:10.5px;font-weight:800;letter-spacing:1.1px;padding:2px 7px;border-radius:6px;white-space:nowrap}
+.g-lens.value{color:#0B5E58;background:rgba(15,127,119,.13)}
+.g-lens.cost{color:#8A4310;background:rgba(201,102,30,.14)}
+.g-lens.risk{color:#8E2A20;background:rgba(192,57,43,.11)}
+.g-card p{font-size:14px;line-height:1.37;color:#3A3F4C;margin-top:4px}
+.g-card.on{background:rgba(232,185,49,.24);box-shadow:inset 0 0 0 2px var(--mustard)}
+
+/* diagram panel */
+.lp-head{height:66px;padding:12px 10px 0;display:flex;justify-content:space-between;align-items:center;flex:none}
+.lp-title{display:flex;align-items:center;gap:14px}
+.lp-title .big{font-size:36px;line-height:1}
+.lp-title .k{font-size:12.5px;font-weight:700;letter-spacing:1.8px;color:var(--teal)}
+.lp-title .t{font-size:25px;font-weight:700;line-height:1.15}
+.legend{display:flex;gap:12px;font-size:12.5px;color:var(--muted);align-items:center;white-space:nowrap}
+.legend i{display:inline-block;width:13px;height:13px;border-radius:4px;margin-right:5px;vertical-align:-2px;border:2px solid}
+.legend .tg{background:var(--ink);color:#FFF8EC;font-weight:700;border-radius:10px;padding:1px 9px 1px 4px;font-size:12px}
+.legend .tg b{display:inline-block;width:16px;height:16px;border-radius:50%;background:var(--mustard);color:var(--ink);text-align:center;line-height:16px;font-size:11px;margin-right:5px}
+svg.dia{flex:1;min-height:0;width:100%;display:block}
+.demo{flex:none;display:flex;align-items:center;gap:14px;padding:8px 14px;margin-top:6px;
+  border-radius:12px;background:rgba(15,127,119,.07);border:1.5px dashed rgba(15,127,119,.45)}
+.demo .tagd{flex:none;background:var(--teal);color:#fff;font-weight:800;font-size:12.5px;letter-spacing:1.3px;padding:6px 10px;border-radius:8px}
+.demo .lines{font-size:13.5px;line-height:1.42;color:var(--ink)}
+.demo .lines b{font-weight:700}
+.demo .lines .tf{color:var(--muted)}
+
+/* right panel: script steps */
+.rp-head{display:flex;justify-content:space-between;align-items:center;font-size:13.5px;font-weight:700;letter-spacing:1.8px;color:var(--teal)}
+.rp-head .time{letter-spacing:.5px;color:var(--ink);background:rgba(15,127,119,.10);border:1px solid rgba(15,127,119,.4);padding:4px 10px;border-radius:9px;font-size:13.5px}
+.say{margin-top:10px;border-radius:12px;padding:9px 13px;background:rgba(34,37,48,.04);border:1px solid var(--line)}
+.say b{display:block;font-size:11.5px;letter-spacing:1.8px;color:var(--muted);margin-bottom:2px}
+.say p{font-size:15.5px;line-height:1.33;font-style:italic}
+.say.open{border-left:4px solid var(--teal)}
+.say.land{border-left:4px solid var(--mustard)}
+.steps{list-style:none;flex:1;display:flex;flex-direction:column;justify-content:space-around;margin-top:6px}
+.steps li{display:flex;gap:11px;align-items:flex-start;padding:5px 7px;border-radius:10px;border-left:3px solid transparent;transition:background .25s,border-color .25s,opacity .25s}
+.steps .n{flex:none;width:26px;height:26px;border-radius:50%;background:var(--ink);color:var(--mustard);font-weight:800;font-size:14px;display:flex;align-items:center;justify-content:center;margin-top:1px}
+.steps b{font-size:17px;line-height:1.25;display:block}
+.steps p{font-size:14px;line-height:1.32;color:var(--muted);margin-top:1px}
+.steps li.on{background:rgba(232,185,49,.20);border-left-color:var(--mustard)}
+.steps li.on p{color:var(--ink)}
+.stepping .steps li:not(.on){opacity:.5}
+
+/* footer */
+.ftr{position:absolute;left:32px;top:1012px;width:1856px;height:48px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;
+  background:rgba(255,252,246,.78);border:1px solid var(--line);border-radius:14px;font-size:17px;box-shadow:0 6px 20px rgba(90,70,40,.08)}
+.ftr .key b{color:var(--amber);letter-spacing:1.5px;font-size:13px;margin-right:12px}
+.ftr .next{color:var(--muted);font-size:15px;display:flex;align-items:center}
+.ftr .ep{margin-left:14px;background:var(--ink);color:#FFF8EC;padding:3px 10px;border-radius:8px;font-weight:700;font-size:13px;letter-spacing:1px}
+
+/* SVG diagram text */
+svg text{font-family:"Segoe UI","Segoe UI Emoji",sans-serif}
+.bt{font-size:16.5px;font-weight:700;text-anchor:middle}
+.bs{font-size:13px;fill:#5E6573;text-anchor:middle}
+.bsl{font-size:13px;fill:#5E6573}
+.gl{font-size:12.5px;font-weight:700;letter-spacing:1.4px}
+.lbl{font-size:12.5px;font-weight:600;text-anchor:middle}
+.tn{font-size:13.5px;font-weight:800;fill:#222530;text-anchor:middle}
+.tt{font-size:14.5px;font-weight:700;fill:#FFF8EC}
+.kl{font-size:16px;font-weight:600;fill:#222530}
+.kv{font-size:19px;font-weight:800}
+.cl{font-size:12px;font-weight:700;letter-spacing:1.3px;fill:#5E6573}
+.cv{font-size:17px;font-weight:700;fill:#222530}
+.ci{font-size:22px}
+.note{font-size:13px;fill:#6E7380;font-style:italic}
+.mt{font-size:14px;font-weight:600;text-anchor:middle;fill:#222530}
+.hd{font-size:13px;font-weight:700;letter-spacing:1.8px;fill:#5E6573}
+.bigi{font-size:34px;text-anchor:middle}
+.bigt{font-size:22px;font-weight:800;text-anchor:middle;fill:#222530}
+.bigs{font-size:15px;text-anchor:middle;fill:#5E6573}
+
+/* live mode hides connector lines so the presenter can draw them */
+body.live .conn{display:none}
+body.live .conn.show{display:inline}
+.tag.on rect{fill:#0F7F77}
+.tag.on{animation:pulse 1.2s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.7}}
+
+#toast{position:fixed;right:16px;bottom:14px;background:rgba(0,0,0,.75);color:#f1ece2;font:13px "Segoe UI",sans-serif;padding:8px 12px;border-radius:8px;transition:opacity .6s;z-index:9}
+body.export #toast{display:none}
+</style>
+</head>
+<body>
+<div id="viewport"><div class="stage" id="stage"></div></div>
+<div id="toast">← → slide · Space/↓ next step · ↑ prev step · C connectors · A auto-reveal · F fullscreen</div>
+
+<script>
+const PARTS=[['💰','Challenge'],['📋','Requirements'],['🏗️','HLD'],['🔄','LLD'],['🤖','AI SDLC'],['⚖️','Trade-offs']];
+
+/* ============================================================
+   CXO cheat sheet: business-first definitions (lens = value | cost | risk)
+   ============================================================ */
+const G={
+  MIPS:['MIPS','cost','A mainframe capacity measure. Cost impact depends on the bank’s contract and workload; savings need a baseline and proof of removal.'],
+  ISO:['ISO 20022','value','A financial messaging standard. It structures data, but bank and scheme owners still define the business meaning and exception rules.'],
+  DB2:['DB2 z/OS','cost','The ledger database in this reference scenario. A bank must verify its real system of record and cost baseline.'],
+  TPC:['2PC · Two-Phase Commit','risk','A distributed commit protocol. Holding a transaction across independent services and external parties is often impractical.'],
+  P028:['pacs.028','risk','A status inquiry message in relevant ISO 20022 flows. Bank scheme specialists decide when and how it may be used.'],
+  C056:['camt.056','risk','A recall request in relevant ISO 20022 flows. It starts a process; it does not guarantee that funds return.'],
+  SAGA:['Saga Pattern','risk','Coordinates local steps. Some actions can be reversed; others require a separate bank-approved business process.'],
+  COBOL:['CICS · COBOL','risk','Mainframe technologies in this reference estate. Bank specialists validate the implemented rules and their current meaning.'],
+  STRANG:['Strangler Fig','risk','A pattern for moving one bounded flow at a time. Routing may reverse; settled external effects need separate handling.'],
+  TPS:['TPS','value','Transactions per second: how many payments we can take at the same moment. We size for payroll day, not an average Tuesday.'],
+  P99:['p99 latency','value','The wait time for 99 of every 100 customers. Averages hide unhappy customers; p99 shows them.'],
+  RPO:['RPO / RTO','risk','Recovery point and recovery time objectives. Zero loss and fifteen minutes are example targets to prove in drills.'],
+  IDEM:['Idempotency','risk','If the same payment request arrives twice, the customer is charged once. No duplicate debits, refunds or complaints.'],
+  FLAG:['Feature flag','risk','Controls routing for new requests. In-flight state and external effects require a separate fallback plan.'],
+  KAFKA:['Kafka (Amazon MSK)','value','An event platform. Contracts, ordering, replay, access and failure handling must be designed and tested.'],
+  CDC:['Change Data Capture','cost','Publishes source changes when supported. Completeness, lag and recovery need evidence from the bank’s source system.'],
+  ACL:['Anti-Corruption Layer','risk','An adapter between legacy and new contracts. It reduces coupling when its mappings are reviewed and tested.'],
+  MICRO:['Microservices on EKS','value','A possible service model. Separate teams gain autonomy only if the bank can operate the added complexity.'],
+  SHADOW:['Shadow ledger','risk','A proposed parallel ledger for comparison. Bank accounting owners define posting rules and tolerances.'],
+  RECON:['Reconciliation','risk','A repeatable comparison of source and shadow records. Bank owners set cadence, tolerances and exit criteria.'],
+  SOR:['System of record','risk','The authoritative record for a defined balance or transaction. The bank identifies it and approves any cutover.'],
+  OUTBOX:['Transactional Outbox','risk','Stores state and an event record in one database transaction. Publishing still needs lag monitoring and replay controls.'],
+  CATALOG:['Business rules catalog','risk','Candidate rules linked to sources, owners and tests. Bank experts validate meaning and completeness.'],
+  ADR:['ADR','risk','Architecture Decision Record: one page per big decision and why it was made. Auditors and future teams see the reasoning, not just the result.'],
+  CONTRACT:['API & event contracts','value','Agreed formats for how systems talk. Teams build in parallel, and one team’s change can’t silently break another’s.'],
+  AGENTS:['AGENTS.md','risk','An instruction file for coding agents in the proposed reference build. It does not replace human review.'],
+  ARCHUNIT:['ArchUnit','risk','Tests for selected Java architecture rules. Bank release approval needs more than an architecture test.'],
+  EVENTUAL:['Eventual consistency','value','Systems may disagree briefly. Bank product owners define the customer status and acceptable delay.'],
+  PLATFORM:['Platform team','cost','One team runs the shared foundation — Kafka, Kubernetes, Terraform — for everyone. Squads ship faster because they don’t rebuild plumbing.'],
+  SFN:['AWS Step Functions','cost','AWS’s managed workflow service, billed per step. Great for low-volume processes; at payment volumes, model the per-step bill first.'],
+  DUAL:['Dual-run','cost','Operating old and new paths together. Measure overlapping costs and capacity actually removed.'],
+  UETR:['UETR','value','A tracking reference in relevant payment flows. Applicability and tracing rules depend on the scheme.'],
+};
+const LENS={value:'📈 VALUE',cost:'💰 COST',risk:'🛡️ RISK'};
+
+const K={
+  legacy :{s:'#7B8190',f:'rgba(123,129,144,.13)',g:'rgba(123,129,144,.05)',t:'#2A2F3A'},
+  aws    :{s:'#0F7F77',f:'rgba(15,127,119,.11)', g:'rgba(15,127,119,.04)', t:'#0B3F3B'},
+  risk   :{s:'#C9661E',f:'rgba(201,102,30,.11)', g:'rgba(201,102,30,.04)', t:'#5A2C0B'},
+  bad    :{s:'#C0392B',f:'rgba(192,57,43,.09)',  g:'rgba(192,57,43,.04)',  t:'#5C1A13'},
+  good   :{s:'#2E8B57',f:'rgba(46,139,87,.11)',  g:'rgba(46,139,87,.04)',  t:'#154A2D'},
+  ai     :{s:'#6D4FD1',f:'rgba(109,79,209,.10)', g:'rgba(109,79,209,.04)', t:'#2E1F66'},
+  human  :{s:'#2F6FBF',f:'rgba(47,111,191,.10)', g:'rgba(47,111,191,.04)', t:'#163A66'},
+  neutral:{s:'#4F5D75',f:'rgba(79,93,117,.09)',  g:'rgba(79,93,117,.04)',  t:'#222530'},
+};
+
+const ctx=document.createElement('canvas').getContext('2d');
+const tw=(s,font)=>{ctx.font=font;return ctx.measureText(s).width};
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+/* ---------- SVG primitives ---------- */
+function box(o){
+  const c=K[o.k||'neutral'];
+  const tl=((o.i?o.i+' ':'')+o.t).split('\n'), sl=o.s?o.s.split('\n'):[];
+  const tH=20, sH=16.5, gap=sl.length?4:0, total=tl.length*tH+gap+sl.length*sH;
+  let y=o.y+(o.h-total)/2+15; const cx=o.x+o.w/2;
+  let out=`<g><rect x="${o.x}" y="${o.y}" width="${o.w}" height="${o.h}" rx="12" fill="${c.f}" stroke="${c.s}" stroke-width="2"/>`;
+  tl.forEach(l=>{out+=`<text class="bt" x="${cx}" y="${y}" fill="${c.t}">${esc(l)}</text>`;y+=tH});
+  y+=gap-2;
+  sl.forEach(l=>{out+=`<text class="bs" x="${cx}" y="${y}">${esc(l)}</text>`;y+=sH});
+  return out+'</g>';
+}
+function group(o){
+  const c=K[o.k||'neutral'];
+  const ly=o.lp==='b'?o.y+o.h-12:o.y+24;
+  return `<g><rect x="${o.x}" y="${o.y}" width="${o.w}" height="${o.h}" rx="16" fill="${c.g}" stroke="${c.s}" stroke-opacity=".7" stroke-width="1.6" stroke-dasharray="7 6"/>`+
+    (o.label?`<text class="gl" x="${o.x+14}" y="${ly}" fill="${c.s}">${esc(o.label)}</text>`:'')+'</g>';
+}
+function label(x,y,s,k){
+  const c=K[k||'neutral'], w=tw(s,'600 12.5px Segoe UI')+16;
+  return `<g><rect x="${x-w/2}" y="${y-11}" width="${w}" height="22" rx="11" fill="#FFFBF4" stroke="${c.s}" stroke-width="1.2"/><text class="lbl" x="${x}" y="${y+4.5}" fill="${c.s}">${esc(s)}</text></g>`;
+}
+function arrow(p,o={}){
+  const k=o.k||'neutral', c=K[k];
+  const d='M'+p.map(q=>q.join(' ')).join(' L');
+  let s=`<g class="conn" data-st="${o.st||0}"><path d="${d}" fill="none" stroke="${c.s}" stroke-width="${o.w||2.6}" stroke-linejoin="round" ${o.dash?'stroke-dasharray="8 6"':''} marker-end="url(#ah-${k})" ${o.both?`marker-start="url(#ah-${k})"`:''}/>`;
+  if(o.mid){const a=p[0],b=p[p.length-1];s+=`<text x="${(a[0]+b[0])/2}" y="${(a[1]+b[1])/2+9}" text-anchor="middle" font-size="26" font-weight="800" fill="${c.s}">${o.mid}</text>`}
+  s+='</g>';
+  if(o.label){
+    const a=p[0],b=p[p.length-1];
+    s+=label(o.lx??(a[0]+b[0])/2, o.ly??(a[1]+b[1])/2, o.label, k);
+  }
+  return s;
+}
+function tag(n,x,y,note,anchor='l'){
+  const w=36+tw(note,'700 14.5px Segoe UI')+12;
+  const x0=anchor==='l'?x:anchor==='r'?x-w:x-w/2;
+  return `<g class="tag" data-st="${n}"><rect x="${x0}" y="${y-14}" width="${w}" height="28" rx="14" fill="#222530" filter="url(#tsh)"/>`+
+    `<circle cx="${x0+14}" cy="${y}" r="11" fill="#E8B931"/><text class="tn" x="${x0+14}" y="${y+4.8}">${n}</text>`+
+    `<text class="tt" x="${x0+30}" y="${y+5}">${esc(note)}</text></g>`;
+}
+function kpi(o){
+  const c=K[o.k||'aws'];
+  return `<g><rect x="${o.x}" y="${o.y}" width="${o.w}" height="${o.h}" rx="12" fill="${c.f}" stroke="${c.s}" stroke-width="2"/>`+
+    `<text class="kl" x="${o.x+18}" y="${o.y+o.h/2+6}">${o.i} ${esc(o.t)}</text>`+
+    `<text class="kv" x="${o.x+o.w-18}" y="${o.y+o.h/2+7}" style="text-anchor:end" fill="${c.s}">${esc(o.v)}</text></g>`;
+}
+function card2(o){
+  const c=K[o.k||'aws'];
+  return `<g><rect x="${o.x}" y="${o.y}" width="${o.w}" height="${o.h}" rx="12" fill="${c.f}" stroke="${c.s}" stroke-width="${o.strong?3:2}"/>`+
+    `<text class="ci" x="${o.x+14}" y="${o.y+o.h/2+8}">${o.i}</text>`+
+    `<text class="cl" x="${o.x+52}" y="${o.y+25}">${esc(o.t)}</text>`+
+    `<text class="cv" x="${o.x+52}" y="${o.y+49}">${esc(o.v)}</text></g>`;
+}
+function mini(o){
+  const c=K[o.k||'neutral'];
+  return `<g><rect x="${o.x}" y="${o.y}" width="${o.w}" height="${o.h}" rx="7" fill="#FFFBF4" stroke="${c.s}" stroke-width="1.4"/><text class="mt" x="${o.x+o.w/2}" y="${o.y+o.h/2+5}">${esc(o.t)}</text></g>`;
+}
+function chevron(o){
+  const c=K[o.k||'neutral'], {x,y,w,h}=o, n=18;
+  const pts=[[x,y],[x+w-n,y],[x+w,y+h/2],[x+w-n,y+h],[x,y+h],[x+(o.first?0:n),y+h/2]].map(p=>p.join(',')).join(' ');
+  return `<g><polygon points="${pts}" fill="${c.f}" stroke="${c.s}" stroke-width="2" stroke-linejoin="round"/>`+
+    `<text class="bt" x="${x+w/2+4}" y="${y+h/2-3}" fill="${c.t}" style="font-size:15px">${esc(o.t)}</text>`+
+    `<text class="bs" x="${x+w/2+4}" y="${y+h/2+17}">${esc(o.s)}</text></g>`;
+}
+function bigcard(o){
+  const c=K[o.k||'good'];
+  const tl=o.t.split('\n'); let y=o.y+92-(tl.length-1)*13;
+  let s=`<g><rect x="${o.x}" y="${o.y}" width="${o.w}" height="${o.h}" rx="16" fill="${c.f}" stroke="${c.s}" stroke-width="2.4"/>`+
+    `<text class="bigi" x="${o.x+o.w/2}" y="${o.y+56}">${o.i}</text>`;
+  tl.forEach(l=>{s+=`<text class="bigt" x="${o.x+o.w/2}" y="${y}">${esc(l)}</text>`;y+=27});
+  return s+`<text class="bigs" x="${o.x+o.w/2}" y="${y+4}">${esc(o.s)}</text></g>`;
+}
+/* semicircle cost gauge: v = 0 (low) .. 1 (high) */
+function gauge(cx,cy,r,v){
+  const A=t=>Math.PI*(1-t), pt=(a,rr)=>[cx+rr*Math.cos(a),cy-rr*Math.sin(a)];
+  const seg=(t0,t1,col)=>{const [x0,y0]=pt(A(t0),r),[x1,y1]=pt(A(t1),r);return `<path d="M${x0} ${y0} A${r} ${r} 0 0 1 ${x1} ${y1}" fill="none" stroke="${col}" stroke-width="9"/>`};
+  const [nx,ny]=pt(A(v),r-12);
+  return seg(0,.5,'#2E8B57')+seg(.5,.75,'#E8B931')+seg(.75,1,'#C0392B')+
+    `<text x="${cx}" y="${cy-r*.42}" text-anchor="middle" font-size="10" font-weight="800" fill="#5E6573">MIPS</text>`+
+    `<line x1="${cx}" y1="${cy}" x2="${nx}" y2="${ny}" stroke="#222530" stroke-width="3.5" stroke-linecap="round"/><circle cx="${cx}" cy="${cy}" r="5" fill="#222530"/>`;
+}
+function gaugeBox(o){
+  const c=K[o.k||'risk'];
+  let s=`<g><rect x="${o.x}" y="${o.y}" width="${o.w}" height="${o.h}" rx="12" fill="${c.f}" stroke="${c.s}" stroke-width="2"/>`+
+    `<text class="kl" x="${o.x+16}" y="${o.y+30}" style="font-weight:700" fill="${c.t}">${o.i} ${esc(o.t)}</text>`;
+  o.cap.forEach((l,i)=>{s+=`<text class="bsl" x="${o.x+16}" y="${o.y+52+i*17}">${esc(l)}</text>`});
+  if(o.note) s+=`<text class="note" x="${o.x+16}" y="${o.y+o.h-12}">${esc(o.note)}</text>`;
+  return s+gauge(o.x+o.w-(o.r||42)-16,o.y+o.h-14,o.r||42,o.v)+'</g>';
+}
+const txt=(x,y,s,cls,anchor='start',fill)=>`<text class="${cls}" x="${x}" y="${y}" style="text-anchor:${anchor}" ${fill?`fill="${fill}"`:''}>${esc(s)}</text>`;
+function defs(){
+  return '<defs>'+Object.entries(K).map(([k,c])=>
+    `<marker id="ah-${k}" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="13" markerHeight="13" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="${c.s}"/></marker>`).join('')+
+    '<filter id="tsh" x="-20%" y="-50%" width="140%" height="200%"><feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#3a2a10" flood-opacity=".28"/></filter></defs>';
+}
+
+/* ============================================================
+   PART 1 — Executive Challenge & Business ROI
+   ============================================================ */
+function d1(){return [
+  group({x:20,y:40,w:520,h:440,k:'legacy',label:'🏚️ TODAY · OVERNIGHT ENGINE'}),
+  box({x:45,y:96,w:200,h:76,k:'legacy',i:'📱',t:'Channels',s:'Mobile · Web · Corporate H2H'}),
+  box({x:315,y:96,w:200,h:76,k:'legacy',i:'📬',t:'IBM MQ',s:'integration layer'}),
+  box({x:315,y:220,w:200,h:76,k:'legacy',i:'🖥️',t:'CICS · COBOL',s:'payments engine'}),
+  box({x:315,y:344,w:200,h:76,k:'legacy',i:'🗄️',t:'DB2 z/OS',s:'ledger · balances'}),
+  box({x:45,y:344,w:200,h:76,k:'risk',i:'🌙',t:'Nightly Batch',s:'overnight settlement window'}),
+  box({x:45,y:220,w:200,h:76,k:'legacy',i:'📁',t:'Clearing Files',s:'next-day settlement'}),
+  arrow([[245,134],[315,134]],{k:'legacy',st:1}),
+  arrow([[415,172],[415,220]],{k:'legacy',st:1}),
+  arrow([[415,296],[415,344]],{k:'legacy',st:1}),
+  arrow([[315,382],[245,382]],{k:'legacy',st:1}),
+  arrow([[145,344],[145,296]],{k:'legacy',st:1}),
+
+  group({x:760,y:40,w:500,h:440,k:'aws',label:'🚀 REFERENCE TARGET · TO VALIDATE'}),
+  box({x:785,y:96,w:450,h:76,k:'good',i:'⚡',t:'Faster payment path · target',s:'scheme and bank rules to confirm'}),
+  kpi({x:785,y:196,w:450,h:76,i:'⚡',t:'Instant payments',v:'first slice early'}),
+  kpi({x:785,y:288,w:450,h:76,i:'🔻',t:'Mainframe MIPS',v:'measure per slice'}),
+  kpi({x:785,y:380,w:450,h:76,i:'🚀',t:'Release cadence',v:'baseline → target'}),
+
+  arrow([[540,196],[760,196]],{k:'good',st:6,w:3.6,label:'✅ Strangler Fig · slice by slice',ly:228}),
+  arrow([[540,322],[760,322]],{k:'bad',st:5,w:3,dash:1,mid:'✖',label:'💥 Big-bang rewrite',ly:292}),
+  box({x:552,y:386,w:196,h:90,k:'bad',i:'🛑',t:'Cutover risk',s:'concentrated change\nhard to reverse'}),
+
+  box({x:20,y:560,w:400,h:120,k:'risk',i:'💰',t:'OPPORTUNITY',s:'Business chooses target products\nArchitecture supports that choice'}),
+  box({x:440,y:560,w:400,h:120,k:'risk',i:'💸',t:'COST',s:'Measure baseline and dual-run cost\nSavings need proof of removal'}),
+  box({x:860,y:560,w:400,h:120,k:'risk',i:'⚠️',t:'RISK',s:'Hidden rules and dependencies\nChange needs evidence'}),
+  arrow([[145,560],[145,420]],{k:'risk',st:2,dash:1}),
+  arrow([[470,560],[470,420]],{k:'risk',st:3,dash:1,label:'MIPS',ly:500}),
+  arrow([[900,560],[900,512],[530,512],[530,258],[515,258]],{k:'risk',st:4,dash:1}),
+  txt(640,740,'KPIs, not promises: set every target from your own bank’s baseline.','note','middle'),
+
+  tag(1,1010,96,'Reference scenario','c'),
+  tag(2,200,560,'Bank sets product goal'),
+  tag(3,520,560,'Measure costs'),
+  tag(4,940,560,'Discover hidden risk'),
+  tag(5,650,386,'No big bang','c'),
+  tag(6,650,164,'Incremental on AWS','c'),
+  tag(7,1010,196,'Bank-approved KPIs','c'),
+].join('')}
+
+/* ============================================================
+   PART 2 — Requirements & Team
+   ============================================================ */
+function d2(){
+  const flow=[['📥','Accept','API · pain.001'],['✅','Validate & Enrich','IBAN · limits · rules'],['🛡️','Screen','sanctions · fraud'],
+              ['🔒','Reserve Funds','hold on ledger'],['📤','Submit','pacs.008 → FedNow\nSEPA Inst · SWIFT'],['📬','Confirm','pacs.002 → customer']];
+  const out=[group({x:10,y:30,w:1260,h:180,k:'aws',label:'📦 REFERENCE FLOW · BANK TO VALIDATE'})];
+  flow.forEach((f,i)=>{
+    const x=20+i*212;
+    out.push(box({x,y:80,w:180,h:100,k:'aws',i:f[0],t:f[1],s:f[2]}));
+    if(i<5) out.push(arrow([[x+180,130],[x+212,130]],{k:'aws',st:2}));
+  });
+  out.push(
+    group({x:10,y:236,w:850,h:464,k:'neutral',label:'👥 TEAM TOPOLOGY',lp:'b'}),
+    box({x:20,y:300,w:392,h:84,k:'aws',i:'🧑‍💻',t:'Squad 1 · Initiation & Orchestration',s:'stream-aligned'}),
+    box({x:444,y:300,w:180,h:84,k:'aws',i:'🛡️',t:'Squad 2',s:'Screening'}),
+    box({x:656,y:300,w:180,h:84,k:'aws',i:'📒',t:'Squad 3',s:'Ledger Integration'}),
+    box({x:20,y:450,w:604,h:80,k:'neutral',i:'🛠️',t:'Platform Team',s:'Kubernetes · Kafka · Terraform · paved road'}),
+    box({x:656,y:450,w:180,h:80,k:'legacy',i:'🧓',t:'Mainframe SMEs',s:'enabling team'}),
+    box({x:20,y:590,w:392,h:76,k:'human',i:'🔐',t:'Security & Compliance',s:'embedded in every squad'}),
+    box({x:444,y:590,w:392,h:76,k:'human',i:'🧭',t:'Payments Ops PO',s:'owns backlog & business sign-off'}),
+    arrow([[110,300],[110,180]],{k:'aws',st:6}),
+    arrow([[322,300],[322,180]],{k:'aws',st:6}),
+    arrow([[534,300],[534,180]],{k:'aws',st:6,label:'owns',ly:224}),
+    arrow([[746,300],[746,180]],{k:'aws',st:6}),
+    arrow([[216,450],[216,384]],{k:'neutral',st:6,label:'supports',ly:417}),
+    arrow([[534,450],[534,384]],{k:'neutral',st:6}),
+    arrow([[746,450],[746,384]],{k:'legacy',st:7,label:'enables',ly:417}),
+    box({x:10,y:722,w:850,h:62,k:'risk',i:'⚠️',t:'A duplicate payment is not a bug. It’s an incident.'}),
+
+    group({x:880,y:236,w:390,h:548,k:'aws',label:'🎯 EXAMPLE TARGETS · TO VALIDATE'}),
+    card2({x:895,y:282,w:360,h:64,i:'📈',t:'VOLUME · DESIGN ASSUMPTION',v:'12M/day · 5,000 TPS peak'}),
+    card2({x:895,y:364,w:360,h:64,i:'⚡',t:'LATENCY',v:'p99 < 500 ms · < 10 s end-to-end'}),
+    card2({x:895,y:446,w:360,h:64,i:'🟢',t:'AVAILABILITY',v:'99.99% ≈ 52 min / year'}),
+    card2({x:895,y:528,w:360,h:64,i:'🛟',t:'RECOVERY',v:'RPO 0 in-region · RTO < 15 min'}),
+    card2({x:895,y:610,w:360,h:64,i:'🔑',t:'IDEMPOTENCY',v:'No duplicate debit on retry',k:'good',strong:1}),
+    card2({x:895,y:692,w:360,h:64,i:'📜',t:'CONTROLS',v:'Bank-approved messages + audit',k:'neutral'}),
+
+    tag(1,1250,282,'Peak, not average','r'),
+    tag(2,1010,30,'6 proposed steps'),
+    tag(3,1250,364,'p99 < 500 ms','r'),
+    tag(4,1250,528,'RPO 0 in-region','r'),
+    tag(5,1250,610,'Define same payment','r'),
+    tag(6,560,236,'Squads + platform'),
+    tag(7,666,530,'Knowledge transfer'),
+  );
+  return out.join('');
+}
+
+/* ============================================================
+   PART 3 — High-Level Architecture
+   ============================================================ */
+function d3(){return [
+  box({x:20,y:318,w:170,h:110,k:'neutral',i:'📱',t:'Channels',s:'Mobile · Web\nCorporate H2H'}),
+  box({x:220,y:272,w:200,h:76,k:'aws',i:'🚪',t:'API Gateway',s:'AuthN · throttling\nIdempotency-Key'}),
+  box({x:220,y:384,w:200,h:76,k:'aws',i:'🔀',t:'Payment Router',s:'strangler facade'}),
+  box({x:220,y:496,w:200,h:64,k:'aws',i:'🚩',t:'AWS AppConfig',s:'feature flags'}),
+
+  group({x:450,y:20,w:650,h:190,k:'legacy',label:'🏚️ LEGACY · z/OS MAINFRAME'}),
+  box({x:470,y:70,w:130,h:76,k:'legacy',i:'📬',t:'IBM MQ'}),
+  box({x:628,y:70,w:150,h:76,k:'legacy',i:'🖥️',t:'CICS · COBOL',s:'payments + posting'}),
+  box({x:806,y:70,w:130,h:76,k:'legacy',i:'🗄️',t:'DB2 z/OS',s:'system of record'}),
+  box({x:964,y:70,w:120,h:76,k:'risk',i:'🌙',t:'Batch',s:'overnight'}),
+
+  box({x:620,y:228,w:168,h:60,k:'aws',i:'🛡️',t:'Ledger Adapter',s:'anti-corruption layer'}),
+  box({x:806,y:228,w:130,h:60,k:'aws',i:'🔁',t:'CDC',s:'scope to test'}),
+
+  box({x:450,y:308,w:650,h:72,k:'aws',i:'🧵',t:'Amazon MSK (Kafka) · Glue Schema Registry',s:'event scope, ordering and replay to validate'}),
+
+  group({x:450,y:400,w:650,h:230,k:'aws',label:'🚢 PROPOSED EKS SERVICES · DATA OWNERSHIP TO REVIEW',lp:'b'}),
+  ...[['📥','Initiation',''],['🔄','Orchestrator','saga'],['🛡️','Screening','sanctions · fraud'],['📤','Scheme\nGateway','']].map((s,i)=>
+    box({x:466+i*160,y:440,w:140,h:70,k:'aws',i:s[0],t:s[1],s:s[2]})+
+    box({x:466+i*160,y:530,w:140,h:46,k:'neutral',i:'🐘',t:'Aurora PG'})+
+    arrow([[536+i*160,380],[536+i*160,440]],{k:'aws',st:4,both:1})+
+    arrow([[536+i*160,510],[536+i*160,530]],{k:'neutral',st:4})),
+
+  group({x:1115,y:20,w:155,h:610,k:'neutral',label:'🌐 SCHEMES'}),
+  box({x:1127,y:70,w:131,h:76,k:'legacy',i:'🏛️',t:'Clearing',s:'batch files'}),
+  box({x:1127,y:389,w:131,h:52,k:'aws',i:'💵',t:'FedNow'}),
+  box({x:1127,y:449,w:131,h:52,k:'aws',i:'💶',t:'SEPA Inst'}),
+  box({x:1127,y:509,w:131,h:52,k:'aws',i:'🌍',t:'SWIFT'}),
+
+  group({x:20,y:656,w:830,h:134,k:'neutral',label:'🗓️ MIGRATION PHASES'}),
+  chevron({x:36,y:694,w:262,h:78,k:'aws',t:'P1 · Orchestration + schemes',s:'ledger stays on mainframe',first:1}),
+  chevron({x:300,y:694,w:262,h:78,k:'neutral',t:'P2 · Shadow ledger',s:'daily reconciliation'}),
+  chevron({x:564,y:694,w:270,h:78,k:'good',t:'P3 · Flip system of record',s:'one segment at a time'}),
+
+  group({x:870,y:656,w:400,h:134,k:'neutral',label:'🛟 RESILIENCE'}),
+  txt(888,712,'🔭 Track every payment end to end','kl'),
+  txt(888,742,'🌎 Region 2: recovery option to test','kl'),
+  txt(888,772,'🔐 Encrypted · private network · least access','kl'),
+
+  arrow([[190,340],[205,340],[205,310],[220,310]],{k:'neutral',st:2}),
+  arrow([[320,348],[320,384]],{k:'aws',st:2}),
+  arrow([[320,496],[320,460]],{k:'aws',st:2,dash:1,label:'flags',lx:362,ly:478}),
+  arrow([[420,404],[438,404],[438,108],[470,108]],{k:'legacy',st:2,label:'legacy route',lx:438,ly:228}),
+  arrow([[420,440],[438,440],[438,475],[466,475]],{k:'aws',st:2}),
+  arrow([[600,108],[628,108]],{k:'legacy',st:1}),
+  arrow([[778,108],[806,108]],{k:'legacy',st:1}),
+  arrow([[936,108],[964,108]],{k:'legacy',st:1}),
+  arrow([[1084,108],[1127,108]],{k:'legacy',st:1}),
+  arrow([[871,146],[871,228]],{k:'aws',st:5}),
+  arrow([[871,288],[871,308]],{k:'aws',st:5}),
+  arrow([[703,308],[703,288]],{k:'aws',st:5}),
+  arrow([[703,228],[703,146]],{k:'aws',st:5,label:'mainframe API',ly:187}),
+  arrow([[1086,475],[1127,475]],{k:'aws',st:4}),
+
+  tag(1,905,20,'Starting point'),
+  tag(2,222,248,'Dial, not switch'),
+  tag(3,950,308,'Event backbone'),
+  tag(4,552,400,'No shared DBs'),
+  tag(5,448,258,'CDC in · ACL out'),
+  tag(6,300,656,'Ledger cutover: gated'),
+  tag(7,1258,656,'Region 2 + tracing','r'),
+].join('')}
+
+/* ============================================================
+   PART 3 · PHASE 2 — Shadow ledger + reconciliation
+   ============================================================ */
+function d3b(){return [
+  group({x:20,y:40,w:380,h:520,k:'legacy',label:'🏛️ MAINFRAME · STILL IN CHARGE'}),
+  box({x:40,y:90,w:340,h:64,k:'neutral',i:'📥',t:'Payments in',s:'from the Phase 1 platform'}),
+  box({x:40,y:190,w:340,h:70,k:'legacy',i:'🖥️',t:'CICS · COBOL posting',s:'today’s business rules'}),
+  box({x:40,y:296,w:340,h:90,k:'legacy',i:'📒',t:'DB2 z/OS · source of record',s:'reference assumption\nbank to confirm'}),
+  gaugeBox({x:40,y:420,w:340,h:120,k:'risk',i:'💸',t:'MIPS meter',cap:['measure current workload','and dual-run cost'],note:'savings to validate',v:.66}),
+  arrow([[100,154],[100,190]],{k:'legacy',st:1}),
+  arrow([[100,260],[100,296]],{k:'legacy',st:1}),
+  arrow([[100,386],[100,420]],{k:'risk',st:1,dash:1}),
+
+  box({x:430,y:296,w:210,h:90,k:'aws',i:'🔁',t:'CDC',s:'lag and gaps to test'}),
+  box({x:430,y:420,w:210,h:120,k:'good',i:'📊',t:'Read offload',s:'candidate workload\nfreshness and access first\nsavings to measure'}),
+  arrow([[380,341],[430,341]],{k:'aws',st:2}),
+  arrow([[535,296],[535,112],[690,112]],{k:'aws',st:2}),
+  arrow([[430,480],[380,480]],{k:'good',st:5}),
+
+  group({x:670,y:40,w:590,h:520,k:'aws',label:'🧪 SHADOW LEDGER · REFERENCE / NO WRITE AUTHORITY'}),
+  box({x:690,y:84,w:550,h:56,k:'aws',i:'🧵',t:'Event stream (Amazon MSK) · scope to confirm'}),
+  box({x:690,y:180,w:260,h:96,k:'aws',i:'🪞',t:'Mirror of source books',s:'CDC completeness to test\nAurora PostgreSQL'}),
+  box({x:980,y:180,w:260,h:96,k:'aws',i:'🧮',t:'New ledger engine',s:'re-posts the same payments\nwith the new rules'}),
+  box({x:690,y:316,w:260,h:104,k:'good',i:'⚖️',t:'Daily reconciliation',s:'mirror vs shadow, to the cent\n+ mainframe control totals'}),
+  box({x:980,y:316,w:260,h:104,k:'aws',i:'📗',t:'Shadow books',s:'independent balances\nAurora PostgreSQL'}),
+  box({x:980,y:450,w:260,h:84,k:'good',i:'👥',t:'No customer write',s:'shadow path · proposed'}),
+  arrow([[820,140],[820,180]],{k:'aws',st:2}),
+  arrow([[1110,140],[1110,180]],{k:'aws',st:3}),
+  arrow([[1110,276],[1110,316]],{k:'aws',st:3}),
+  arrow([[820,276],[820,316]],{k:'good',st:4}),
+  arrow([[980,368],[950,368]],{k:'good',st:4}),
+  arrow([[690,232],[662,232],[662,470],[640,470]],{k:'good',st:5}),
+
+  group({x:10,y:590,w:840,h:200,k:'risk',label:'🔁 RECONCILIATION LOOP · EVERY DIFFERENCE IS EXPLAINED',lp:'b'}),
+  box({x:30,y:640,w:190,h:90,k:'risk',i:'⚠️',t:'Break found',s:'a balance differs'}),
+  box({x:250,y:640,w:190,h:90,k:'neutral',i:'🔍',t:'Root cause',s:'rule gap · data · timing'}),
+  box({x:470,y:640,w:190,h:90,k:'aws',i:'🛠️',t:'Fix & replay',s:'correct the rule\nre-run history'}),
+  box({x:680,y:640,w:150,h:90,k:'good',i:'✅',t:'Match',s:'trust score ↑'}),
+  arrow([[220,685],[250,685]],{k:'risk',st:6}),
+  arrow([[440,685],[470,685]],{k:'risk',st:6}),
+  arrow([[700,420],[700,622],[125,622],[125,640]],{k:'risk',st:6,dash:1,label:'break',lx:600,ly:622}),
+  arrow([[760,420],[760,640]],{k:'good',st:4}),
+
+  group({x:870,y:590,w:400,h:200,k:'good',label:'🚦 GO / NO-GO FOR PHASE 3'}),
+  txt(890,646,'□ Bank-defined clean close cycles','kl'),
+  txt(890,678,'□ Finance / Audit review','kl'),
+  txt(890,710,'□ Peak and DR tests passed','kl'),
+  txt(890,742,'□ Ops runbooks rehearsed','kl'),
+  arrow([[830,685],[870,685]],{k:'good',st:7}),
+
+  tag(1,372,296,'Still the official books','r'),
+  tag(2,440,386,'Copy every change'),
+  tag(3,1240,420,'Same payments, new rules','r'),
+  tag(4,950,420,'To the cent','r'),
+  tag(5,440,540,'Measure offload value'),
+  tag(6,230,590,'Explain every break'),
+  tag(7,1258,590,'Earn the flip','r'),
+].join('')}
+
+/* ============================================================
+   PART 3 · PHASE 3 — Flip the system of record + failure handling
+   ============================================================ */
+function d3c(){
+  const segs=[['Pilot','proposed','good'],['Retail A','candidate','good'],['Retail B','later','aws'],['SMEs','later','neutral'],['Corporates','later','neutral']];
+  const out=[group({x:10,y:20,w:1260,h:330,k:'aws',label:'🔀 POSSIBLE CUTOVER · BANK APPROVAL REQUIRED'}),
+    box({x:30,y:70,w:220,h:100,k:'aws',i:'🚦',t:'Traffic flag',s:'new requests only\nstate-aware fallback'})];
+  segs.forEach((s,i)=>out.push(chevron({x:280+i*196,y:72,w:190,h:72,k:s[2],t:s[0],s:s[1],first:i===0})));
+  out.push(
+    box({x:280,y:196,w:430,h:100,k:'good',i:'📗',t:'New ledger · candidate system of record',s:'only after reconciliation,\ncontrols and bank sign-off'}),
+    box({x:760,y:196,w:230,h:100,k:'legacy',i:'🏛️',t:'Mainframe',s:'kept in sync\nas a fallback'}),
+    gaugeBox({x:1020,y:196,w:236,h:100,k:'good',i:'🔌',t:'Switch off',cap:['payments workload,','after fallback'],v:.14,r:28}),
+    arrow([[250,108],[280,108]],{k:'aws',st:1}),
+    arrow([[140,170],[140,246],[280,246]],{k:'aws',st:2,label:'writes',lx:200,ly:246}),
+    arrow([[710,246],[760,246]],{k:'legacy',st:3,dash:1}),
+    arrow([[990,246],[1020,246]],{k:'good',st:3}),
+    txt(640,332,'↩️ A flag reroutes new requests; in-flight and external effects need a plan.','note','middle'),
+
+    group({x:10,y:370,w:1260,h:420,k:'neutral',label:'🛡️ EXCEPTION DESIGN · SCHEME RULES TO CONFIRM'}),
+    group({x:24,y:416,w:300,h:356,k:'bad',label:'❌ WHY NOT 2PC?',lp:'b'}),
+    box({x:40,y:448,w:268,h:70,k:'bad',i:'🔒',t:'Two-Phase Commit',s:'every system locks and waits'}),
+    txt(44,552,'• one slow bank = everyone waits','kl'),
+    txt(44,580,'• one outage = all payments stop','kl'),
+    txt(44,608,'• a hard ceiling on growth','kl'),
+    box({x:40,y:640,w:268,h:96,k:'good',i:'🧩',t:'Saga option',s:'local steps; some need\nbusiness correction'}),
+
+    box({x:350,y:500,w:160,h:70,k:'aws',i:'🔒',t:'Reserve funds',s:'hold on the account'}),
+    box({x:540,y:500,w:180,h:70,k:'aws',i:'📤',t:'Send to scheme',s:'ISO 20022 instruction'}),
+    box({x:760,y:420,w:190,h:60,k:'good',i:'✅',t:'Accepted'}),
+    box({x:760,y:500,w:190,h:60,k:'bad',i:'❌',t:'Rejected'}),
+    box({x:760,y:580,w:190,h:60,k:'risk',i:'⏳',t:'No answer'}),
+    box({x:980,y:420,w:270,h:60,k:'good',i:'🏁',t:'Settled',s:'money moved · receipt filed'}),
+    box({x:980,y:500,w:270,h:60,k:'aws',i:'↩️',t:'Review release rule',s:'bank-approved hold action'}),
+    box({x:980,y:580,w:270,h:60,k:'risk',i:'🔎',t:'Status inquiry option',s:'unknown → investigate first'}),
+    txt(350,680,'AFTER THE MONEY HAS LEFT','hd'),
+    box({x:350,y:690,w:190,h:70,k:'risk',i:'🚩',t:'Problem found',s:'duplicate · error · fraud'}),
+    box({x:570,y:690,w:340,h:70,k:'aws',i:'↩️',t:'Recall option · e.g. camt.056',s:'eligibility and timing to confirm'}),
+    box({x:940,y:690,w:310,h:70,k:'good',i:'📬',t:'Track response',s:'return is not guaranteed'}),
+
+    arrow([[308,688],[337,688],[337,535],[350,535]],{k:'good',st:5}),
+    arrow([[510,535],[540,535]],{k:'aws',st:5}),
+    arrow([[720,515],[738,515],[738,450],[760,450]],{k:'good',st:5}),
+    arrow([[720,530],[760,530]],{k:'bad',st:5}),
+    arrow([[720,555],[738,555],[738,610],[760,610]],{k:'risk',st:6}),
+    arrow([[950,450],[980,450]],{k:'good',st:5}),
+    arrow([[950,530],[980,530]],{k:'bad',st:5}),
+    arrow([[950,610],[980,610]],{k:'risk',st:6}),
+    arrow([[1080,580],[1080,560]],{k:'aws',st:6,dash:1}),
+    arrow([[1250,600],[1262,600],[1262,460],[1250,460]],{k:'good',st:6,dash:1}),
+    arrow([[540,725],[570,725]],{k:'risk',st:7}),
+    arrow([[910,725],[940,725]],{k:'good',st:7}),
+    txt(790,781,'Every exception needs a bank-approved path, tracking ID and audit trail.','note','middle'),
+
+    tag(1,290,72,'One segment at a time'),
+    tag(2,290,296,'Bank-approved ledger'),
+    tag(3,770,296,'Fallback, then switch off'),
+    tag(4,40,416,'Locks don’t scale'),
+    tag(5,550,500,'ISO 20022'),
+    tag(6,770,640,'Asks, not phones'),
+    tag(7,580,690,'Standard recall'),
+    tag(8,950,690,'Operations owns exceptions'),
+  );
+  return out.join('');
+}
+
+/* ============================================================
+   PART 4 — Low-Level Design: Saga + Outbox
+   ============================================================ */
+function d4(){
+  const st=[['INITIATED','neutral'],['SCREENED','aws'],['FUNDS RESERVED','aws'],['SUBMITTED','aws'],['ACCEPTED','aws'],['SETTLED','good']];
+  const out=[group({x:10,y:20,w:1260,h:370,k:'aws',label:'🔄 ORCHESTRATED SAGA · THE PAYMENT ORCHESTRATOR OWNS THE STATE'})];
+  st.forEach((s,i)=>{
+    const x=40+i*205;
+    out.push(box({x,y:110,w:165,h:60,k:s[1],t:s[0]}));
+    if(i<5) out.push(arrow([[x+165,140],[x+205,140]],{k:'good',st:2}));
+  });
+  out.push(
+    `<line x1="840" y1="98" x2="840" y2="384" stroke="#222530" stroke-width="3" stroke-dasharray="10 7"/>`,
+    txt(830,378,'◀ possible reversal','lbl','end','#222530'),
+    txt(850,378,'separate correction ▶','lbl','start','#222530'),
+    box({x:245,y:240,w:165,h:64,k:'risk',i:'🟠',t:'Manual review',s:'sanctions hit'}),
+    box({x:450,y:240,w:165,h:64,k:'bad',i:'↩️',t:'Compensate',s:'release funds hold'}),
+    box({x:655,y:240,w:165,h:64,k:'risk',i:'❓',t:'Status inquiry',s:'pacs.028 · “where is it?”'}),
+    box({x:1065,y:240,w:165,h:64,k:'neutral',i:'↪️',t:'Formal recall',s:'camt.056 · “return it”'}),
+    box({x:245,y:326,w:165,h:52,k:'bad',i:'⛔',t:'Failed',s:'customer notified'}),
+    arrow([[327,170],[327,240]],{k:'risk',st:2,label:'hit',ly:205}),
+    arrow([[690,170],[690,205],[532,205],[532,240]],{k:'bad',st:3,dash:1,label:'rejected',lx:611,ly:205}),
+    arrow([[780,170],[780,240]],{k:'risk',st:5,label:'timeout',ly:205}),
+    arrow([[820,262],[900,262],[900,170]],{k:'good',st:5,label:'settled',lx:900,ly:215}),
+    arrow([[655,284],[615,284]],{k:'bad',st:5,dash:1}),
+    arrow([[450,284],[430,284],[430,352],[410,352]],{k:'bad',st:3}),
+    arrow([[1147,170],[1147,240]],{k:'neutral',st:4,dash:1,label:'dispute',ly:205}),
+
+    group({x:10,y:410,w:470,h:380,k:'bad',label:'⚠️ DUAL WRITE · ANTI-PATTERN'}),
+    box({x:30,y:480,w:120,h:70,k:'neutral',i:'🧩',t:'Service'}),
+    box({x:180,y:480,w:120,h:70,k:'neutral',i:'🐘',t:'Database',s:'commit ✓'}),
+    box({x:340,y:480,w:120,h:70,k:'neutral',i:'🧵',t:'Kafka',s:'publish ✗'}),
+    `<text x="320" y="474" text-anchor="middle" font-size="26">⚡</text>`,
+    txt(320,580,'crash here','lbl','middle','#C0392B'),
+    arrow([[150,515],[180,515]],{k:'neutral',st:6}),
+    arrow([[300,515],[340,515]],{k:'bad',st:6,dash:1}),
+    box({x:30,y:610,w:205,h:84,k:'bad',i:'🧊',t:'Stuck payment',s:'row saved · no event'}),
+    box({x:255,y:610,w:205,h:84,k:'bad',i:'👻',t:'Ghost event',s:'event sent · no row'}),
+    txt(245,746,'Two systems · two commits · no atomicity','note','middle'),
+
+    group({x:500,y:410,w:770,h:380,k:'good',label:'✅ TRANSACTIONAL OUTBOX + IDEMPOTENT CONSUMER'}),
+    box({x:520,y:466,w:130,h:84,k:'aws',i:'📥',t:'Initiation',s:'service'}),
+    group({x:676,y:452,w:210,h:112,k:'good',label:'🔒 ONE ACID TX'}),
+    mini({x:690,y:486,w:182,h:30,t:'payment'}),
+    mini({x:690,y:522,w:182,h:30,t:'its event (outbox)'}),
+    box({x:912,y:466,w:140,h:84,k:'aws',i:'🔁',t:'Debezium',s:'reads the\ndatabase log'}),
+    box({x:1078,y:466,w:170,h:84,k:'aws',i:'🧵',t:'Kafka topic',s:'in order, per payment'}),
+    arrow([[650,508],[676,508]],{k:'aws',st:7}),
+    arrow([[886,508],[912,508]],{k:'aws',st:7,label:'log',lx:899,ly:584}),
+    arrow([[1052,508],[1078,508]],{k:'aws',st:7}),
+    box({x:1078,y:630,w:170,h:84,k:'aws',i:'🔄',t:'Orchestrator',s:'consumer'}),
+    group({x:800,y:616,w:250,h:116,k:'good',label:'🔒 ONE ACID TX'}),
+    mini({x:814,y:646,w:222,h:24,t:'already-seen list'}),
+    mini({x:814,y:674,w:222,h:24,t:'payment status'}),
+    mini({x:814,y:702,w:222,h:24,t:'next instruction'}),
+    arrow([[1163,550],[1163,630]],{k:'aws',st:8}),
+    arrow([[1078,672],[1050,672]],{k:'aws',st:8}),
+    box({x:520,y:630,w:250,h:96,k:'good',i:'🎯',t:'Idempotent effect',s:'retries + stable IDs\nat a defined boundary'}),
+    txt(885,770,'A repeat delivery is recognised and skipped','note','middle'),
+
+    tag(1,1120,20,'No 2PC across systems','c'),
+    tag(2,50,110,'Happy path'),
+    tag(3,460,322,'Compensate ≠ delete'),
+    tag(4,840,86,'Boundary to validate','c'),
+    tag(5,662,322,'Timeout ≠ failure'),
+    tag(6,300,410,'Dual-write trap'),
+    tag(7,1100,410,'Outbox: 1 ACID TX','c'),
+    tag(8,1258,714,'Idempotent consumer','r'),
+  );
+  return out.join('');
+}
+
+/* ============================================================
+   PART 5 — AI-Driven SDLC
+   ============================================================ */
+function d5(){return [
+  box({x:232,y:40,w:604,h:90,k:'ai',i:'🤖',t:'AI Agent',s:'reads COBOL · drafts rules, specs, ADRs, code & tests'}),
+  box({x:868,y:40,w:180,h:90,k:'ai',i:'📘',t:'AGENTS.md',s:'rules the AI\nmust follow'}),
+  txt(20,70,'🤖 AI DRAFTS','hd'),
+  txt(20,446,'👤 EXPERTS APPROVE','hd'),
+
+  box({x:20,y:290,w:180,h:100,k:'legacy',i:'📜',t:'COBOL Source',s:'PAYVALID.cbl\nPAYDUPL.cbl'}),
+  box({x:232,y:220,w:180,h:100,k:'neutral',i:'📖',t:'Rules Catalog',s:'BR-ID → COBOL line\n→ test'}),
+  box({x:444,y:220,w:180,h:100,k:'neutral',i:'📐',t:'Contracts & ADRs',s:'OpenAPI · AsyncAPI\nAvro · ADRs'}),
+  box({x:656,y:220,w:180,h:100,k:'aws',i:'☕',t:'Java 21 Services',s:'outbox-only\nsealed events'}),
+  box({x:868,y:220,w:180,h:100,k:'good',i:'🚦',t:'CI Gate',s:'ArchUnit · Testcontainers\ncontract tests'}),
+  box({x:1080,y:220,w:180,h:100,k:'aws',i:'🚀',t:'Ship',s:'small, frequent releases'}),
+
+  box({x:232,y:400,w:180,h:80,k:'human',i:'🧓',t:'SME sign-off',s:'every rule'}),
+  box({x:444,y:400,w:180,h:80,k:'human',i:'🏛️',t:'Architect',s:'every contract & ADR'}),
+  box({x:656,y:400,w:180,h:80,k:'human',i:'👀',t:'Code review',s:'every pull request'}),
+  box({x:868,y:400,w:180,h:80,k:'good',i:'🧪',t:'ArchUnit rules',s:'same rules, in CI'}),
+
+  arrow([[110,290],[110,85],[232,85]],{k:'ai',st:1,label:'reads',lx:171,ly:85}),
+  arrow([[272,130],[272,220]],{k:'ai',st:1,label:'drafts',lx:272,ly:175}),
+  arrow([[484,130],[484,220]],{k:'ai',st:3}),
+  arrow([[696,130],[696,220]],{k:'ai',st:4}),
+  arrow([[868,85],[836,85]],{k:'ai',st:5}),
+  arrow([[1048,85],[1064,85],[1064,440],[1048,440]],{k:'ai',st:5,dash:1,label:'same rules',lx:1064,ly:180}),
+  arrow([[200,340],[216,340],[216,270],[232,270]],{k:'legacy',st:1}),
+  arrow([[412,270],[444,270]],{k:'neutral',st:3}),
+  arrow([[624,270],[656,270]],{k:'neutral',st:4}),
+  arrow([[836,270],[868,270]],{k:'aws',st:6}),
+  arrow([[1048,270],[1080,270]],{k:'good',st:6}),
+  arrow([[322,400],[322,320]],{k:'human',st:2,label:'signs',ly:360}),
+  arrow([[534,400],[534,320]],{k:'human',st:3,label:'approves',ly:360}),
+  arrow([[746,400],[746,320]],{k:'human',st:4,label:'reviews',ly:360}),
+  arrow([[958,400],[958,320]],{k:'good',st:5,label:'enforces',ly:360}),
+
+  group({x:20,y:530,w:620,h:120,k:'neutral',label:'🔗 TRACEABILITY'}),
+  box({x:40,y:568,w:180,h:62,k:'neutral',i:'🏷️',t:'BR-014',s:'frozen account → reject'}),
+  box({x:250,y:568,w:190,h:62,k:'legacy',i:'📜',t:'PAYVALID.cbl',s:'L1184–1192'}),
+  box({x:470,y:568,w:150,h:62,k:'good',i:'🧪',t:'BR014Test',s:'JUnit'}),
+  arrow([[220,599],[250,599]],{k:'neutral',st:2}),
+  arrow([[440,599],[470,599]],{k:'neutral',st:2}),
+  box({x:20,y:670,w:620,h:120,k:'ai',i:'⏱️',t:'Faster discovery',s:'SMEs review an AI draft instead of starting from a blank page\nmeasure the gain on your first slice'}),
+
+  group({x:660,y:530,w:610,h:260,k:'good',label:'🧪 PROPOSED RETRY TEST · REFERENCE STACK'}),
+  box({x:680,y:585,w:140,h:84,k:'neutral',i:'📱',t:'Payment ×2',s:'same\nIdempotency-Key'}),
+  box({x:844,y:585,w:130,h:84,k:'aws',i:'📥',t:'Initiation',s:'API'}),
+  box({x:998,y:585,w:110,h:84,k:'neutral',i:'🐘',t:'Postgres',s:'check rows'}),
+  box({x:1132,y:585,w:118,h:84,k:'aws',i:'🧵',t:'Kafka',s:'check events'}),
+  arrow([[820,627],[844,627]],{k:'neutral',st:7}),
+  arrow([[974,627],[998,627]],{k:'aws',st:7}),
+  arrow([[1108,627],[1132,627]],{k:'aws',st:7,label:'Debezium',lx:1120,ly:690}),
+  box({x:680,y:704,w:570,h:66,k:'good',i:'✅',t:'Expected: no second debit',s:'verify response, state and event trail'}),
+
+  tag(1,250,40,'AI reads COBOL'),
+  tag(2,242,480,'SME signs each rule'),
+  tag(3,454,480,'Architects approve'),
+  tag(4,712,220,'Outbox-only'),
+  tag(5,878,40,'Guardrails'),
+  tag(6,880,220,'Tests decide'),
+  tag(7,1258,530,'Same payment ×2','r'),
+].join('')}
+
+/* ============================================================
+   PART 6 — Trade-offs & Takeaways
+   ============================================================ */
+function d6(){
+  const rows=[
+    ['⏳','Eventual consistency','“In progress” for a moment','pending state on the customer screen','Product owners sign it off','status API · UETR tracking','Product decision'],
+    ['🧩','Operational complexity','Kafka + CDC + Sagas','more moving parts to run','Funded platform team','managed services · paved road','Fund the platform'],
+    ['💸','Orchestration cost','Managed workflows bill per step','cost grows with every transition','Model it with your own volumes','pricing calculator first, then decide','Model before you buy'],
+    ['🔁','Dual-run cost','Mainframe + AWS in parallel','costs overlap during migration','Capacity actually removed','measure against baseline','Measure removal'],
+  ];
+  const out=[txt(20,32,'⚖️ TRADE-OFF','hd'),txt(400,32,'🤝 WE ACCEPT','hd'),txt(830,32,'🛠️ MITIGATION','hd')];
+  rows.forEach((r,i)=>{
+    const y=56+i*118;
+    out.push(
+      box({x:20,y,w:330,h:96,k:'risk',i:r[0],t:r[1]}),
+      box({x:400,y,w:380,h:96,k:'neutral',t:r[2],s:r[3]}),
+      box({x:830,y,w:430,h:96,k:'aws',i:'✅',t:r[4],s:r[5]}),
+      arrow([[350,y+48],[400,y+48]],{k:'risk',st:i+1}),
+      arrow([[780,y+48],[830,y+48]],{k:'aws',st:i+1}),
+      tag(i+1,30,y,r[6]));
+  });
+  out.push(
+    txt(20,532,'Orchestration option: compare an owned state machine with managed workflows using bank volumes and operating cost.','note'),
+    txt(20,566,'🎯 THREE TAKEAWAYS','hd'),
+    bigcard({x:20,y:592,w:400,h:190,i:'📒',t:'Bank-owned ledger gate',s:'evidence and recovery first'}),
+    bigcard({x:440,y:592,w:400,h:190,i:'🔑',t:'Define idempotency\nwith bank owners',s:'test the business boundary'}),
+    bigcard({x:860,y:592,w:400,h:190,i:'🧪',t:'AI drafts.\nExperts approve.',s:'tests check the implementation'}),
+    tag(5,30,592,'Ledger gate'),
+    tag(6,450,592,'Define retries'),
+    tag(7,870,592,'People approve'),
+  );
+  return out.join('');
+}
+
+/* ============================================================
+   Slides: part = tracker chip, gloss = [term key, [steps that use it]]
+   ============================================================ */
+const SLIDES=[null,
+ {part:1,kicker:'PART 1 · EXECUTIVE CHALLENGE & BUSINESS ROI',title:'Overnight Engine. Real-Time World.',time:'00:00 – 02:55',draw:d1,
+  key:'Reference scenario: change a critical system through measured slices.',next:'🔜 Next: define the target with bank owners',
+  open:'This is an illustrative bank, not a completed modernization.',
+  land:'Route a bounded slice; prove controls before expanding.',
+  gloss:[['MIPS',[3]],['COBOL',[1,4]],['DB2',[1]],['ISO',[2]],['STRANG',[6]]],
+  demo:['Proof plan: simulate old and new paths, then test routing, retries and fallback.',
+        'An AWS sandbox would test deployment assumptions after code and controls exist.'],
+  steps:[['Reference scenario','Illustrative estate; bank owners confirm the real flow.'],
+         ['Opportunity','Bank defines product and customer outcomes.'],
+         ['Cost','Measure baseline, dual-run spend and capacity removed.'],
+         ['Risk','Discover rules, dependencies and release constraints.'],
+         ['No big bang','Avoid concentrating change in one cutover.'],
+         ['Incremental option','Strangler Fig: bounded slices with explicit gates.'],
+         ['Business KPIs','Bank sets targets from its own baseline.']]},
+ {part:2,kicker:'PART 2 · REQUIREMENTS & TEAM',title:'What “Done” Looks Like',time:'02:55 – 05:45',draw:d2,
+  key:'Bank owners define behavior; engineering makes it measurable.',next:'🔜 Next: a proposed architecture',
+  open:'Before design, agree the target and its evidence.',
+  land:'Define duplicate behavior at a clear business boundary.',
+  gloss:[['TPS',[1]],['ISO',[2]],['P99',[3]],['RPO',[4]],['IDEM',[5]]],
+  demo:['Proof plan: run load and retry tests against a reference environment.',
+        'Bank data and production-like tests would validate proposed p99 and recovery targets.'],
+  steps:[['Volume','Illustrative: 12M/day; proposed peak of 5,000 TPS.'],
+         ['Functional flow','Bank SMEs validate sequence, messages and exceptions.'],
+         ['Latency & availability','Example targets: p99, end-to-end and SLO.'],
+         ['Recovery','RPO and RTO are targets; drills must prove them.'],
+         ['Idempotency','Define same request; avoid duplicate debit on retry.'],
+         ['Team topology','Example squads plus a platform team.'],
+         ['Mainframe SMEs','Fund discovery and rule review.']]},
+ {part:3,kicker:'PART 3 · HIGH-LEVEL ARCHITECTURE',title:'Strangle, Don’t Rewrite',time:'05:45 – 08:45',draw:d3,
+  key:'Ledger cutover needs a bank-owned evidence gate.',next:'🔜 Next: shadow-ledger option',
+  open:'This is one possible architecture, subject to estate discovery.',
+  land:'Sequence the ledger change after bank validation.',
+  gloss:[['FLAG',[2]],['KAFKA',[3]],['MICRO',[4]],['CDC',[5]],['ACL',[5]]],
+  demo:['Proof plan: simulate routing, events, CDC and legacy commands with explicit failure tests.',
+        'AWS services and a second-region option require measured cost and recovery evidence.'],
+  steps:[['Starting point','Illustrative MQ, CICS, DB2 and batch path.'],
+         ['Route','Flags reroute new traffic; in-flight state needs a plan.'],
+         ['Decouple','Versioned events; test ordering, lag and replay.'],
+         ['Services on EKS','Proposed service and data boundaries.'],
+         ['Bridge','CDC and adapter behavior to validate.'],
+         ['Ledger gate','Orchestrate, compare, then seek bank approval.'],
+         ['Resilience','Region and tracing design need drills.']]},
+ {part:3,sub:'Phase 2',kicker:'PART 3 · PHASE 2 · SHADOW LEDGER',title:'Prove It Before We Trust It',time:'08:45 – 11:05',draw:d3b,
+  key:'Reconcile, test, then seek bank approval.',next:'🔜 Next: possible cutover',
+  open:'Phase two is about one thing: earning trust before we take any risk.',
+  land:'Phase two ends with evidence, not opinion.',
+  gloss:[['DB2',[1]],['SOR',[1,7]],['SHADOW',[3]],['RECON',[4,6]],['MIPS',[5]]],
+  demo:['Proof plan: create a CDC gap and show how reconciliation detects it.',
+        'Bank DB2 integration and ledger rules need separate owner review and testing.'],
+  steps:[['Current ledger','DB2 is authoritative in this reference case.'],
+         ['Copy changes','Measure CDC completeness, lag and recovery.'],
+         ['Shadow books','Bank accounting owners define posting rules.'],
+         ['Reconcile','Compare at a bank-approved cadence and tolerance.'],
+         ['Read offload','Candidate savings; freshness and access first.'],
+         ['Explain breaks','Classify, approve fixes, then replay.'],
+         ['Exit gate','Finance, audit, ops and risk evidence to agree.']]},
+ {part:3,sub:'Phase 3',kicker:'PART 3 · PHASE 3 · FLIP THE SYSTEM OF RECORD',title:'Flip Safely. Fail Gracefully.',time:'11:05 – 14:05',draw:d3c,
+  key:'Cutover and exception paths require bank approval.',next:'🔜 Next: state and failure design',
+  open:'Phase three is a possible cutover, not a completed flip.',
+  land:'Operations owns the human decision points.',
+  gloss:[['TPC',[4]],['SAGA',[5]],['ISO',[5]],['P028',[6]],['C056',[7]]],
+  demo:['Proof plan: simulate accept, reject and timeout, then inspect safe state transitions.',
+        'Bank scheme experts must validate inquiry, recall and cutover procedures.'],
+  steps:[['One segment at a time','Illustrative pilot order; bank chooses cohorts.'],
+         ['New ledger','System of record only after bank sign-off.'],
+         ['Fallback, then off','Old path removed after dependency checks.'],
+         ['Why not 2PC','Global locks are a poor fit across organisations.'],
+         ['Saga option','Some steps reverse; others need new action.'],
+         ['No answer','Unknown state; bank-approved inquiry path.'],
+         ['Recall option','Scheme rules decide eligibility and outcome.'],
+         ['People do exceptions','Tracking and audit support operations.']]},
+ {part:4,kicker:'PART 4 · LOW-LEVEL DESIGN: SAGA & OUTBOX',title:'Consistency Without Two-Phase Commit',time:'14:05 – 16:40',draw:d4,
+  key:'Stable IDs and idempotent writes control repeat effects.',next:'🔜 Deep dive: state and outbox',
+  open:'Now let’s look one level deeper, at how the engineers make this work.',
+  land:'Define the business boundary, then test retries and replay.',
+  gloss:[['TPC',[1]],['SAGA',[2,3]],['C056',[4]],['P028',[5]],['OUTBOX',[6,7,8]]],
+  demo:['Proof plan: inject timeout and duplicate delivery; inspect the event and state trail.',
+        'Integration tests would still need bank-approved messages and external behavior.'],
+  steps:[['No 2PC','Kafka + Postgres + mainframe can’t share one transaction at peak.'],
+         ['Orchestrated saga','One proposed owner for a bank-reviewed state model.'],
+         ['Compensation','Confirmed rejection may allow a new hold-release event.'],
+         ['Pivot','Commitment boundary needs scheme validation.'],
+         ['Unknown state','Timeout ≠ failure. Use approved inquiry path.'],
+         ['Dual-write trap','Save, then publish: a crash in between = stuck or ghost payment.'],
+         ['Transactional outbox','Payment + its event saved in one transaction.'],
+         ['Idempotent consumer','Repeat deliveries are recognised and skipped.']]},
+ {part:5,kicker:'PART 5 · AI-DRIVEN SDLC',title:'AI Drafts. Experts Approve. Tests Enforce.',time:'16:40 – 18:45',draw:d5,
+  key:'AI drafts. Experts approve. Tests enforce.',next:'🔜 Deep dive: Part 5 gets its own episode',
+  open:'AI can draft; named experts own meaning and approval.',
+  land:'A proposed pipeline can enforce architecture rules.',
+  gloss:[['CATALOG',[1,2]],['ADR',[3]],['CONTRACT',[3]],['AGENTS',[5]],['ARCHUNIT',[5,6]]],
+  demo:['Proof plan: add ArchUnit, contract and retry tests to a reference build.',
+        'No production or benchmark result is claimed by this diagram.'],
+  steps:[['AI discovery','AI could draft candidate rules from approved sources.'],
+         ['SME sign-off','Every rule links to its COBOL line and test. Experts sign.'],
+         ['Contracts & ADRs','AI drafts the contracts and decisions. Architects approve.'],
+         ['Java 21 services','Proposed outbox and event-handling checks.'],
+         ['Guardrails','Agent instructions plus architecture tests to build.'],
+         ['CI gate','Failed checks would block merges; bank gates still apply.'],
+         ['Proof plan','Retry request; inspect response, row and event.']]},
+ {part:6,kicker:'PART 6 · TRADE-OFFS & TAKEAWAYS',title:'Trade-offs & Takeaways',time:'18:45 – 20:45',draw:d6,
+  key:'Bank-owned ledger gate · Defined retries · Test evidence.',next:'🔜 Next: deeper decisions',
+  open:'Every architecture is a set of trade-offs. Here are ours.',
+  land:'AI drafts; bank experts approve meaning; tests check code.',
+  gloss:[['EVENTUAL',[1]],['UETR',[1]],['PLATFORM',[2]],['SFN',[3]],['DUAL',[4]]],
+  demo:['Proof plan: compare design options against bank volume, cost and support capacity.',
+        'Reference code or sandbox results should state their tested conditions.'],
+  steps:[['Eventual consistency','Bank product owner defines visible status.'],
+         ['Operational complexity','Kafka, CDC and Sagas need a funded platform team.'],
+         ['Orchestration cost','Managed workflows bill per step. Model your volumes first.'],
+         ['Dual-run cost','Measure old and new costs and actual removal.'],
+         ['Takeaway 1','Ledger cutover needs evidence and bank approval.'],
+         ['Takeaway 2','Define idempotency with business owners.'],
+         ['Takeaway 3','AI drafts; people approve; tests check.']]},
+];
+const LAST=SLIDES.length-1;
+
+/* ============================================================
+   Rendering
+   ============================================================ */
+const q=new URLSearchParams(location.search);
+const EXPORT=q.has('export');
+let cur=Math.max(0,Math.min(LAST,parseInt(q.get('s')??'1',10)||0));
+let mode=q.get('mode')||'live';
+let step=0, autoReveal=false;
+if(EXPORT) document.body.classList.add('export');
+
+function chrome(S){
+  const p=S?S.part:0;
+  const chips=PARTS.map((x,i)=>{
+    const n=i+1, cls=!p?'':n<p?'done':n===p?'now':'';
+    const sub=n===p&&S.sub?` <span class="sub">› ${S.sub}</span>`:'';
+    return `<div class="chip ${cls}"><span class="e">${x[0]}</span>${n} · ${x[1]}${sub}</div>`;
+  }).join('');
+  return `<div class="bgimg"></div><div class="grid"></div><div class="frame"></div>
+    <div class="corner c-tl"></div><div class="corner c-tr"></div><div class="corner c-bl"></div><div class="corner c-br"></div>
+    <header class="hdr"><div class="brand"><div class="logo"><img src="assets/jo-logo.png" alt="JO"></div>
+      <div><div class="kicker">🏦 CORE BANKING PAYMENTS MODERNIZATION · AWS</div>
+      <div class="ep">${p?'EP 01 · System Overview <span>— Architecture Breakdown</span>':'Architecture Breakdown Series'}</div></div></div>
+      <nav class="progress">${chips}</nav></header>`;
+}
+
+function render(){
+  const st=document.getElementById('stage');
+  document.body.classList.toggle('live',mode==='live');
+  if(cur===0){ // reusable frame template, empty panels
+    st.innerHTML=chrome(null)+`<aside class="panel gloss"></aside><section class="panel dia-panel"></section><aside class="panel right"></aside><footer class="ftr"></footer>`;
+    return applyBg();
+  }
+  const S=SLIDES[cur], e=PARTS[S.part-1][0];
+  st.innerHTML=chrome(S)+`
+    <aside class="panel gloss">
+      <div class="g-head"><div class="k">📖 CXO CHEAT SHEET</div><div class="s">The jargon on this slide, in business terms</div></div>
+      <div class="g-list">${S.gloss.map(([k,sts])=>{const [t,l,d]=G[k];
+        return `<div class="g-card ${l}" data-st="${sts.join(' ')}"><div class="g-top"><span class="g-term">${t}</span><span class="g-lens ${l}">${LENS[l]}</span></div><p>${d}</p></div>`}).join('')}</div>
+    </aside>
+    <section class="panel dia-panel">
+      <div class="lp-head">
+        <div class="lp-title"><span class="big">${e}</span><div><div class="k">${S.kicker}</div><div class="t">${S.title}</div></div></div>
+        <div class="legend"><span><i style="border-color:#7B8190;background:rgba(123,129,144,.18)"></i>Legacy</span>
+          <span><i style="border-color:#0F7F77;background:rgba(15,127,119,.15)"></i>AWS / new</span>
+          <span><i style="border-color:#C9661E;background:rgba(201,102,30,.15)"></i>Risk</span>
+          <span class="tg"><b>1</b>Step</span></div>
+      </div>
+      <svg class="dia" viewBox="0 0 1280 800" preserveAspectRatio="xMidYMid meet">${defs()}${S.draw()}</svg>
+      <div class="demo"><span class="tagd">🧪 VALIDATION PLAN</span><div class="lines">
+        <div>🖥️ <b>Engineering check:</b> ${S.demo[0]}</div><div class="tf">🛠️ <b>Platform check:</b> ${S.demo[1]}</div></div></div>
+    </section>
+    <aside class="panel right">
+      <div class="rp-head"><span>📝 SCRIPT STEPS</span><span class="time">⏱ ${S.time}</span></div>
+      <div class="say open"><b>🎤 OPEN WITH</b><p>“${S.open}”</p></div>
+      <ol class="steps">${S.steps.map((x,i)=>`<li data-st="${i+1}"><span class="n">${i+1}</span><div><b>${x[0]}</b><p>${x[1]}</p></div></li>`).join('')}</ol>
+      <div class="say land"><b>🎯 LAND</b><p>“${S.land}”</p></div>
+    </aside>
+    <footer class="ftr"><div class="key"><b>💡 KEY MESSAGE</b>${S.key}</div><div class="next">${S.next}<span class="ep">EP 01</span></div></footer>`;
+  applyStep(); applyBg();
+}
+
+function applyStep(){
+  const st=document.getElementById('stage');
+  st.classList.toggle('stepping',step>0);
+  st.querySelectorAll('.steps li').forEach(li=>li.classList.toggle('on',+li.dataset.st===step));
+  st.querySelectorAll('.tag').forEach(t=>t.classList.toggle('on',+t.dataset.st===step));
+  st.querySelectorAll('.g-card').forEach(g=>g.classList.toggle('on',step>0&&g.dataset.st.split(' ').map(Number).includes(step)));
+  st.querySelectorAll('.conn').forEach(c=>c.classList.toggle('show',autoReveal&&+c.dataset.st<=step));
+}
+
+let bgUrl=null;
+function applyBg(){
+  if(bgUrl) document.querySelectorAll('.bgimg').forEach(b=>b.style.backgroundImage=`url("${bgUrl}")`);
+  document.getElementById('stage').classList.toggle('has-bg',!!bgUrl);
+}
+const probe=new Image();
+probe.onload=()=>{bgUrl=probe.src;applyBg()};
+probe.src='assets/background.png';
+
+function fit(){
+  if(EXPORT) return;
+  const s=Math.min(innerWidth/1920,innerHeight/1080);
+  document.getElementById('stage').style.transform=`scale(${s})`;
+}
+addEventListener('resize',fit);
+
+addEventListener('keydown',ev=>{
+  if(EXPORT) return;
+  const maxStep=cur?SLIDES[cur].steps.length:0;
+  switch(ev.key){
+    case 'ArrowRight': case 'PageDown': if(cur<LAST){cur++;step=0;render()} break;
+    case 'ArrowLeft':  case 'PageUp':   if(cur>1){cur--;step=0;render()} break;
+    case ' ': case 'ArrowDown': ev.preventDefault(); if(step<maxStep){step++;applyStep()} break;
+    case 'ArrowUp': if(step>0){step--;applyStep()} break;
+    case 'c': case 'C': mode=mode==='live'?'ref':'live'; document.body.classList.toggle('live',mode==='live'); break;
+    case 'a': case 'A': autoReveal=!autoReveal; applyStep(); break;
+    case 'f': case 'F': document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen(); break;
+    case 't': case 'T': cur=cur===0?1:0; step=0; render(); break;
+    default: return;
+  }
+  history.replaceState(null,'',`?s=${cur}&mode=${mode}`);
+});
+
+render(); fit();
+setTimeout(()=>{const t=document.getElementById('toast');if(t)t.style.opacity=0},4000);
+</script>
+</body>
+</html>

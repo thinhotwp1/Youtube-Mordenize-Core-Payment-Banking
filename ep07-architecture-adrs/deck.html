@@ -1,0 +1,446 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EP07 Target Architecture & ADRs</title>
+<link rel="stylesheet" href="../shared/deck.css">
+</head>
+<body>
+<script src="../shared/deck.js"></script>
+<script>
+/* ============================================================
+   EP07 · Target Architecture & ADRs — diagrams (1280x800)
+   ============================================================ */
+
+/* 1 · Architecture starts from drivers */
+function d1(){return [
+  group({x:10,y:30,w:300,h:500,k:'neutral',label:'📥 INPUTS'}),
+  ...[['📖','EP02 rules catalog','64 example rules'],['🎯','EP03 slice 1','candidate scope'],['📝','EP04 backlog','22 example stories'],
+      ['📏','EP05 NFR catalog','18 NFRs · 1 open decision'],['🔐','EP06 security','controls · threat model']]
+     .map((s,i)=>box({x:24,y:70+i*90,w:272,h:76,k:'neutral',i:s[0],t:s[1],s:s[2]})),
+
+  group({x:330,y:30,w:560,h:500,k:'aws',label:'🎯 ARCHITECTURE DRIVERS · RANKED'}),
+  ...[['🔒','1 · Integrity','no duplicate effect · target','good'],['⚡','2 · Speed','p99 < 0.5 s · target','aws'],['🟢','3 · Availability','99.99% · example','aws'],
+      ['🛟','4 · Recovery','RPO 0 · RTO 15 min · target','aws'],['🔐','5 · Security & audit','traceability target','aws'],
+      ['🔁','6 · Changeability','teams ship alone','aws'],['💶','7 · Cost','cost per payment','neutral']]
+     .map((r,i)=>kpi({x:350,y:70+i*64,w:520,h:54,k:r[3],i:r[0],t:r[1],v:r[2]})),
+
+  group({x:910,y:30,w:360,h:500,k:'good',label:'📦 OUTPUTS'}),
+  ...[['🗺️','C4 diagrams','context · containers · runtime'],['📜','ADR log','one page per decision'],
+      ['🧪','Fitness functions','rules the build checks'],['👥','ARB review','bank signoff required']]
+     .map((s,i)=>box({x:924,y:70+i*110,w:332,h:96,k:'good',i:s[0],t:s[1],s:s[2]})),
+  arrow([[310,280],[330,280]],{k:'aws',st:2}),
+  arrow([[890,280],[910,280]],{k:'good',st:5}),
+
+  group({x:10,y:550,w:1260,h:230,k:'neutral',label:'⚖️ WHEN DRIVERS CONFLICT, THE RANKING DECIDES'}),
+  box({x:30,y:596,w:280,h:160,k:'good',i:'🔒',t:'Speed vs integrity',s:'integrity wins:\nnever skip the duplicate check\nto save 5 ms'}),
+  box({x:325,y:596,w:280,h:160,k:'risk',i:'🟢',t:'Availability vs cost',s:'99.99% example target\nfor bank review'}),
+  box({x:620,y:596,w:280,h:160,k:'aws',i:'🔁',t:'Changeability vs simplicity',s:'a new service only where\na team must ship alone'}),
+  box({x:930,y:596,w:320,h:160,k:'ai',i:'🤖',t:'AI drafts options',s:'one or more designs per driver\nlinks every choice to an NFR\nflags conflicts early'}),
+
+  tag(1,296,30,'Five inputs','r'),
+  tag(2,870,30,'Ranked drivers','r'),
+  tag(3,40,596,'Ranking decides'),
+  tag(4,940,596,'AI drafts options'),
+  tag(5,1256,30,'Four outputs','r'),
+].join('')}
+
+/* 2 · C4 level 1: system context */
+function d2(){return [
+  box({x:20,y:330,w:200,h:100,k:'human',i:'👤',t:'Retail customer',s:'mobile app'}),
+  group({x:250,y:30,w:760,h:720,k:'neutral',label:'🏦 REFERENCE BANK'}),
+  box({x:280,y:70,w:220,h:80,k:'neutral',i:'🔐',t:'Identity & SCA',s:'login · approve payment'}),
+  box({x:530,y:70,w:220,h:80,k:'risk',i:'🛡️',t:'Fraud engine',s:'real-time score'}),
+  box({x:780,y:70,w:210,h:80,k:'neutral',i:'🔔',t:'Notifications',s:'push · SMS'}),
+  box({x:470,y:320,w:340,h:140,k:'aws',i:'💳',t:'Instant Payments Platform',s:'new · on AWS\nslice 1: domestic instant'}),
+  box({x:280,y:620,w:220,h:100,k:'legacy',i:'🏛️',t:'Mainframe core',s:'ledger · system of record'}),
+  box({x:530,y:620,w:220,h:100,k:'risk',i:'🚫',t:'Sanctions screening',s:'feed · bank-defined'}),
+  box({x:780,y:620,w:210,h:100,k:'legacy',i:'📊',t:'AML · DWH · GL',s:'reporting systems'}),
+  box({x:1040,y:290,w:220,h:110,k:'neutral',i:'🌐',t:'SEPA Instant',s:'via a CSM: TIPS / RT1'}),
+  box({x:1040,y:440,w:220,h:110,k:'neutral',i:'🔎',t:'VoP · other banks',s:'name check before paying'}),
+
+  arrow([[220,380],[470,380]],{k:'human',st:1,label:'pays',lx:345}),
+  arrow([[520,320],[520,240],[390,240],[390,150]],{k:'neutral',st:3,both:1,label:'SCA',lx:455,ly:240}),
+  arrow([[640,320],[640,150]],{k:'risk',st:3,both:1,label:'risk score',ly:235}),
+  arrow([[760,320],[760,240],[885,240],[885,150]],{k:'neutral',st:3,label:'status',lx:822,ly:240}),
+  arrow([[520,460],[520,540],[390,540],[390,620]],{k:'legacy',st:4,both:1,label:'funds hold · posting',lx:455,ly:540}),
+  arrow([[640,620],[640,460]],{k:'risk',st:6,dash:1,label:'blocked list',ly:540}),
+  arrow([[760,460],[760,540],[885,540],[885,620]],{k:'legacy',st:6,dash:1,label:'events · files',lx:822,ly:540}),
+  arrow([[810,345],[1040,345]],{k:'aws',st:5,both:1,label:'pacs.008 / pacs.002',lx:925}),
+  arrow([[810,430],[925,430],[925,495],[1040,495]],{k:'aws',st:5,both:1,label:'name check',lx:925,ly:462}),
+
+  tag(1,30,330,'Customer and app'),
+  tag(2,990,30,'Inside the bank','r'),
+  tag(3,540,70,'Real-time partners'),
+  tag(4,290,720,'Mainframe stays the book'),
+  tag(5,1050,290,'Outside world'),
+  tag(6,790,720,'Fed by events'),
+].join('')}
+
+/* 3 · C4 level 2: containers */
+function d3(){return [
+  group({x:10,y:30,w:960,h:750,k:'aws',label:'☁️ AWS · INSTANT PAYMENTS PLATFORM (SLICE 1)'}),
+  box({x:30,y:76,w:200,h:70,k:'neutral',i:'🔐',t:'KMS · Secrets',s:'keys never in code'}),
+  box({x:250,y:76,w:200,h:70,k:'aws',i:'🚩',t:'AppConfig',s:'feature flags'}),
+  box({x:470,y:76,w:220,h:70,k:'aws',i:'🔀',t:'Payment Router',s:'new or mainframe route'}),
+  box({x:720,y:76,w:230,h:70,k:'aws',i:'🚪',t:'API Gateway',s:'auth · throttling · WAF'}),
+
+  group({x:20,y:166,w:940,h:360,k:'aws',label:'🚢 AMAZON EKS · ONE SERVICE = ONE TEAM',lp:'b'}),
+  box({x:36,y:186,w:250,h:140,k:'aws',i:'📥',t:'Payment API',s:'accepts the request\nidempotency check'}),
+  box({x:36,y:346,w:250,h:140,k:'aws',i:'📖',t:'Limits & rules',s:'bank-approved rules\ncustomer limits'}),
+  box({x:306,y:186,w:250,h:300,k:'aws',i:'🔄',t:'Orchestrator',s:'owns the saga\none state machine\nper payment'}),
+  box({x:600,y:186,w:340,h:54,k:'aws',i:'🔎',t:'VoP adapter'}),
+  box({x:600,y:248,w:340,h:54,k:'aws',i:'🛡️',t:'Fraud adapter'}),
+  box({x:600,y:310,w:340,h:54,k:'aws',i:'🏛️',t:'Ledger adapter (ACL)'}),
+  box({x:600,y:372,w:340,h:54,k:'risk',i:'🧾',t:'Stand-in candidate'}),
+  box({x:600,y:434,w:340,h:54,k:'aws',i:'📤',t:'Scheme gateway'}),
+
+  box({x:30,y:540,w:450,h:64,k:'neutral',i:'🐘',t:'Aurora PostgreSQL',s:'one schema per service · outbox tables'}),
+  box({x:500,y:540,w:450,h:64,k:'aws',i:'🧵',t:'Amazon MSK + Schema Registry',s:'payment events · 3 zones'}),
+  box({x:30,y:618,w:450,h:64,k:'aws',i:'🔁',t:'Debezium on MSK Connect',s:'outbox → Kafka'}),
+  box({x:500,y:618,w:450,h:64,k:'neutral',i:'🔭',t:'CloudWatch · X-Ray · OpenTelemetry',s:'trace every payment'}),
+  box({x:30,y:696,w:920,h:60,k:'neutral',i:'🌍',t:'Region 2 · warm standby',s:'Aurora Global Database · MSK Replicator'}),
+
+  box({x:1004,y:76,w:252,h:70,k:'human',i:'📱',t:'Mobile app'}),
+  group({x:990,y:166,w:280,h:360,k:'neutral',label:'🔌 OUTSIDE',lp:'b'}),
+  box({x:1004,y:186,w:252,h:54,k:'neutral',i:'🔎',t:'VoP · other banks'}),
+  box({x:1004,y:248,w:252,h:54,k:'risk',i:'🛡️',t:'Fraud engine'}),
+  box({x:1004,y:310,w:252,h:54,k:'legacy',i:'🏛️',t:'Mainframe core'}),
+  box({x:1004,y:434,w:252,h:54,k:'neutral',i:'🌐',t:'SEPA Instant (CSM)'}),
+
+  arrow([[1004,111],[950,111]],{k:'human',st:1}),
+  arrow([[720,111],[690,111]],{k:'aws',st:1}),
+  arrow([[450,111],[470,111]],{k:'aws',st:2,dash:1}),
+  arrow([[580,146],[580,158],[161,158],[161,186]],{k:'aws',st:2}),
+  arrow([[286,256],[306,256]],{k:'aws',st:3}),
+  arrow([[286,416],[306,416]],{k:'aws',st:3,both:1}),
+  arrow([[556,213],[600,213]],{k:'aws',st:4}),
+  arrow([[556,275],[600,275]],{k:'aws',st:4}),
+  arrow([[556,337],[600,337]],{k:'aws',st:4}),
+  arrow([[556,399],[600,399]],{k:'risk',st:5,dash:1}),
+  arrow([[556,461],[600,461]],{k:'aws',st:4}),
+  arrow([[940,213],[1004,213]],{k:'neutral',st:4,both:1}),
+  arrow([[940,275],[1004,275]],{k:'risk',st:4,both:1}),
+  arrow([[940,337],[1004,337]],{k:'legacy',st:4,both:1,label:'z/OS Connect',lx:972,ly:356}),
+  arrow([[940,461],[1004,461]],{k:'neutral',st:4,both:1}),
+  arrow([[161,486],[161,540]],{k:'neutral',st:6}),
+  arrow([[480,650],[490,650],[490,572],[500,572]],{k:'aws',st:6}),
+  arrow([[480,486],[480,520],[725,520],[725,540]],{k:'aws',st:6,both:1}),
+
+  tag(1,940,76,'One way in','r'),
+  tag(2,480,146,'Flags pick the route'),
+  tag(3,316,486,'Orchestrator owns the saga'),
+  tag(4,930,186,'One adapter per partner','r'),
+  tag(5,930,426,'Stand-in for downtime','r'),
+  tag(6,40,682,'Outbox → Kafka'),
+  tag(7,940,756,'Region 2','r'),
+].join('')}
+
+/* 4 · Follow one payment: runtime view */
+function d4(){
+  const L=i=>80+i*160, M=k=>124+k*50;
+  const lanes=[['📱','App','human'],['📥','Payment API','aws'],['🔄','Orchestrator','aws'],['📖','Limits & rules','aws'],
+               ['🛡️','Fraud','risk'],['🏛️','Ledger (MF)','legacy'],['📤','Scheme GW','aws'],['🌐','Scheme','neutral']];
+  const out=[];
+  lanes.forEach((l,i)=>out.push(
+    `<line x1="${L(i)}" y1="82" x2="${L(i)}" y2="690" stroke="rgba(34,37,48,.30)" stroke-width="1.6" stroke-dasharray="5 6"/>`,
+    box({x:L(i)-72,y:26,w:144,h:56,k:l[2],i:l[0],t:l[1]})));
+  const msg=(k,a,b,lab,o={})=>arrow([[L(a),M(k)],[L(b),M(k)]],{...o,label:lab,lx:(L(a)+L(b))/2,ly:M(k)});
+  out.push(
+    msg(0,0,1,'POST + Idempotency-Key',{k:'neutral',st:1}),
+    msg(1,1,0,'202 Accepted · pending',{k:'good',st:2,dash:1}),
+    msg(2,1,2,'PaymentInitiated (outbox)',{k:'aws',st:3}),
+    msg(3,2,3,'rules + limits · 40 ms target',{k:'aws',st:4}),
+    msg(4,2,4,'fraud · 150 ms target',{k:'risk',st:4}),
+    msg(5,2,5,'hold · 120 ms target',{k:'legacy',st:5}),
+    msg(6,2,6,'send payment',{k:'aws',st:6}),
+    msg(7,6,7,'pacs.008',{k:'aws',st:6}),
+    msg(8,7,6,'pacs.002 · ≈ 1.1 s example',{k:'good',st:6,dash:1}),
+    msg(9,6,2,'SchemeStatus',{k:'good',st:6}),
+    msg(10,2,5,'post the debit',{k:'legacy',st:7}),
+    msg(11,2,0,'push: bank-approved status',{k:'good',st:7,dash:1}),
+    `<path d="M34 ${M(2)-12} H24 V${M(7)+12} H34" fill="none" stroke="#0F7F77" stroke-width="2.4"/>`,
+    `<text class="kl" x="48" y="${(M(2)+M(7))/2}" transform="rotate(-90 48 ${(M(2)+M(7))/2})" style="text-anchor:middle" fill="#0F7F77">internal p99 target · ≤ 0.5 s</text>`,
+    box({x:10,y:704,w:420,h:80,k:'aws',i:'⚡',t:'Internal p99 target ≤ 0.5 s',s:'example budget · test required'}),
+    box({x:440,y:704,w:320,h:80,k:'neutral',i:'🌐',t:'Scheme leg ≈ 1.1 s',s:'illustrative only'}),
+    box({x:770,y:704,w:500,h:80,k:'risk',i:'⏳',t:'No pacs.002 in time?',s:'pacs.028 status inquiry — never release blindly'}),
+    tag(1,L(1)+12,M(0),'Idempotent request'),
+    tag(2,L(1)+12,M(1),'Answer in ms: 202'),
+    tag(3,L(2)+12,M(2),'Outbox → Kafka'),
+    tag(4,L(4)+12,M(4),'Checks within budget'),
+    tag(5,L(5)+12,M(5),'Hold the funds'),
+    tag(6,L(6)+12,M(6),'Scheme round trip'),
+    tag(7,L(2)+12,M(11),'Book, then tell'),
+  );
+  return out.join('');
+}
+
+/* 5 · The mainframe decision: stand-in processing */
+function d5(){return [
+  group({x:10,y:30,w:1260,h:320,k:'neutral',label:'⚖️ OPTIONS MATRIX · THE OPEN DECISION FROM EP05'}),
+  table({x:30,y:66,w:1220,hh:30,rh:76,
+    cols:[['OPTION',0],['AVAILABILITY',260],['RISK',520],['COST',700],['TIME',800],['VERDICT',940]],
+    rows:[['A · Mainframe 24/7','99.99% target · validate','assess','€€€','9–12 mo · example','candidate'],
+          ['B · Stand-in processing','99.99% target · validate','bank review','€€','3–4 mo · example','candidate'],
+          ['C · Degraded fraud mode','helps fraud outages only','bank review','€','1 mo · example','separate ADR']],
+    hl:{1:'good'}}),
+
+  group({x:10,y:370,w:760,h:410,k:'risk',label:'🧾 STAND-IN HYPOTHESIS · REQUIRES BANK REVIEW'}),
+  box({x:30,y:414,w:220,h:96,k:'legacy',i:'🏛️',t:'Mainframe down',s:'planned or unplanned'}),
+  box({x:280,y:414,w:220,h:96,k:'risk',i:'🧾',t:'Stand-in ledger',s:'last balance copy (CDC)\nminus funds on hold'}),
+  box({x:530,y:414,w:220,h:96,k:'risk',i:'🔎',t:'Check eligibility',s:'€1,000 example cap\nbalance risk to validate'}),
+  box({x:530,y:556,w:220,h:96,k:'aws',i:'📥',t:'Queue the posting',s:'Aurora · in order'}),
+  box({x:280,y:556,w:220,h:96,k:'aws',i:'🔁',t:'Replay when back',s:'idempotent · payment ID'}),
+  box({x:30,y:556,w:220,h:96,k:'good',i:'⚖️',t:'Reconcile',s:'explain differences'}),
+  box({x:30,y:676,w:720,h:84,k:'bad',i:'🚦',t:'Outside the approved limit?',s:'Customer response and alternative route require bank approval.'}),
+  arrow([[250,462],[280,462]],{k:'risk',st:4}),
+  arrow([[500,462],[530,462]],{k:'good',st:4}),
+  arrow([[640,510],[640,556]],{k:'aws',st:5}),
+  arrow([[530,604],[500,604]],{k:'aws',st:5}),
+  arrow([[280,604],[250,604]],{k:'good',st:5}),
+
+  group({x:790,y:370,w:480,h:410,k:'human',label:'📏 GUARDRAILS · SET BY RISK'}),
+  lines(812,426,['• example cap: €1,000 · bank to set','• example duration: 4 hours','• test balance freshness and exposure','• alert when stand-in begins','• reconcile with Finance and Risk'],'kl',40),
+  box({x:810,y:640,w:440,h:120,k:'ai',i:'🔬',t:'Spike before any decision',s:'test balance freshness, retries\nand reconciliation under failure'}),
+
+  tag(1,1250,30,'Three options','r'),
+  tag(2,1242,213,'Candidate for slice 1','r'),
+  tag(3,1242,137,'Other paths','r'),
+  tag(4,290,510,'Controls to validate'),
+  tag(5,40,652,'Replay, then reconcile'),
+  tag(6,740,676,'Bank-approved response','r'),
+  tag(7,1250,370,'Risk sets the guardrails','r'),
+].join('')}
+
+/* 6 · ADRs: decisions you can audit */
+function d6(){
+  const x=10,y=30,w=640,h=600;
+  return [
+    `<g><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="14" fill="#FFFDF8" stroke="#2E8B57" stroke-width="2.2"/>`+
+    `<path d="M${x} ${y+46} V${y+14} Q${x} ${y} ${x+14} ${y} H${x+w-14} Q${x+w} ${y} ${x+w} ${y+14} V${y+46} Z" fill="rgba(46,139,87,.12)"/></g>`,
+    txt(30,61,'📜 ADR-005 · Stand-in for mainframe downtime','rc-h'),
+    `<rect x="${x+w-120}" y="42" width="104" height="24" rx="12" fill="#2E8B57"/><text x="${x+w-68}" y="58.5" text-anchor="middle" font-size="12" font-weight="800" fill="#fff">DRAFT</text>`,
+    txt(30,106,'CONTEXT','rc-l'),
+    lines(30,128,['Example: instant service needs wider hours; legacy ledger','has planned downtime. Target: 99.99% (to validate).'],'rc-t',22),
+    txt(30,192,'OPTIONS','rc-l'),
+    txt(30,214,'A · mainframe 24/7    B · stand-in processing    C · degraded fraud only','rc-t'),
+    txt(30,256,'DECISION','rc-l'),
+    txt(30,280,'B is a hypothesis · bank decision pending','gx'),
+    txt(30,324,'CONSEQUENCES','rc-l'),
+    txt(30,346,'+ 99.99% is a proposed eligible-payment target','rc-t','start','#2E8B57'),
+    txt(30,370,'− reconciliation work · financial exposure to assess','rc-t','start','#C0392B'),
+    txt(30,412,'FITNESS FUNCTION','rc-l'),
+    lines(30,434,['Monthly game day: stop the ledger adapter —','payments under the limit must continue.'],'rc-t',22),
+    txt(30,498,'REVIEW REQUIRED FROM','rc-l'),
+    txt(30,520,'Architecture · Risk · Payments · Ledger · Finance','rc-t'),
+    txt(30,562,'LINKS','rc-l'),
+    txt(30,584,'NFR-AV-01 · ADR-004 · US-128 · spike S-03','rc-t','start','#5E6573'),
+
+    group({x:670,y:30,w:600,h:400,k:'neutral',label:'📚 ADR LOG · SLICE 1'}),
+    table({x:686,y:64,w:568,hh:28,rh:40,cols:[['ADR',0],['DECISION',90],['STATUS',440]],
+      rows:[['001','First slice: domestic instant (EP03)','example'],['002','Orchestrated saga','example'],
+            ['003','Transactional outbox via CDC','example'],['004','Ledger stays on mainframe (P1)','example'],
+            ['005','Stand-in processing','draft'],['006','Degraded fraud mode','proposed'],
+            ['007','One database per service','example'],['008','Kafka (MSK) as event backbone','example']],
+      hl:{4:'good',5:'risk'}}),
+
+    group({x:670,y:450,w:600,h:180,k:'ai',label:'🤖 AI DRAFTS · BANK REVIEWS'}),
+    lines(694,500,['🤖 drafts the ADR from the options matrix','🤖 checks earlier ADRs for conflicts','👀 architects verify · bank owners approve'],'kl',40),
+
+    group({x:10,y:650,w:1260,h:130,k:'neutral',label:'🔬 SPIKES TO RUN · REFERENCE TARGETS'}),
+    kpi({x:30,y:690,w:400,h:66,k:'aws',i:'🏛️',t:'Funds hold ≤ 120 ms?',v:'test needed'}),
+    kpi({x:445,y:690,w:400,h:66,k:'aws',i:'🧵',t:'MSK at 5,000 TPS?',v:'test needed'}),
+    kpi({x:860,y:690,w:390,h:66,k:'risk',i:'🔁',t:'Stand-in replay safe?',v:'test needed'}),
+
+    tag(1,630,30,'One page per decision','r'),
+    tag(2,636,106,'Context and options','r'),
+    tag(3,636,324,'Good and bad, written','r'),
+    tag(4,636,412,'A test for the decision','r'),
+    tag(5,1250,30,'The ADR log','r'),
+    tag(6,1250,450,'AI drafts, bank reviews','r'),
+    tag(7,1250,650,'Spikes to run','r'),
+  ].join('');
+}
+
+/* 7 · Review, guardrails and hand over */
+function d7(){return [
+  group({x:10,y:30,w:620,h:340,k:'human',label:'🏛️ PROPOSED ARCHITECTURE REVIEW'}),
+  ...[['🧭','Enterprise architect','chair · fit with bank standards'],['🔐','Security architect','EP06 controls in the design'],
+      ['🛡️','Chief Risk Officer delegate','stand-in risk · DORA'],['🛠️','Platform / SRE lead','can we run it 24/7?'],
+      ['💳','Payments business owner','value · cost · priority']]
+     .map((s,i)=>box({x:30,y:68+i*58,w:580,h:50,k:'human',i:s[0],t:s[1]+' — '+s[2]})),
+
+  group({x:650,y:30,w:620,h:340,k:'aws',label:'☁️ AWS WELL-ARCHITECTED REVIEW'}),
+  ...[['⚙️','Operational excellence'],['🔐','Security'],['🛟','Reliability'],['⚡','Performance efficiency'],['💶','Cost optimization'],['🌱','Sustainability']]
+     .map((p,i)=>box({x:670+(i%2)*295,y:70+Math.floor(i/2)*86,w:285,h:74,k:'aws',i:p[0],t:p[1]})),
+  txt(960,350,'+ the Financial Services Industry lens','note','middle'),
+
+  group({x:10,y:390,w:620,h:390,k:'good',label:'🧪 ARCHITECTURE AS CODE · FITNESS FUNCTIONS'}),
+  lines(36,446,['✅ no service reads another service’s tables','✅ domain code never calls Kafka directly (ADR-003)','✅ latency budget tested per service (EP05)','✅ every ADR has a test or a review date','✅ AGENTS.md updated with every new ADR'],'kl',52),
+  box({x:30,y:700,w:580,h:60,k:'ai',i:'🤖',t:'The AI assistant learns our decisions before it codes'}),
+
+  group({x:650,y:390,w:620,h:250,k:'risk',label:'⚠️ AI RISKS IN DESIGN · AND THE GUARDRAILS'}),
+  lines(674,442,['🤖 suggests trendy tech → it must serve a ranked driver','🤖 invents service limits → AWS docs + spikes','🤖 over-engineers → the simplest design that meets the NFRs','🤖 forgets old decisions → checked against the ADR log'],'kl',46),
+
+  group({x:650,y:660,w:620,h:120,k:'aws',label:'🔜 NEXT EPISODES'}),
+  box({x:670,y:696,w:186,h:66,k:'aws',i:'📨',t:'EP08',s:'contracts'}),
+  box({x:867,y:696,w:186,h:66,k:'aws',i:'🗓️',t:'EP09',s:'roadmap · guardrails'}),
+  box({x:1064,y:696,w:186,h:66,k:'aws',i:'🏗️',t:'EP10',s:'platform foundation'}),
+  arrow([[856,729],[867,729]],{k:'aws',st:6}),
+  arrow([[1053,729],[1064,729]],{k:'aws',st:6}),
+
+  tag(1,600,30,'Review owners','r'),
+  tag(2,1250,30,'Six pillars','r'),
+  tag(3,600,390,'Rules the build checks','r'),
+  tag(4,40,700,'AGENTS.md learns'),
+  tag(5,1250,390,'AI risks, guarded','r'),
+  tag(6,1250,660,'Next episodes','r'),
+].join('')}
+
+/* ============================================================
+   Episode config
+   ============================================================ */
+const DECK={
+  brand:'🏦 CORE BANKING PAYMENTS MODERNIZATION · AWS',
+  ep:'EP 07', epShort:'EP07', title:'Target Architecture & ADRs', subtitle:'Reference scenario',
+  seriesTitle:'Core Payments Modernization · Reference',
+  logo:'../shared/jo-logo.png', background:'../shared/background.png',
+  stages:[['🔍','Discover'],['📋','Requirements'],['📐','Design & Plan'],['🛠️','Build'],['🚀','Test & Deploy'],['🔧','Operate']],
+  stage:3,
+  glossary:{
+    DRIVER:['Architecture driver','value','A bank-confirmed requirement or example target that shapes the design. The bank approves the ranking and trade-offs.'],
+    QATTR:['Quality attribute','value','A “how well” property: speed, availability, security, cost. Our EP05 NFRs are quality attributes with numbers.'],
+    TRADE:['Trade-off','cost','Choosing one benefit at the cost of another. The driver ranking tells us which one wins.'],
+    C4:['C4 model','value','A simple way to draw software at four zoom levels: context, containers, components, code. Executives read level 1; engineers read level 2.'],
+    ARB:['Architecture Review Board','risk','A bank review body that may approve major design choices under its own governance. This diagram shows proposed reviewers.'],
+    CONTEXT:['Context diagram','value','C4 level 1: our system as one box, with the people and systems around it. No technology — just who talks to whom.'],
+    CSM:['CSM','value','Clearing and settlement mechanism. TIPS and RT1 are examples; bank scheme specialists validate the chosen route and message rules.'],
+    SOR:['System of record','risk','The one database whose balances are legally “the truth”. In phase 1, that is still the mainframe.'],
+    VOPNET:['VoP between banks','risk','A possible payee-name check. The bank’s specialists confirm when it applies, the response meaning and the customer journey.'],
+    IAM:['Identity & SCA','risk','The bank defines what evidence is required to confirm customer authorization for a payment.'],
+    CONTAINER:['Container diagram','value','C4 level 2: the deployable parts inside our system, and how they talk. One box usually means one team.'],
+    ADAPTER:['Adapter','value','A boundary that contains partner-specific formats. A partner change may still affect contracts and operations.'],
+    ACL:['Anti-corruption layer','risk','A translator between old and new. Mainframe formats never leak into the new platform.'],
+    STANDIN:['Stand-in processing','risk','A high-risk candidate for legacy downtime. Bank ledger, risk, scheme and finance owners must validate exposure and reconciliation before use.'],
+    MSK:['Amazon MSK','value','Managed Kafka on AWS: the event backbone. AWS runs the servers; we run the topics.'],
+    SEQ:['Sequence diagram','value','One payment moving through the system, step by step, in time order. It shows slow or risky steps at a glance.'],
+    IDEM:['Idempotency key','risk','A request key used to detect retries. Database constraints and downstream tests are still needed to prevent duplicate effects.'],
+    ASYNC:['202 Accepted','value','The API accepts an instruction for processing; this is not proof of payment or final settlement.'],
+    PACS008:['pacs.008','value','The ISO 20022 message that sends a customer payment to the other bank.'],
+    PACS002:['pacs.002','value','The ISO 20022 status reply: accepted or rejected, with a reason code.'],
+    OPTIONS:['Options matrix','value','A table that scores each design option against the drivers. It makes the decision visible and repeatable.'],
+    CDC:['Change data capture','cost','Copies committed changes subject to lag and failure. Freshness must be measured before any balance-sensitive use.'],
+    REPLAY:['Replay','risk','Reprocessing queued instructions after recovery. Payment IDs help deduplication; ledger posting and reconciliation still need tests.'],
+    CREDIT:['Stand-in credit risk','risk','A stale balance can create financial exposure. Limits alone cannot establish that exposure is small or acceptable.'],
+    ADR:['ADR','risk','Architecture Decision Record: one page per big decision — context, options, decision, consequences, and who signed it.'],
+    CONSEQ:['Consequences','risk','What gets better and what gets worse because of a decision. Writing the bad side down is what makes an ADR honest.'],
+    FITNESS:['Fitness function','value','A check that gathers evidence against an architecture decision, such as a planned stand-in game day.'],
+    SPIKE:['Spike','value','A short experiment that tests a risky assumption, such as ledger latency under representative load.'],
+    STATUS:['ADR status','risk','Proposed, accepted or replaced. Old ADRs are never deleted — they show how we got here.'],
+    WELLARCH:['AWS Well-Architected','value','AWS’s review across six pillars: operations, security, reliability, performance, cost and sustainability. Banks add its Financial Services lens.'],
+    ARCHUNIT:['ArchUnit','risk','Automated tests that check the code obeys our architecture rules. A change that breaks a rule cannot be merged.'],
+    AGENTS:['AGENTS.md','risk','The rulebook we give the AI coding assistant. Every new ADR becomes a rule there.'],
+    OVERENG:['Over-engineering','cost','Building for problems you don’t have. It adds cost and slows teams. The simplest design that meets the NFRs wins.'],
+  },
+  slides:[
+    {icon:'🎯',kicker:'EP07 · 1/7 · DRIVERS',title:'Architecture Starts From Drivers',time:'00:00 – 01:55',draw:d1,
+     key:'Rank the drivers first — then the design argues itself.',next:'🔜 Next: C4 level 1, the context',
+     open:'Welcome to the design stage.',
+     land:'Architects test options; the bank reviews the trade-offs.',
+     gloss:[['DRIVER',[2]],['QATTR',[2]],['TRADE',[3]],['C4',[5]],['ARB',[5]]],
+     demo:['proposed evidence: versioned drivers, C4 views and ADRs in Git with <b>Structurizr</b> DSL',
+           'a review site could publish the diagrams with source links'],
+     steps:[['Five inputs','Rules, slice 1, backlog, NFRs and security.'],
+            ['Ranked drivers','Integrity, speed, availability, recovery, security, change, cost.'],
+            ['Ranking decides','Speed vs integrity: integrity wins.'],
+            ['AI drafts options','Designs for each driver, each linked to an NFR.'],
+            ['Four outputs','C4 diagrams, ADRs, checks, and bank review.']]},
+    {icon:'🗺️',kicker:'EP07 · 2/7 · C4 LEVEL 1 · CONTEXT',title:'Slice 1 in Context',time:'01:55 – 03:45',draw:d2,
+     key:'Draw who talks to whom before you choose any technology.',next:'🔜 Next: C4 level 2, the containers',
+     open:'We draw the architecture with the C4 model.',
+     land:'No direct database reads anymore.',
+     gloss:[['CONTEXT',[1]],['IAM',[3]],['SOR',[4]],['CSM',[5]],['VOPNET',[5]]],
+     demo:['proposed evidence: a versioned context view in Structurizr DSL',
+           'bank teams would validate systems, owners and message boundaries'],
+     steps:[['Customer and app','The retail customer pays in the mobile app.'],
+            ['Inside the bank','Identity, fraud, notifications, mainframe, sanctions, reporting.'],
+            ['Real-time partners','Identity and fraud calls, subject to bank rules.'],
+            ['Mainframe stays the book','Funds hold and posting via the mainframe (phase 1).'],
+            ['Outside world','SEPA Instant through a CSM; VoP with other banks.'],
+            ['Fed by events','Async feeds and timing require bank approval.']]},
+    {icon:'🧱',kicker:'EP07 · 3/7 · C4 LEVEL 2 · CONTAINERS',title:'Inside the Platform',time:'03:45 – 05:45',draw:d3,
+     key:'Adapters contain partner differences and make change reviewable.',next:'🔜 Next: follow one payment',
+     open:'Now we zoom in: level two, the containers.',
+     land:'A second region is a recovery option to test.',
+     gloss:[['CONTAINER',[1]],['ADAPTER',[4]],['ACL',[4]],['STANDIN',[5]],['MSK',[6]]],
+     demo:['test plan: local simulators for legacy, fraud, VoP and scheme boundaries',
+           'candidate Terraform modules: API Gateway · EKS · Aurora · MSK · AppConfig · KMS'],
+     steps:[['One way in','API Gateway checks who is calling and protects us.'],
+            ['Flags pick the route','Pilot: retail mobile instant → new platform.'],
+            ['Orchestrator owns the saga','Payment API, rules and limits around it.'],
+            ['One adapter per partner','VoP, fraud, mainframe ledger, scheme.'],
+            ['Stand-in for downtime','Candidate only; see the decision slide.'],
+            ['Outbox → Kafka','One schema per service; Debezium; tracing.'],
+            ['Region 2','Recovery design to validate.']]},
+    {icon:'🔎',kicker:'EP07 · 4/7 · RUNTIME VIEW',title:'Follow One Payment Through the Design',time:'05:45 – 07:55',draw:d4,
+     key:'Make retries safe and status explicit; validate latency under load.',next:'🔜 Next: the mainframe decision',
+     open:'Let’s follow one payment through the design, step by step.',
+     land:'Half a second at p99 is an illustrative internal target.',
+     gloss:[['SEQ',[1]],['IDEM',[1]],['ASYNC',[2]],['PACS008',[6]],['PACS002',[6]]],
+     demo:['proof to build: run a synthetic payment through a test stack and inspect its trace',
+           '<b>X-Ray</b> could compare observed steps with the design'],
+     steps:[['Idempotent request','Retry should not create a second instruction.'],
+            ['Answer in ms: 202','Accepted and pending — then a push when done.'],
+            ['Outbox → Kafka','Payment and event saved together.'],
+            ['Checks within budget','40 ms and 150 ms are example targets.'],
+            ['Hold the funds','120 ms is a ledger target to test.'],
+            ['Scheme round trip','pacs.008 out, pacs.002 back — or pacs.028.'],
+            ['Book, then tell','Post and send bank-approved status.']]},
+    {icon:'⚖️',kicker:'EP07 · 5/7 · THE BIG DECISION',title:'Staying 24/7 When the Mainframe Sleeps',time:'07:55 – 10:25',draw:d5,
+     key:'Limits need evidence before stand-in risk can be accepted.',next:'🔜 Next: ADRs you can audit',
+     open:'Remember the open decision from episode five.',
+     land:'A spike would test balance freshness and replay safety.',
+     gloss:[['OPTIONS',[1]],['STANDIN',[2,4]],['CDC',[4]],['REPLAY',[5]],['CREDIT',[7]]],
+     demo:['proposed spike: stop a legacy simulator, test capped requests, replay and reconciliation',
+           'fault injection could test the legacy link in a sandbox'],
+     steps:[['Three options','Scored against the ranked drivers.'],
+            ['Candidate for slice 1','B is a hypothesis, pending bank review.'],
+            ['Other paths','A and C need their own feasibility review.'],
+            ['Controls to validate','Freshness, concurrent holds and example cap.'],
+            ['Replay, then reconcile','Test ordering, duplicate posting and breaks.'],
+            ['Bank-approved response','Alternative route is a product decision.'],
+            ['Risk sets the guardrails','Exposure, duration, alerts, reports, spike.']]},
+    {icon:'📜',kicker:'EP07 · 6/7 · DECISIONS ON PAPER',title:'ADRs: Decisions You Can Audit',time:'10:25 – 12:45',draw:d6,
+     key:'Record the hypothesis, its downside and the evidence still needed.',next:'🔜 Next: review, guardrails & hand over',
+     open:'Every big decision is written down, on one page.',
+     land:'The stand-in replay spike is a test to plan.',
+     gloss:[['ADR',[1]],['CONSEQ',[3]],['FITNESS',[4]],['STATUS',[5]],['SPIKE',[7]]],
+     demo:['proposed evidence: versioned Markdown ADRs with linked fitness checks',
+           'measured spike results would be stored beside each ADR'],
+     steps:[['One page per decision','ADR-005: stand-in processing.'],
+            ['Context and options','Why we decide, and what we compared.'],
+            ['Good and bad, written','Availability target vs reconciliation and exposure.'],
+            ['A test for the decision','Monthly game day: stop the ledger adapter.'],
+            ['The ADR log','Eight illustrative entries; approval pending.'],
+            ['AI drafts, bank reviews','AI flags conflicts for architects to check.'],
+            ['Spikes to run','Test ledger latency, Kafka load and replay.']]},
+    {icon:'✅',kicker:'EP07 · 7/7 · REVIEW & HAND OVER',title:'Review, Guardrails & Hand Over',time:'12:45 – 14:30',draw:d7,
+     key:'Every decision becomes a rule the build — and the AI — must follow.',next:'🔜 Next episode: EP08 — Contracts First',
+     open:'Before production build, the bank reviews the design.',
+     land:'A reviewable design makes the next build decision possible.',
+     gloss:[['ARB',[1]],['WELLARCH',[2]],['ARCHUNIT',[3]],['AGENTS',[4]],['OVERENG',[5]]],
+     demo:['proposed CI check: <b>ArchUnit</b> rules in <b>mvn verify</b>',
+           'a Well-Architected review could record risks and follow-up actions'],
+     steps:[['Review owners','Architecture, security, risk, platform, business.'],
+            ['Six pillars','AWS Well-Architected, with the financial services lens.'],
+            ['Rules the build checks','No shared tables, no direct Kafka, latency budgets.'],
+            ['AGENTS.md learns','Every new ADR becomes a rule for the AI.'],
+            ['AI risks, guarded','Drivers, docs, spikes, simplicity, the ADR log.'],
+            ['Next episodes','EP08 contracts · EP09 roadmap · EP10 platform.']]},
+  ],
+};
+startDeck(DECK);
+</script>
+</body>
+</html>

@@ -1,0 +1,482 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EP02 Legacy Discovery</title>
+<link rel="stylesheet" href="../shared/deck.css">
+</head>
+<body>
+<script src="../shared/deck.js"></script>
+<script>
+/* ============================================================
+   EP02 · Legacy Discovery with AI — diagrams (1280x800 canvas)
+   ============================================================ */
+
+/* 1 · The rules live below the waterline */
+function d1(){return [
+  `<rect x="20" y="230" width="600" height="560" rx="14" fill="rgba(47,111,191,.07)"/>`,
+  `<line x1="20" y1="230" x2="620" y2="230" stroke="#2F6FBF" stroke-width="2" stroke-dasharray="9 7"/>`,
+  txt(30,220,'🌊 WATERLINE','hd'),
+  `<polygon points="170,230 250,124 300,152 360,100 470,230" fill="rgba(255,255,255,.85)" stroke="#7FA7D6" stroke-width="2"/>`,
+  `<polygon points="90,230 550,230 590,400 570,620 470,775 170,775 70,620 60,400" fill="rgba(255,255,255,.6)" stroke="#7FA7D6" stroke-width="2"/>`,
+  box({x:200,y:150,w:230,h:64,k:'neutral',i:'📄',t:'Documents & specs',s:'often out of date'}),
+  box({x:140,y:262,w:360,h:76,k:'legacy',i:'📜',t:'COBOL programs',s:'the business logic'}),
+  box({x:140,y:350,w:360,h:76,k:'legacy',i:'🧩',t:'Copybooks',s:'shared data layouts'}),
+  box({x:140,y:438,w:360,h:76,k:'legacy',i:'⏰',t:'JCL batch jobs',s:'cut-off times · job order'}),
+  box({x:140,y:526,w:360,h:76,k:'legacy',i:'🗄️',t:'DB2 tables & triggers',s:'hidden checks'}),
+  box({x:140,y:620,w:360,h:76,k:'human',i:'🧠',t:'Experts’ heads',s:'the “why” behind the rules'}),
+  txt(320,748,'below the waterline: what really runs','note','middle'),
+
+  txt(660,58,'IF WE MISS A RULE…','hd'),
+  box({x:660,y:76,w:600,h:84,k:'bad',i:'🔁',t:'Missed duplicate check',s:'the customer is charged twice'}),
+  box({x:660,y:172,w:600,h:84,k:'bad',i:'⏰',t:'Missed cut-off time',s:'the payment is booked on the wrong day'}),
+  box({x:660,y:268,w:600,h:84,k:'bad',i:'🧮',t:'Missed rounding rule',s:'old and new ledgers stop matching'}),
+  group({x:660,y:400,w:600,h:380,k:'good',label:'🎯 THE GOAL OF DISCOVERY'}),
+  lines(694,470,['□ Find candidate rules','□ Explain proposed meaning','□ Link to source lines','□ Named bank owner reviews','□ Test approved behavior'],'gx',56),
+
+  arrow([[500,476],[615,476],[615,214],[660,214]],{k:'bad',st:4,dash:1,label:'missed',lx:615,ly:345}),
+  arrow([[500,564],[660,564]],{k:'good',st:5,label:'discovery',lx:582}),
+
+  tag(1,206,150,'Docs are the tip'),
+  tag(2,148,262,'Rules hide below'),
+  tag(3,148,696,'Experts are retiring'),
+  tag(4,670,76,'Missed rule = incident'),
+  tag(5,1250,400,'A signed catalog','r'),
+].join('')}
+
+/* 2 · The six-step pipeline: AI drafts, tools check, experts decide */
+function d2(){return [
+  group({x:10,y:30,w:1260,h:170,k:'ai',label:'🤖 AI DRAFTS'}),
+  group({x:10,y:220,w:1260,h:170,k:'neutral',label:'🧰 TOOLS CHECK · SAME ANSWER EVERY TIME'}),
+  group({x:10,y:410,w:1260,h:170,k:'human',label:'👤 EXPERTS DECIDE'}),
+  box({x:30,y:268,w:185,h:96,k:'neutral',i:'🔒',t:'1 · Secure intake',s:'export the code into\na private Git repo'}),
+  box({x:235,y:268,w:185,h:96,k:'neutral',i:'🗺️',t:'2 · Inventory & map',s:'supplied code and data\ncoverage to verify'}),
+  box({x:440,y:78,w:185,h:96,k:'ai',i:'🤖',t:'3 · Extract rules',s:'plain English\n+ exact line numbers'}),
+  box({x:645,y:268,w:185,h:96,k:'neutral',i:'🔍',t:'4 · Check citations',s:'do the cited lines\nreally exist?'}),
+  box({x:850,y:458,w:185,h:96,k:'human',i:'✍️',t:'5 · Expert sign-off',s:'approve · correct\n· reject'}),
+  box({x:1055,y:268,w:185,h:96,k:'good',i:'🧪',t:'6 · Golden tests',s:'record old outputs;\nnew code must match'}),
+  txt(1250,180,'AI never decides alone','note','end'),
+  txt(1250,380,'no AI · repeatable','note','end'),
+  txt(1250,566,'nothing moves on without a name','note','end'),
+
+  arrow([[215,316],[235,316]],{k:'neutral',st:2}),
+  arrow([[420,316],[430,316],[430,126],[440,126]],{k:'ai',st:3}),
+  arrow([[625,126],[635,126],[635,316],[645,316]],{k:'neutral',st:4}),
+  arrow([[830,316],[840,316],[840,506],[850,506]],{k:'human',st:5}),
+  arrow([[1035,506],[1045,506],[1045,316],[1055,316]],{k:'good',st:6}),
+  arrow([[1020,458],[1020,100],[625,100]],{k:'human',st:5,dash:1,label:'questions',lx:820,ly:100}),
+
+  group({x:10,y:600,w:1260,h:180,k:'good',label:'📦 WHAT WE HAND OVER'}),
+  box({x:30,y:646,w:230,h:84,k:'good',i:'📖',t:'Reviewed rules catalog'}),
+  box({x:280,y:646,w:230,h:84,k:'good',i:'🕸️',t:'Inventory & call graph'}),
+  box({x:530,y:646,w:230,h:84,k:'risk',i:'❓',t:'Open questions log'}),
+  box({x:780,y:646,w:230,h:84,k:'good',i:'🧪',t:'Golden test suite'}),
+  box({x:1040,y:646,w:210,h:84,k:'aws',i:'🔜',t:'EP03 · EP04',s:'map the estate ·\nwrite the stories'}),
+  arrow([[1010,688],[1040,688]],{k:'aws',st:7}),
+
+  tag(1,40,268,'Inside the bank'),
+  tag(2,245,268,'No AI here'),
+  tag(3,450,78,'Must cite lines'),
+  tag(4,655,268,'Machine-checked'),
+  tag(5,860,458,'Named sign-off'),
+  tag(6,1065,268,'Old = new?'),
+  tag(7,240,600,'4 outputs'),
+].join('')}
+
+/* 3 · Secure intake and code inventory */
+function d3(){return [
+  group({x:10,y:30,w:330,h:470,k:'legacy',label:'🏛️ MAINFRAME · z/OS'}),
+  box({x:30,y:80,w:290,h:80,k:'legacy',i:'📚',t:'Endevor / ChangeMan',s:'mainframe source control'}),
+  box({x:30,y:180,w:290,h:80,k:'legacy',i:'📜',t:'COBOL · copybooks · JCL',s:'the code we must understand'}),
+  box({x:30,y:280,w:290,h:80,k:'legacy',i:'🗄️',t:'DB2 DDL · CICS definitions',s:'tables and online transactions'}),
+  box({x:30,y:380,w:290,h:96,k:'legacy',i:'📈',t:'SMF records',s:'what really ran last year'}),
+
+  group({x:370,y:30,w:540,h:470,k:'aws',label:'🔒 PROPOSED BANK-APPROVED ENVIRONMENT'}),
+  box({x:390,y:80,w:240,h:80,k:'aws',i:'🗃️',t:'Private Git repo',s:'one versioned copy'}),
+  box({x:650,y:80,w:240,h:80,k:'aws',i:'🔎',t:'Secret & data scan',s:'mask customer data'}),
+  box({x:390,y:196,w:500,h:84,k:'neutral',i:'🧰',t:'Static analyzer',s:'maps supplied programs, copybooks and jobs'}),
+  box({x:390,y:306,w:500,h:84,k:'ai',i:'🤖',t:'AI on Amazon Bedrock',s:'private endpoint · in-region · not used for training'}),
+  box({x:390,y:412,w:500,h:70,k:'neutral',i:'📋',t:'Audit log',s:'bank-approved logging and retention'}),
+
+  group({x:940,y:30,w:330,h:470,k:'good',label:'🗺️ INVENTORY'}),
+  box({x:960,y:80,w:290,h:80,k:'good',i:'📊',t:'Inventory',s:'programs · copybooks · jobs · tables'}),
+  box({x:960,y:180,w:290,h:80,k:'good',i:'🕸️',t:'Call graph',s:'who calls whom · which tables'}),
+  box({x:960,y:280,w:290,h:80,k:'risk',i:'🪦',t:'Dead code',s:'not run in a year → don’t migrate'}),
+  box({x:960,y:380,w:290,h:96,k:'good',i:'🎯',t:'Rule candidates',s:'bank experts validate meaning'}),
+
+  arrow([[320,120],[390,120]],{k:'legacy',st:1,label:'export',lx:355}),
+  arrow([[630,120],[650,120]],{k:'aws',st:3}),
+  arrow([[860,160],[860,196]],{k:'aws',st:4}),
+  arrow([[640,280],[640,306]],{k:'ai',st:5}),
+  arrow([[640,390],[640,412]],{k:'neutral',st:5}),
+  arrow([[320,428],[354,428],[354,238],[390,238]],{k:'legacy',st:6,label:'usage',lx:354,ly:330}),
+  arrow([[890,238],[915,238],[915,120],[960,120]],{k:'good',st:4}),
+  arrow([[915,238],[915,320],[960,320]],{k:'risk',st:6}),
+
+  group({x:10,y:520,w:1260,h:270,k:'neutral',label:'🔍 EXAMPLE · PAYMENT VALIDATION SLICE · CALL GRAPH'}),
+  box({x:30,y:620,w:170,h:60,k:'legacy',i:'⏰',t:'PAYB0100',s:'nightly batch job'}),
+  box({x:240,y:620,w:170,h:60,k:'legacy',i:'📜',t:'PAYMAIN',s:'entry program'}),
+  box({x:460,y:572,w:170,h:56,k:'legacy',i:'📜',t:'PAYVALID',s:'account checks'}),
+  box({x:460,y:644,w:170,h:56,k:'legacy',i:'📜',t:'PAYDUPL',s:'duplicate checks'}),
+  box({x:460,y:716,w:170,h:56,k:'legacy',i:'📜',t:'PAYCUT',s:'cut-off time'}),
+  box({x:680,y:572,w:170,h:56,k:'legacy',i:'🧩',t:'ACCTREC',s:'account copybook'}),
+  box({x:890,y:572,w:150,h:56,k:'legacy',i:'🗄️',t:'ACCOUNT',s:'DB2 table'}),
+  box({x:680,y:644,w:170,h:56,k:'legacy',i:'🗄️',t:'PAYHIST',s:'DB2 table'}),
+  box({x:680,y:716,w:170,h:56,k:'risk',i:'⏰',t:'17:30',s:'hard-coded value'}),
+  box({x:1070,y:600,w:180,h:150,k:'risk',i:'⚠️',t:'Hidden rule',s:'a cut-off time\nhard-coded\nin COBOL'}),
+  arrow([[200,650],[240,650]],{k:'legacy',st:7}),
+  arrow([[410,635],[435,635],[435,600],[460,600]],{k:'legacy',st:7}),
+  arrow([[410,672],[460,672]],{k:'legacy',st:7}),
+  arrow([[380,680],[380,744],[460,744]],{k:'legacy',st:7}),
+  arrow([[630,600],[680,600]],{k:'legacy',st:7}),
+  arrow([[850,600],[890,600]],{k:'legacy',st:7}),
+  arrow([[630,672],[680,672]],{k:'legacy',st:7}),
+  arrow([[630,744],[680,744]],{k:'risk',st:7}),
+  arrow([[850,744],[1070,744]],{k:'risk',st:7,dash:1}),
+
+  tag(1,40,80,'Versioned export'),
+  tag(2,400,160,'Inside the bank'),
+  tag(3,660,80,'Mask real data'),
+  tag(4,400,280,'Parse everything'),
+  tag(5,400,390,'Private AI + audit log'),
+  tag(6,970,360,'Review unused code'),
+  tag(7,600,520,'Candidate rules here'),
+].join('')}
+
+/* 4 · AI extracts the rules, a tool checks the citations */
+function ruleCard(x,y,w,h){
+  return `<g><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="14" fill="#FFFDF8" stroke="#2E8B57" stroke-width="2.2"/>`+
+    `<path d="M${x} ${y+44} V${y+14} Q${x} ${y} ${x+14} ${y} H${x+w-14} Q${x+w} ${y} ${x+w} ${y+14} V${y+44} Z" fill="rgba(46,139,87,.12)"/>`+
+    txt(x+18,y+29,'📋 BR-014 · Frozen account','rc-h')+
+    `<rect x="${x+w-112}" y="${y+11}" width="96" height="22" rx="11" fill="#6D4FD1"/><text x="${x+w-64}" y="${y+26.5}" text-anchor="middle" font-size="12" font-weight="800" fill="#fff">AI DRAFT</text>`+
+    txt(x+18,y+70,'RULE','rc-l')+
+    lines(x+18,y+92,['If the debtor account is frozen (status F),','reject the payment with reason code AC06','(ISO 20022: blocked account).'],'rc-t',21)+
+    txt(x+18,y+164,'SOURCE','rc-l')+
+    txt(x+18,y+186,'PAYVALID.cbl · 2100-CHECK-ACCT · lines 1189–1192','rc-t')+
+    txt(x+18,y+216,'OPEN QUESTION','rc-l')+
+    txt(x+18,y+238,'Status “D” (lines 1193–1195): unknown → ask an expert','rc-t','start','#8A4310')+'</g>';
+}
+function d4(){return [
+  code({x:20,y:40,w:500,h:360,title:'PAYVALID.cbl',lines:[
+    ['1184','2100-CHECK-ACCT.'],
+    ['1185','    EXEC SQL'],
+    ['1186','      SELECT ACCT_STATUS INTO :WS-STATUS'],
+    ['1187','      FROM ACCOUNT WHERE ACCT_ID = :DEBTOR-ID'],
+    ['1188','    END-EXEC.'],
+    ['1189','    IF WS-STATUS = \'F\'','y'],
+    ['1190','       MOVE \'AC06\' TO WS-REJECT-CODE','y'],
+    ['1191','       PERFORM 9000-REJECT-PAYMENT','y'],
+    ['1192','    END-IF.','y'],
+    ['1193','    IF WS-STATUS = \'D\'','o'],
+    ['1194','       MOVE \'Y\' TO WS-REVIEW-FLAG','o'],
+    ['1195','    END-IF.','o'],
+  ]}),
+  box({x:550,y:60,w:220,h:150,k:'ai',i:'🤖',t:'AI agent',s:'one paragraph\n+ its copybook\n+ its DB2 table'}),
+  box({x:550,y:240,w:220,h:90,k:'legacy',i:'🧩',t:'Context',s:'ACCTREC copybook\nACCOUNT DB2 table'}),
+  box({x:550,y:352,w:220,h:108,k:'ai',i:'🛡️',t:'AI rules',s:'cite every line\n“unknown” is allowed\nnever guess'}),
+  ruleCard(800,40,460,270),
+  box({x:800,y:340,w:460,h:90,k:'neutral',i:'🔍',t:'Citation checker · no AI',s:'lines 1189–1192 exist and mention WS-STATUS + AC06 ✓'}),
+
+  group({x:10,y:480,w:1260,h:300,k:'neutral',label:'📖 RULES CATALOG · DRAFT · EXAMPLE SLICE'}),
+  table({x:30,y:516,w:980,hh:30,rh:56,
+    cols:[['ID',0],['RULE IN PLAIN ENGLISH',100],['SOURCE',560],['STATUS',790]],
+    rows:[['BR-014','Frozen account → reject with AC06','PAYVALID 1189–1192','✓ cited'],
+          ['BR-022','Over 100,000 EUR → manual approval','PAYVALID 1530–1561','✓ cited'],
+          ['BR-031','Same debtor, creditor, amount in 5 min → duplicate','PAYDUPL 402–447','✓ cited'],
+          ['BR-040','After 17:30 → next business day','PAYCUT 88–97','🆕 hidden rule']],
+    hl:{3:'risk'}}),
+  box({x:1030,y:520,w:220,h:240,k:'risk',i:'❓',t:'Open questions',s:'Q-07: what does\nstatus “D” mean?\n\n→ expert review'}),
+
+  arrow([[520,135],[550,135]],{k:'ai',st:1}),
+  arrow([[660,240],[660,210]],{k:'legacy',st:2}),
+  arrow([[770,135],[800,135]],{k:'good',st:3}),
+  arrow([[1030,310],[1030,340]],{k:'neutral',st:5}),
+  arrow([[900,430],[900,516]],{k:'good',st:5,label:'passed',ly:470}),
+  arrow([[1260,280],[1270,280],[1270,640],[1250,640]],{k:'risk',st:4,dash:1}),
+
+  tag(1,210,40,'One paragraph at a time'),
+  tag(2,560,330,'With context'),
+  tag(3,810,40,'Plain English + lines'),
+  tag(4,560,460,'“Unknown” is allowed'),
+  tag(5,1250,430,'Machine-checked','r'),
+  tag(6,1000,720,'Hidden rule found','r'),
+].join('')}
+
+/* 5 · Experts sign off; traceability; progress */
+function d5(){return [
+  group({x:10,y:20,w:1260,h:300,k:'human',label:'✍️ REVIEW WORKFLOW'}),
+  box({x:30,y:96,w:180,h:76,k:'ai',i:'🤖',t:'Draft',s:'written by AI'}),
+  box({x:250,y:96,w:190,h:76,k:'human',i:'🧓',t:'In review',s:'mainframe expert'}),
+  box({x:490,y:46,w:200,h:56,k:'good',i:'✅',t:'Approved'}),
+  box({x:490,y:112,w:200,h:56,k:'aws',i:'✏️',t:'Changed',s:'expert corrects it'}),
+  box({x:490,y:178,w:200,h:56,k:'bad',i:'❌',t:'Rejected',s:'not a real rule'}),
+  box({x:250,y:226,w:190,h:64,k:'risk',i:'❓',t:'Question',s:'“what does D mean?”'}),
+  box({x:740,y:86,w:250,h:96,k:'good',i:'✍️',t:'Review gate',s:'technical + bank domain\n+ compliance if needed'}),
+  box({x:1030,y:86,w:220,h:96,k:'neutral',i:'📖',t:'Rules catalog',s:'versioned candidates\nnamed approvals'}),
+  arrow([[210,134],[250,134]],{k:'human',st:2}),
+  arrow([[440,120],[465,120],[465,74],[490,74]],{k:'good',st:2}),
+  arrow([[440,140],[490,140]],{k:'aws',st:2}),
+  arrow([[440,152],[465,152],[465,206],[490,206]],{k:'bad',st:2}),
+  arrow([[345,172],[345,226]],{k:'risk',st:3}),
+  arrow([[250,258],[120,258],[120,172]],{k:'risk',st:3,dash:1,label:'answer',lx:185,ly:258}),
+  arrow([[690,74],[715,74],[715,120],[740,120]],{k:'good',st:4}),
+  arrow([[690,140],[740,140]],{k:'good',st:4}),
+  arrow([[990,134],[1030,134]],{k:'neutral',st:4}),
+
+  group({x:10,y:340,w:800,h:300,k:'neutral',label:'🔗 TRACEABILITY MATRIX'}),
+  table({x:30,y:380,w:760,hh:32,rh:50,
+    cols:[['RULE',0],['COBOL SOURCE',100],['USER STORY',290],['TEST',420],['NEW SERVICE',560]],
+    rows:[['BR-014','PAYVALID 1189–1192','US-112','BR014Test','payment-validation'],
+          ['BR-022','PAYVALID 1530–1561','US-118','BR022Test','payment-validation'],
+          ['BR-031','PAYDUPL 402–447','US-121','BR031Test','payment-initiation'],
+          ['BR-040','PAYCUT 88–97','US-130','BR040Test','payment-orchestrator']]}),
+
+  group({x:830,y:340,w:440,h:300,k:'good',label:'📊 PROGRESS · EXAMPLE SLICE'}),
+  kpi({x:850,y:384,w:400,h:50,k:'good',i:'🔎',t:'Rules found',v:'64'}),
+  kpi({x:850,y:446,w:400,h:50,k:'good',i:'✍️',t:'Approved · example',v:'51'}),
+  kpi({x:850,y:508,w:400,h:50,k:'risk',i:'❓',t:'Open questions',v:'7'}),
+  kpi({x:850,y:570,w:400,h:50,k:'aws',i:'📏',t:'Coverage · example',v:'94%'}),
+
+  group({x:10,y:660,w:1260,h:120,k:'risk',label:'⏳ EXPERT TIME IS THE BOTTLENECK — PLAN IT'}),
+  box({x:30,y:698,w:390,h:64,k:'human',i:'📅',t:'Fixed review slots',s:'booked every week'}),
+  box({x:440,y:698,w:390,h:64,k:'human',i:'🗂️',t:'Batch the questions',s:'no one-by-one interruptions'}),
+  box({x:850,y:698,w:400,h:64,k:'human',i:'🎯',t:'First slice first',s:'not the whole estate'}),
+
+  tag(1,40,96,'AI writes the draft'),
+  tag(2,260,96,'Expert decides'),
+  tag(3,452,258,'Questions go back'),
+  tag(4,750,182,'Names, not “the team”'),
+  tag(5,290,340,'Rule → code → story → test'),
+  tag(6,1262,340,'Track progress','r'),
+  tag(7,1262,660,'Plan expert time','r'),
+].join('')}
+
+/* 6 · Golden tests: prove the old behaviour */
+function d6(){return [
+  group({x:10,y:20,w:1260,h:280,k:'neutral',label:'🧪 GOLDEN TESTS · SAME INPUT, SAME OUTPUT'}),
+  box({x:30,y:120,w:200,h:96,k:'human',i:'🎭',t:'Masked payments',s:'realistic, not real'}),
+  box({x:290,y:64,w:230,h:84,k:'legacy',i:'🏛️',t:'Legacy PAYVALID',s:'mainframe test system\nor GnuCOBOL on a laptop'}),
+  box({x:290,y:190,w:230,h:84,k:'aws',i:'☕',t:'Proposed Java service',s:'payment-validation'}),
+  box({x:570,y:64,w:210,h:84,k:'good',i:'📁',t:'Golden outputs',s:'accept / reject\n+ reason code'}),
+  box({x:570,y:190,w:210,h:84,k:'aws',i:'📁',t:'New outputs',s:'same format'}),
+  box({x:830,y:120,w:190,h:96,k:'good',i:'⚖️',t:'Compare',s:'same input →\nsame output?'}),
+  box({x:1060,y:64,w:190,h:84,k:'good',i:'✅',t:'Match',s:'safe to replace'}),
+  box({x:1060,y:190,w:190,h:84,k:'bad',i:'❓',t:'Difference',s:'a bug, or a rule\nto keep?'}),
+  arrow([[230,150],[260,150],[260,106],[290,106]],{k:'neutral',st:1}),
+  arrow([[230,186],[260,186],[260,232],[290,232]],{k:'neutral',st:3}),
+  arrow([[520,106],[570,106]],{k:'good',st:2}),
+  arrow([[520,232],[570,232]],{k:'aws',st:3}),
+  arrow([[780,106],[805,106],[805,150],[830,150]],{k:'good',st:3}),
+  arrow([[780,232],[805,232],[805,186],[830,186]],{k:'aws',st:3}),
+  arrow([[1020,150],[1040,150],[1040,106],[1060,106]],{k:'good',st:3}),
+  arrow([[1020,186],[1040,186],[1040,232],[1060,232]],{k:'bad',st:4}),
+
+  group({x:10,y:320,w:620,h:250,k:'good',label:'✅ APPROVED RULE → READABLE TEST'}),
+  txt(36,380,'BR014 · Frozen account is rejected','rc-h'),
+  txt(36,420,'Given  a debtor account with status F','mono-d'),
+  txt(36,452,'When   a payment of 250 EUR arrives','mono-d'),
+  txt(36,484,'Then   it is rejected with reason AC06','mono-d'),
+  txt(36,532,'✓ passes on legacy      ✓ passes on Java','kl','start','#2E8B57'),
+
+  group({x:650,y:320,w:620,h:250,k:'ai',label:'🤖 EDGE CASES AI SUGGESTS · THE TEAM DECIDES'}),
+  lines(680,386,['• an amount of exactly 100,000.00 EUR','• a duplicate at 4 min 59 s vs 5 min 01 s','• a payment at exactly 17:30:00','• an account with status “D” (dormant)','• an amount with three decimal places'],'kl',36),
+
+  group({x:10,y:590,w:1260,h:190,k:'neutral',label:'🚦 IN THE PIPELINE'}),
+  box({x:30,y:640,w:280,h:84,k:'good',i:'🧪',t:'Rule tests',s:'approved cases'}),
+  box({x:330,y:640,w:280,h:84,k:'good',i:'📁',t:'Golden tests',s:'thousands of masked payments'}),
+  box({x:630,y:640,w:280,h:84,k:'aws',i:'📨',t:'Contract tests',s:'bank-approved messages'}),
+  box({x:950,y:640,w:300,h:84,k:'bad',i:'⛔',t:'CI gate',s:'any mismatch blocks the merge'}),
+  arrow([[310,682],[330,682]],{k:'good',st:7}),
+  arrow([[610,682],[630,682]],{k:'good',st:7}),
+  arrow([[910,682],[950,682]],{k:'bad',st:7}),
+
+  tag(1,40,120,'Masked, realistic data'),
+  tag(2,580,162,'Record legacy outputs'),
+  tag(3,840,230,'New must match old'),
+  tag(4,1070,290,'A decision, not a fix'),
+  tag(5,370,320,'Every rule = a test'),
+  tag(6,1262,320,'AI finds edge cases','r'),
+  tag(7,960,724,'Mismatch blocks merge'),
+].join('')}
+
+/* 7 · Risks, guardrails and handoff */
+function d7(){
+  const rows=[
+    ['🤥','AI invents a rule','sounds right, isn’t true','Cite lines · machine check · expert sign-off','no rule without a source and a name'],
+    ['🔓','Code or data leaks','bank IP and customer data','Bank-approved AI environment','masking · access · retention · logging'],
+    ['😴','Too much trust in AI','“the AI said so”','AI can never approve','named sign-off · a second expert re-checks a sample'],
+    ['⏳','Experts are the bottleneck','discovery slows down','Plan expert time','fixed slots · batched questions · first slice first'],
+  ];
+  const out=[txt(20,32,'⚠️ RISK','hd'),txt(400,32,'🛡️ GUARDRAIL','hd')];
+  rows.forEach((r,i)=>{
+    const y=56+i*104;
+    out.push(
+      box({x:20,y,w:340,h:86,k:'risk',i:r[0],t:r[1],s:r[2]}),
+      box({x:400,y,w:860,h:86,k:'aws',i:'✅',t:r[3],s:r[4]}),
+      arrow([[360,y+43],[400,y+43]],{k:'aws',st:i+1}),
+      tag(i+1,30,y,['Hallucination','Leaks','Over-trust','Bottleneck'][i]));
+  });
+  out.push(
+    group({x:10,y:480,w:840,h:290,k:'good',label:'📦 WHAT DISCOVERY HANDS OVER'}),
+    box({x:30,y:526,w:390,h:100,k:'good',i:'📖',t:'Reviewed rules catalog',s:'candidate · source · owner · test'}),
+    box({x:440,y:526,w:390,h:100,k:'good',i:'🕸️',t:'Inventory & call graph',s:'what exists · what runs · what calls what'}),
+    box({x:30,y:646,w:390,h:100,k:'risk',i:'❓',t:'Open questions log',s:'who answers · by when'}),
+    box({x:440,y:646,w:390,h:100,k:'good',i:'🧪',t:'Golden test suite',s:'legacy behaviour, recorded'}),
+    group({x:870,y:480,w:400,h:290,k:'aws',label:'🔜 FEEDS THE NEXT EPISODES'}),
+    box({x:890,y:524,w:360,h:66,k:'aws',i:'🗺️',t:'EP03 · Map the payment estate'}),
+    box({x:890,y:604,w:360,h:66,k:'aws',i:'📋',t:'EP04 · Regulation → user stories'}),
+    box({x:890,y:684,w:360,h:66,k:'aws',i:'🛠️',t:'EP10–EP16 · Build',s:'run approved tests per service'}),
+    arrow([[850,625],[870,625]],{k:'good',st:6}),
+    txt(640,793,'Discovery never ends: every code change updates its rule card.','note','middle'),
+    tag(5,330,480,'4 outputs'),
+    tag(6,1262,480,'Next episodes','r'),
+  );
+  return out.join('');
+}
+
+/* ============================================================
+   Episode config
+   ============================================================ */
+const DECK={
+  brand:'🏦 CORE BANKING PAYMENTS MODERNIZATION · AWS',
+  ep:'EP 02', epShort:'EP02', title:'Legacy Discovery with AI', subtitle:'Execution Architect · reference scenario',
+  seriesTitle:'Enterprise Modernization · Reference Series',
+  callout:{title:'🧪 EVIDENCE PLAN',first:'Method:',second:'Bank check:'},
+  logo:'../shared/jo-logo.png', background:'../shared/background.png',
+  stages:[['🔍','Discover'],['📋','Requirements'],['📐','Design & Plan'],['🛠️','Build'],['🚀','Test & Deploy'],['🔧','Operate']],
+  stage:1,
+  glossary:{
+    COBOL:['COBOL','risk','A language used in the reference mainframe estate. Bank specialists validate how their actual system uses it.'],
+    COPYBOOK:['Copybook','risk','A shared COBOL file that defines a data layout, like an account record. Change one, and dozens of programs can break.'],
+    JCL:['JCL','risk','The scripts that run mainframe batch jobs at night. They hide business rules like cut-off times and the order of steps.'],
+    RULE:['Business rule','value','A decision the bank makes on every payment, like “reject if the account is frozen”. Miss one, and customers feel it.'],
+    SME:['SME','risk','Subject-matter expert: the person who knows why the code does what it does. Often near retirement, always overloaded.'],
+    STATIC:['Static analysis','value','Software that reads code without running it and maps programs, data and calls. Same answer every time — no AI guessing.'],
+    LLM:['AI agent (LLM)','value','A large language model that reads code and writes explanations. Fast and tireless, but it can be wrong, so it never decides alone.'],
+    CITE:['Citation check','risk','An automatic check that every rule points to real lines of code. If the lines don’t exist, the rule is rejected.'],
+    CATALOG:['Rules catalog','risk','A reviewed list of candidate and approved rules, linked to sources, owners and tests.'],
+    GOLDEN:['Golden test','risk','Feed the same inputs to the old and new systems and compare the outputs. If they match, the behaviour is preserved.'],
+    ENDEVOR:['Endevor / ChangeMan','cost','Possible mainframe source tools. Compare exported source with deployed versions before analysis.'],
+    SMF:['SMF records','value','Mainframe activity records for an observed period. No hits alone does not prove code is unused.'],
+    MASK:['Data masking','risk','Replacing real customer details with realistic fake ones. Teams can test with real-looking data without exposing customers.'],
+    BEDROCK:['Amazon Bedrock','risk','A possible AI service. Bank security must verify model, region, network path, logging and provider terms.'],
+    CALLGRAPH:['Call graph','value','A map of which program calls which, and which tables each one uses. It shows where the payment rules really live.'],
+    PARA:['COBOL paragraph','value','A named block of COBOL code, like 2100-CHECK-ACCT. We give the AI one paragraph at a time, so it stays focused.'],
+    HALLU:['Hallucination','risk','When AI says something that sounds right but isn’t true. In banking, an invented rule is as dangerous as a missing one.'],
+    AC06:['Reason code AC06','value','A code used in the sample rule card. Bank scheme experts validate whether it applies to this flow.'],
+    SIGNOFF:['Sign-off','risk','A named expert formally confirms a rule is correct. No rule moves into the new system without one.'],
+    RULECARD:['Rule card','value','One page per rule: what it does, where it lives, who signed it, and which test proves it.'],
+    TRACE:['Traceability matrix','risk','A table linking every rule to its code, user story, test and new service. Auditors can follow any rule end to end.'],
+    STORY:['User story','value','A short requirement written from the user’s point of view. Each signed rule becomes part of one.'],
+    PR:['Pull request','risk','A proposed change that must be reviewed before it is accepted. We use it to record each expert’s approval in Git.'],
+    EDGE:['Edge case','risk','An unusual input at the limit, like an amount of exactly 100,000. Old systems often behave strangely here.'],
+    GNUCOBOL:['GnuCOBOL','cost','A free COBOL compiler. It runs sample legacy programs on a laptop, so teams can test without paying for mainframe time.'],
+    JUNIT:['JUnit','value','A Java testing framework. Approved rules can be translated into readable tests.'],
+    CIGATE:['CI gate','risk','An automatic check in the build pipeline. If a golden test fails, the change cannot be merged.'],
+    MRM:['Model risk management','risk','The bank’s governance process for model use. Its scope and approval path are bank-specific.'],
+    AUDIT:['Audit log','risk','A record of approved AI activity and decisions, with retention set by bank policy.'],
+    HITL:['Human-in-the-loop','risk','AI suggests; a named person decides. Accountability stays with people, not with the tool.'],
+    LIVING:['Living documentation','value','Documents that update with every code change. The catalog stays true long after discovery ends.'],
+  },
+  slides:[
+    {icon:'🧊',kicker:'EP02 · 1/7 · THE PROBLEM',title:'The Rules Live Below the Waterline',time:'00:00 – 01:55',draw:d1,
+     key:'Hidden behavior needs source evidence and bank review.',next:'🔜 Next: the six-step pipeline',
+     open:'This iceberg is a reference model, not a bank inventory.',
+     land:'We build it with AI as a helper, not as the boss.',
+     gloss:[['COBOL',[2]],['COPYBOOK',[2]],['JCL',[2]],['RULE',[4,5]],['SME',[3]]],
+     callout:['Use a small code sample to demonstrate rule extraction.',
+              'Confirm the actual estate, rules and security boundary.'],
+     steps:[['Docs are the tip','Documents start the map; verify against code and operations.'],
+            ['Rules hide below','COBOL, jobs and data may hold candidate rules.'],
+            ['Experts explain why','Bank SMEs validate current business meaning.'],
+            ['Missed rule = incident','Duplicates, wrong dates, ledgers that don’t match.'],
+            ['Reviewed catalog','Source, owner, open question and test per candidate.']]},
+    {icon:'🛤️',kicker:'EP02 · 2/7 · THE PIPELINE',title:'Six Steps from COBOL to a Signed Catalog',time:'01:55 – 03:50',draw:d2,
+     key:'AI drafts. Tools check. Experts decide.',next:'🔜 Next: secure intake & inventory',
+     open:'Here is the whole pipeline: six steps, and three kinds of workers.',
+     land:'AI drafts, tools check, experts decide.',
+     gloss:[['STATIC',[2]],['LLM',[3]],['CITE',[4]],['CATALOG',[5,7]],['GOLDEN',[6]]],
+     callout:['Plan secure intake, inventory, draft and citation checks.',
+              'Approve code access and the domain review workflow.'],
+     steps:[['Secure intake','Bank approves export, storage and access.'],
+            ['Inventory & map','Analyze supplied code; verify coverage.'],
+            ['Extract rules','AI drafts candidates with source lines.'],
+            ['Check citations','A tool rejects unsupported references.'],
+            ['Expert sign-off','Technical and bank owners review meaning.'],
+            ['Golden tests','Record behavior; review every difference.'],
+            ['Hand over','Catalog, inventory, questions and tests feed EP03 and EP04.']]},
+    {icon:'🔒',kicker:'EP02 · 3/7 · STEPS 1–2 · INTAKE & INVENTORY',title:'Get the Code Out Safely, Then Map It',time:'03:50 – 05:50',draw:d3,
+     key:'Version the code and verify coverage before analysis.',next:'🔜 Next: AI extracts candidates',
+     open:'Let’s start with step one: getting the code out safely.',
+     land:'That is a business rule, hiding in the code.',
+     gloss:[['ENDEVOR',[1]],['MASK',[3]],['BEDROCK',[5]],['SMF',[6]],['CALLGRAPH',[7]]],
+     callout:['Propose version checks, secret scans and a call graph.',
+              'Approve location, model terms, retention and runtime coverage.'],
+     steps:[['Versioned export','Compare source export with deployed version.'],
+            ['Approved environment','Bank security sets location and access.'],
+            ['Scan and mask','Remove secrets; replace customer data with realistic fakes.'],
+            ['Parse supplied code','Compare map with deployment and runtime records.'],
+            ['AI boundary','Verify region, network, logging and terms.'],
+            ['Review unused code','No runtime hits is not proof of dead code.'],
+            ['Candidate cut-off','Bank owner validates product and exceptions.']]},
+    {icon:'🤖',kicker:'EP02 · 4/7 · STEPS 3–4 · AI EXTRACTION',title:'From COBOL to Plain English — With Proof',time:'05:50 – 07:35',draw:d4,
+     key:'A citation starts review; it does not prove meaning.',next:'🔜 Next: experts review',
+     open:'This sample code illustrates AI-assisted rule discovery.',
+     land:'A good AI does not guess. It says “unknown”.',
+     gloss:[['PARA',[1]],['COPYBOOK',[2]],['AC06',[3]],['HALLU',[4]],['CITE',[5]]],
+     callout:['Check cited lines and expose unknown states.',
+              'Confirm code path, response code and business meaning.'],
+     steps:[['One paragraph at a time','The AI reads one named block of COBOL, not the whole system.'],
+            ['With context','The copybook and the DB2 table come with it.'],
+            ['Plain English + lines','BR-014 is a candidate with cited sample lines.'],
+            ['“Unknown” is allowed','Status D has no known meaning → open question.'],
+            ['Machine-checked','A simple tool verifies every citation.'],
+            ['Hidden rules surface','Example thresholds need bank confirmation.']]},
+    {icon:'✍️',kicker:'EP02 · 5/7 · STEP 5 · EXPERT SIGN-OFF',title:'AI Drafts. Experts Decide.',time:'07:35 – 09:35',draw:d5,
+     key:'Technical behavior and bank policy need separate owners.',next:'🔜 Next: characterization tests',
+     open:'Step five is about people.',
+     land:'Named review makes each decision traceable.',
+     gloss:[['RULECARD',[1,2]],['SIGNOFF',[4]],['PR',[4]],['TRACE',[5]],['STORY',[5]]],
+     callout:['Version candidate rules and record named reviews.',
+              'Domain owners approve intended behavior and legal meaning.'],
+     steps:[['Candidate draft','AI, analysis or interview may find it.'],
+            ['Two reviews','Technical behavior and bank policy.'],
+            ['Questions stay open','Resolve with evidence before approval.'],
+            ['Named sign-off','Expert, payments owner, and compliance when needed.'],
+            ['Traceability','Rule → COBOL lines → story → test → service.'],
+            ['Track uncertainty','Candidates, approvals, gaps and coverage.'],
+            ['Plan expert time','Fixed slots, batched questions, first slice first.']]},
+    {icon:'🧪',kicker:'EP02 · 6/7 · STEP 6 · GOLDEN TESTS',title:'Prove It Before You Rewrite It',time:'09:35 – 11:35',draw:d6,
+     key:'Characterize old behavior; bank owners decide intent.',next:'🔜 Next: risks & handoff',
+     open:'Approved rules need behavioral evidence.',
+     land:'A mismatch blocks the change until its meaning is reviewed.',
+     gloss:[['GOLDEN',[2,3]],['GNUCOBOL',[2]],['JUNIT',[5]],['EDGE',[6]],['CIGATE',[7]]],
+     callout:['Plan paired tests on approved masked cases.',
+              'Review every difference; equality alone is not safety proof.'],
+     steps:[['Masked, realistic data','Real-looking payments, no real customers.'],
+            ['Record old outputs','Capture behavior in an approved test system.'],
+            ['Compare new path','Same inputs; inspect state and side effects.'],
+            ['A decision, not a fix','Bank owner decides intended behavior.'],
+            ['Approved rule = test','Readable criteria and expected outcome.'],
+            ['AI finds edge cases','Limits and odd inputs; the team chooses.'],
+            ['Mismatch blocks merge','The pipeline stops any change that breaks a golden test.']]},
+    {icon:'🛡️',kicker:'EP02 · 7/7 · RISKS & HANDOFF',title:'What Can Go Wrong — and What We Hand Over',time:'11:35 – 13:05',draw:d7,
+     key:'Discovery is the bank’s memory — keep it alive.',next:'🔜 Next episode: EP03 — Mapping the Payment Estate',
+     open:'Let’s be honest about the risks of using AI here.',
+     land:'Every time the code changes, the rule card changes too.',
+     gloss:[['HALLU',[1]],['AUDIT',[2]],['MRM',[2]],['HITL',[3]],['LIVING',[6]]],
+     callout:['Plan source, owner, question and test handover.',
+              'Approve the AI environment and control evidence.'],
+     steps:[['AI invents a rule','Cite lines, machine check, expert sign-off.'],
+            ['Code or data leaks','Bank approves masking, access and retention.'],
+            ['Too much trust','AI never approves; a second expert re-checks a sample.'],
+            ['Expert bottleneck','Plan their time and start small.'],
+            ['Hand over','Catalog, inventory, questions log, golden tests.'],
+            ['Next episodes','EP03 maps the estate; EP04 writes the stories.']]},
+  ],
+};
+startDeck(DECK);
+</script>
+</body>
+</html>

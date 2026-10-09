@@ -1,0 +1,415 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EP18 CI/CD with Bank Controls</title>
+<link rel="stylesheet" href="../shared/deck.css">
+</head>
+<body>
+<script src="../shared/deck.js"></script>
+<script>
+/* ============================================================
+   EP18 · CI/CD with Bank Controls — diagrams (1280x800)
+   ============================================================ */
+const poly=(pts,col,w=2.6,extra='')=>`<polyline points="${pts.map(p=>p.join(',')).join(' ')}" fill="none" stroke="${col}" stroke-width="${w}" stroke-linejoin="round" stroke-linecap="round" ${extra}/>`;
+const diamond=(x,y)=>`<rect x="${x-8}" y="${y-8}" width="16" height="16" transform="rotate(45 ${x} ${y})" fill="#E8B931" stroke="#222530" stroke-width="1.6"/>`;
+const NB='      ';
+
+/* 1 · Why bank CI/CD is different */
+function d1(){return [
+  group({x:10,y:30,w:620,h:500,k:'bad',label:'🐌 ILLUSTRATIVE LEGACY PROCESS'}),
+  box({x:30,y:76,w:580,h:64,k:'legacy',i:'📝',t:'Fill in a change ticket',s:'by hand · copy-paste the evidence'}),
+  box({x:30,y:154,w:580,h:64,k:'legacy',i:'⏳',t:'Wait for the CAB meeting',s:'once a month'}),
+  box({x:30,y:232,w:580,h:64,k:'bad',i:'📦',t:'Bundle 50 changes into one release',s:'big and risky'}),
+  box({x:30,y:310,w:580,h:64,k:'legacy',i:'🌙',t:'Deploy on a weekend night',s:'tired people · many manual steps'}),
+  box({x:30,y:388,w:580,h:64,k:'legacy',i:'📸',t:'Evidence = screenshots',s:'slow and hard to audit'}),
+  txt(320,500,'Example: long lead time and larger releases.','kl','middle','#C0392B'),
+
+  group({x:650,y:30,w:620,h:500,k:'good',label:'🚀 PROPOSED · CONTROLS AS CODE'}),
+  box({x:670,y:76,w:580,h:64,k:'aws',i:'🔀',t:'One small change',s:'one pull request'}),
+  box({x:670,y:154,w:580,h:64,k:'aws',i:'🤖',t:'Automatic checks',s:'tests · scans · policies — every time, the same way'}),
+  box({x:670,y:232,w:580,h:64,k:'good',i:'✍️',t:'Approval by risk',s:'bank policy sets standard and named approval'}),
+  box({x:670,y:310,w:580,h:64,k:'aws',i:'🐤',t:'Canary after approval',s:'rollback tested before live traffic'}),
+  box({x:670,y:388,w:580,h:64,k:'good',i:'🗄️',t:'Evidence captured by pipeline',s:'retention per bank policy'}),
+  txt(960,500,'Lead time and risk: measure after adoption.','kl','middle','#2E8B57'),
+  arrow([[610,264],[670,264]],{k:'good',st:3}),
+
+  group({x:10,y:550,w:1260,h:230,k:'human',label:'🔍 WHAT AUDITORS AND REGULATORS ASK'}),
+  box({x:30,y:596,w:290,h:150,k:'human',i:'👤',t:'Who changed it?',s:'every commit linked\nto a person'}),
+  box({x:340,y:596,w:290,h:150,k:'human',i:'✍️',t:'Who approved it?',s:'someone else —\nsegregation of duties'}),
+  box({x:650,y:596,w:290,h:150,k:'human',i:'🧪',t:'Was it tested?',s:'tests and scans,\nwith proof'}),
+  box({x:960,y:596,w:290,h:150,k:'human',i:'↩️',t:'Can you undo it?',s:'a tested rollback'}),
+
+  tag(1,600,30,'Old: slow and risky','r'),
+  tag(2,40,232,'Big releases, big risk'),
+  tag(3,1250,30,'New: small and often','r'),
+  tag(4,680,154,'Controls as code'),
+  tag(5,1250,550,'Four questions','r'),
+].join('')}
+
+/* 2 · The pipeline end to end */
+function d2(){
+  const X=i=>30+i*153;
+  const st=[['🔀','Pull request','lint · unit tests','aws'],['🏗️','Build','once · repeatable','aws'],['🧪','Test','contract · golden · NFR','aws'],['🔍','Scan','code · deps · secrets','risk'],
+            ['📦','Package','SBOM · signature','good'],['🧪','Pre-prod','DAST · load test','aws'],['🐤','Canary','1% → 100%','good'],['🗄️','Evidence','stored · locked','good']];
+  const out=[
+    group({x:10,y:30,w:1260,h:170,k:'ai',label:'🤖 AI HELPS'}),
+    group({x:10,y:210,w:1260,h:170,k:'neutral',label:'⚙️ THE PIPELINE CHECKS',lp:'b'}),
+    group({x:10,y:390,w:1260,h:170,k:'human',label:'👥 PEOPLE APPROVE',lp:'b'}),
+  ];
+  st.forEach((s,i)=>{
+    out.push(box({x:X(i),y:238,w:140,h:96,k:s[3],i:s[0],t:s[1],s:s[2]}));
+    if(i<7) out.push(arrow([[X(i)+140,286],[X(i+1),286]],{k:'neutral',st:i<2?2:i<4?3:i<5?4:i<6?5:7}));
+  });
+  out.push(
+    box({x:30,y:72,w:290,h:96,k:'ai',i:'🤖',t:'Review helper',s:'summarises the change · flags risks'}),
+    box({x:336,y:72,w:290,h:96,k:'ai',i:'🤖',t:'Explains findings',s:'and drafts fixes for scan results'}),
+    box({x:795,y:72,w:290,h:96,k:'ai',i:'🤖',t:'Drafts the change record',s:'and the release notes'}),
+    arrow([[100,168],[100,238]],{k:'ai',st:8,dash:1}),
+    arrow([[559,168],[559,238]],{k:'ai',st:8,dash:1}),
+    arrow([[865,168],[865,238]],{k:'ai',st:8,dash:1}),
+    box({x:30,y:420,w:290,h:96,k:'human',i:'👀',t:'Code review',s:'author ≠ reviewer'}),
+    box({x:642,y:420,w:290,h:96,k:'human',i:'✍️',t:'Change approval',s:'only for high-risk changes'}),
+    box({x:948,y:420,w:140,h:96,k:'human',i:'📟',t:'On-call',s:'can stop\nany rollout'}),
+    arrow([[100,420],[100,334]],{k:'human',st:1}),
+    arrow([[865,420],[865,334]],{k:'human',st:5}),
+    arrow([[1018,420],[1018,334]],{k:'human',st:6}),
+
+    group({x:10,y:580,w:1260,h:200,k:'neutral',label:'⏱️ ONE CHANGE · ILLUSTRATIVE TIMES'}),
+    ...[['👀','Review','~2 h'],['🏗️','Build + test','12 min'],['🔍','Scans','6 min'],['🧪','Pre-prod','25 min'],['✍️','Approval','0–30 min'],['🐤','Canary','40 min']]
+      .map((k,i)=>box({x:30+i*205,y:616,w:195,h:72,k:'neutral',i:k[0],t:k[1],s:k[2]})),
+    txt(640,730,'Validate these times against the bank’s actual pipeline.','kl','middle'),
+
+    tag(1,34,516,'Every change: a PR + review'),
+    tag(2,187,334,'Build once'),
+    tag(3,340,334,'Tests + scans'),
+    tag(4,646,334,'Sign it'),
+    tag(5,646,516,'Approve by risk'),
+    tag(6,952,516,'Canary + on-call'),
+    tag(7,1105,334,'Evidence'),
+    tag(8,1250,30,'AI assists, never decides','r'),
+  );
+  return out.join('');
+}
+
+/* 3 · Shift-left security: the scans */
+function d3(){return [
+  group({x:10,y:30,w:1260,h:440,k:'neutral',label:'🔍 PROPOSED SCAN COVERAGE'}),
+  table({x:30,y:66,w:1220,hh:30,rh:46,
+    cols:[['SCAN',0],['WHAT IT FINDS',220],['ON A LAPTOP',520],['ON AWS',760],['BLOCKS THE MERGE',960]],
+    rows:[['SAST · our code','unsafe code, like injection','Semgrep','in CodeBuild','critical + high'],
+          ['SCA · libraries','known vulnerable libraries','OWASP Dependency-Check','in CodeBuild','critical + high'],
+          ['Secrets','passwords and keys in code','gitleaks','in CodeBuild','always'],
+          ['Infrastructure code','open buckets, wide networks','Checkov','in CodeBuild','high'],
+          ['Container image','vulnerable OS packages','Trivy','Amazon Inspector','critical'],
+          ['Licences','licences we may not use','Trivy (licence mode)','in CodeBuild','banned licences'],
+          ['DAST · running app','a friendly attack, live','OWASP ZAP','in pre-prod','high']]}),
+
+  group({x:10,y:490,w:620,h:290,k:'risk',label:'⚖️ WHEN A SCAN FINDS SOMETHING'}),
+  lines(36,546,['🛠️ fix it — the preferred path','📝 or a bank-approved exception:',NB+'owner · reason · policy-based expiry','❌ false positive? record the evidence','⏰ expired exception → block per policy'],'kl',46),
+
+  group({x:650,y:490,w:620,h:290,k:'ai',label:'🤖 AI HELPS HERE'}),
+  lines(676,546,['🤖 explains each finding in plain words','🤖 drafts a fix as a pull request','🤖 groups the same finding across services','👀 a developer reviews every AI fix'],'kl',52),
+
+  tag(1,1250,30,'Scan every change','r'),
+  tag(2,1244,122,'Our code','r'),
+  tag(3,1244,168,'Libraries','r'),
+  tag(4,1244,214,'No secrets','r'),
+  tag(5,1244,306,'Containers too','r'),
+  tag(6,600,490,'Fix or accept','r'),
+  tag(7,1250,490,'AI drafts fixes','r'),
+].join('')}
+
+/* 4 · Supply chain: SBOM, signing, provenance */
+function d4(){return [
+  group({x:10,y:30,w:1260,h:330,k:'neutral',label:'📦 BUILD ONCE · SIGN IT · PROVE WHERE IT CAME FROM'}),
+  box({x:30,y:100,w:170,h:110,k:'neutral',i:'🔀',t:'Source',s:'reviewed\npull request'}),
+  box({x:230,y:100,w:180,h:110,k:'aws',i:'🏗️',t:'Build',s:'isolated\nrepeatable'}),
+  group({x:440,y:62,w:420,h:290,k:'good',label:'ONE ARTEFACT · THREE PROOFS'}),
+  box({x:460,y:96,w:380,h:50,k:'aws',i:'🐳',t:'Container image'}),
+  box({x:460,y:160,w:380,h:50,k:'good',i:'📋',t:'SBOM',s:'every library inside, with version'}),
+  box({x:460,y:222,w:380,h:50,k:'good',i:'✍️',t:'Signature',s:'proves who built it'}),
+  box({x:460,y:284,w:380,h:50,k:'good',i:'🧾',t:'Provenance',s:'how, where, from which commit'}),
+  box({x:890,y:100,w:170,h:110,k:'aws',i:'🗄️',t:'Registry',s:'Amazon ECR'}),
+  box({x:1090,y:100,w:160,h:110,k:'good',i:'🛡️',t:'Admission',s:'proposed: require\ntrusted images'}),
+  box({x:890,y:236,w:360,h:96,k:'aws',i:'🔁',t:'Promote, never rebuild',s:'test → pre-prod → prod\nthe same image every time'}),
+  arrow([[200,155],[230,155]],{k:'neutral',st:1}),
+  arrow([[410,155],[440,155]],{k:'aws',st:1}),
+  arrow([[860,155],[890,155]],{k:'aws',st:4}),
+  arrow([[1060,155],[1090,155]],{k:'good',st:4}),
+  arrow([[975,210],[975,236]],{k:'aws',st:5}),
+
+  group({x:10,y:380,w:620,h:400,k:'bad',label:'🚨 A NEW VULNERABILITY IS ANNOUNCED'}),
+  box({x:30,y:424,w:580,h:70,k:'bad',i:'📰',t:'New vulnerability announced',s:'illustrative dependency incident'}),
+  box({x:30,y:506,w:580,h:70,k:'aws',i:'🔎',t:'Query current SBOMs',s:'which services use this version?'}),
+  box({x:30,y:588,w:580,h:70,k:'risk',i:'🎯',t:'Identify affected services',s:'alert owners after validation'}),
+  box({x:30,y:670,w:580,h:70,k:'good',i:'🚀',t:'Patch through risk gate',s:'timing depends on exposure and tests'}),
+  arrow([[320,494],[320,506]],{k:'neutral',st:6}),
+  arrow([[320,576],[320,588]],{k:'neutral',st:6}),
+  arrow([[320,658],[320,670]],{k:'good',st:6}),
+
+  group({x:650,y:380,w:620,h:400,k:'neutral',label:'🧱 WHY IT MATTERS'}),
+  lines(676,440,['□ inventory shipped dependencies','□ test trusted-image admission','□ promote one image digest','□ measure time to assess exposure','📋 map controls to applicable rules','      with bank Security and Legal'].map(s=>s.replace(/^ {6}/,NB)),'kl',52),
+
+  tag(1,240,100,'Build once'),
+  tag(2,850,62,'SBOM: what’s inside','r'),
+  tag(3,470,352,'Signed + provenance'),
+  tag(4,1250,100,'Trusted-image gate','r'),
+  tag(5,900,332,'Promote, never rebuild'),
+  tag(6,600,380,'Trace exposure','r'),
+  tag(7,1250,380,'Why it matters','r'),
+].join('')}
+
+/* 5 · Automated change approval & segregation of duties */
+function d5(){return [
+  group({x:10,y:30,w:1260,h:300,k:'neutral',label:'✍️ THREE TYPES OF CHANGE'}),
+  box({x:30,y:76,w:390,h:230,k:'good',i:'🟢',t:'Standard change',s:'bank-approved category\nlow risk under policy\nautomated gate if allowed\ne.g. a small tested fix'}),
+  box({x:445,y:76,w:390,h:230,k:'risk',i:'🟠',t:'Normal change',s:'higher risk by bank policy\na named approver —\nnot the author\ne.g. a new payment rule'}),
+  box({x:860,y:76,w:390,h:230,k:'bad',i:'🔴',t:'Emergency change',s:'incident path under policy\nrecord evidence and access\nreview in bank-set window'}),
+
+  group({x:10,y:350,w:620,h:430,k:'aws',label:'🧮 RISK SCORE · EXAMPLE PULL REQUEST'}),
+  table({x:30,y:390,w:580,hh:30,rh:40,cols:[['FACTOR',0],['THIS CHANGE',240],['POINTS',470]],
+    rows:[['Service criticality','payment path','+3'],['Size of the change','12 files','+1'],['Tests and coverage','all green · 85%','0'],
+          ['Database change','expand only','+1'],['AI-drafted code','yes · reviewed','+1'],['Month-end freeze','no','0'],['Score','→ normal change','6']],
+    hl:{6:'risk'}}),
+  txt(36,732,'Illustrative score · thresholds set by bank policy','kl'),
+  txt(36,760,'AI drafts the summary and risk notes; a person approves.','note'),
+
+  group({x:650,y:350,w:620,h:430,k:'human',label:'👥 SEGREGATION OF DUTIES'}),
+  box({x:670,y:390,w:580,h:66,k:'human',i:'👩‍💻',t:'The author writes the change',s:'AI may help with the draft'}),
+  box({x:670,y:466,w:580,h:66,k:'human',i:'👀',t:'A different person reviews it',s:'the four-eyes rule'}),
+  box({x:670,y:542,w:580,h:66,k:'human',i:'✍️',t:'A third person approves (normal change)',s:'business or technical lead'}),
+  box({x:670,y:618,w:580,h:66,k:'aws',i:'🤖',t:'Pipeline deploys',s:'privilege model set and audited by bank'}),
+  box({x:670,y:694,w:580,h:66,k:'bad',i:'🧯',t:'Break-glass access',s:'emergencies only · time-limited · fully logged'}),
+
+  tag(1,40,76,'Standard: policy-based'),
+  tag(2,455,76,'Normal: a named approver'),
+  tag(3,870,76,'Emergency: fast, then review'),
+  tag(4,600,350,'Score the risk','r'),
+  tag(5,1240,466,'Four eyes','r'),
+  tag(6,1240,618,'Control production access','r'),
+  tag(7,1240,694,'Break-glass, logged','r'),
+].join('')}
+
+/* 6 · Progressive delivery: canary on EKS */
+function d6(){
+  const X=t=>90+t*26, Y=p=>360-p*2.6;
+  const steps=[[X(0),Y(1)],[X(10),Y(1)],[X(10),Y(10)],[X(20),Y(10)],[X(20),Y(50)],[X(30),Y(50)],[X(30),Y(100)],[X(40),Y(100)]];
+  const out=[group({x:10,y:30,w:1260,h:400,k:'neutral',label:'🐤 CANARY RELEASE ON EKS · EXAMPLE',lp:'b'})];
+  [0,50,100].forEach(p=>out.push(`<line x1="90" y1="${Y(p)}" x2="${X(40)}" y2="${Y(p)}" stroke="rgba(34,37,48,.10)"/>`,txt(82,Y(p)+4,p+'%','cl','end')));
+  [0,10,20,30,40].forEach(t=>out.push(txt(X(t),382,t+' min','cl','middle')));
+  out.push(
+    `<path d="M90 360 L${X(40)+10} 360" stroke="#222530" stroke-width="2"/>`,`<path d="M90 360 L90 84" stroke="#222530" stroke-width="2"/>`,
+    txt(1246,60,'share of traffic on the new version','hd','end'),
+    poly(steps,'#0F7F77',4),
+    txt(220,Y(1)-12,'1%','kv','middle','#0F7F77'),
+    txt(480,Y(10)-12,'10%','kv','middle','#0F7F77'),
+    txt(740,Y(50)-12,'50%','kv','middle','#0F7F77'),
+    txt(1000,Y(100)-12,'100%','kv','middle','#0F7F77'),
+    diamond(X(10),Y(10)), diamond(X(20),Y(50)), diamond(X(30),Y(100)),
+    txt(X(10)+12,Y(10)+24,'if checks pass','cl','start','#2E8B57'),
+    txt(X(20)+12,Y(50)+24,'if checks pass','cl','start','#2E8B57'),
+    txt(X(30)+12,Y(100)+24,'if checks pass','cl','start','#2E8B57'),
+    poly([[X(14),Y(10)],[X(16),Y(0)]],'#C0392B',3,'stroke-dasharray="7 5"'),
+    `<circle cx="${X(16)}" cy="${Y(0)}" r="6" fill="#C0392B"/>`,
+
+    group({x:10,y:450,w:620,h:330,k:'aws',label:'📏 AUTOMATIC CHECKS AT EVERY STEP'}),
+    kpi({x:30,y:494,w:580,h:54,k:'good',i:'✅',t:'Payment success rate',v:'bank-set guardrail'}),
+    kpi({x:30,y:556,w:580,h:54,k:'aws',i:'⚡',t:'p99 latency',v:'target to agree'}),
+    kpi({x:30,y:618,w:580,h:54,k:'aws',i:'🚨',t:'Error rate',v:'bank-set guardrail'}),
+    kpi({x:30,y:680,w:580,h:54,k:'good',i:'🔁',t:'Duplicate debits',v:'zero tolerance'}),
+    txt(320,764,'On guardrail failure: stop, assess and use tested rollback.','kl','middle','#C0392B'),
+
+    group({x:650,y:450,w:620,h:330,k:'good',label:'🚩 DEPLOY ≠ RELEASE'}),
+    box({x:670,y:494,w:580,h:80,k:'aws',i:'🚀',t:'Deploy',s:'the new code is live, but switched off'}),
+    box({x:670,y:588,w:580,h:80,k:'good',i:'🚩',t:'Release',s:'a feature flag turns it on — pilot customers first'}),
+    box({x:670,y:682,w:580,h:80,k:'neutral',i:'🗄️',t:'Database changes',s:'expand first, contract later — old and new both work'}),
+
+    tag(1,100,Y(1)-70,'Start with 1%'),
+    tag(2,X(20)+14,Y(50)+56,'Check, then grow'),
+    tag(3,X(16)+14,330,'Fail → stop and assess'),
+    tag(4,600,450,'Watch business numbers','r'),
+    tag(5,680,494,'Deploy dark'),
+    tag(6,680,588,'Release with a flag'),
+    tag(7,680,682,'Compatible DB changes'),
+  );
+  return out.join('');
+}
+
+/* 7 · Evidence, metrics and handover */
+function d7(){return [
+  group({x:10,y:30,w:620,h:420,k:'good',label:'🗄️ EVIDENCE · PROPOSED CAPTURE'}),
+  lines(36,92,['🔀 pull request + who reviewed it','✍️ approvals: who, and when','🧪 test results and coverage','🔍 scan results and exceptions','📋 SBOM, signature and provenance','🐤 canary analysis and deploy log','🔗 linked story, rule and law (EP04)'],'kl',42),
+  box({x:30,y:380,w:580,h:56,k:'good',i:'🔒',t:'Retain and search under bank policy'}),
+
+  group({x:650,y:30,w:620,h:420,k:'aws',label:'📊 HYPOTHETICAL IMPROVEMENT · NOT MEASURED'}),
+  table({x:670,y:66,w:580,hh:30,rh:56,cols:[['METRIC',0],['BEFORE',280],['AFTER',440]],
+    rows:[['Deployment frequency','monthly','daily'],['Lead time for a change','3–6 weeks','1–2 days'],['Change failure rate','15%','4%'],
+          ['Time to restore service','4 hours','35 min'],['Audit evidence','weeks of screenshots','one query']],
+    hl:{4:'good'}}),
+  txt(960,420,'Illustrative only — measure baseline and outcome.','note','middle'),
+
+  group({x:10,y:470,w:620,h:310,k:'risk',label:'⚠️ AI RISKS HERE · AND THE GUARDRAILS'}),
+  lines(36,526,['🤖 approves its own code','      → AI can never approve','🤖 a poisoned AI suggestion','      → every PR reviewed and scanned','🤖 secrets pasted into a prompt','      → secret scans · masked data'].map(s=>s.replace(/^ {6}/,NB)),'kl',40),
+
+  group({x:650,y:470,w:620,h:310,k:'aws',label:'🔜 NEXT EPISODES'}),
+  box({x:670,y:516,w:580,h:110,k:'aws',i:'📒',t:'EP19 · Shadow ledger',s:'parallel run · daily reconciliation'}),
+  box({x:670,y:646,w:580,h:110,k:'good',i:'🔀',t:'EP20 · The flip',s:'segment by segment — through this pipeline'}),
+
+  tag(1,600,30,'Evidence by design','r'),
+  tag(2,40,380,'Locked, searchable'),
+  tag(3,1250,30,'Measure the outcome','r'),
+  tag(4,600,470,'AI risks, guarded','r'),
+  tag(5,1250,470,'Next: shadow ledger','r'),
+].join('')}
+
+/* ============================================================
+   Episode config
+   ============================================================ */
+const DECK={
+  brand:'🏦 CORE BANKING PAYMENTS MODERNIZATION · AWS',
+  ep:'EP 18', epShort:'EP18', title:'CI/CD with Bank Controls', subtitle:'Execution Architecture',
+  seriesTitle:'Execution Architecture · Reference Scenario',
+  logo:'../shared/jo-logo.png', background:'../shared/background.png',
+  stages:[['🔍','Discover'],['📋','Requirements'],['📐','Design & Plan'],['🛠️','Build'],['🚀','Test & Deploy'],['🔧','Operate']],
+  stage:5,
+  glossary:{
+    CAB:['CAB','risk','A change approval forum. Its process and cadence vary by enterprise; the monthly cycle shown is illustrative.'],
+    BIGREL:['Big release','risk','Many changes shipped together. If something breaks, it is hard to know which change caused it.'],
+    LEADTIME:['Lead time','value','How long a change takes from “code written” to “live in production”. Shorter means faster value and faster fixes.'],
+    CONTROLSCODE:['Controls as code','risk','Encode bank-approved tests, scans and approval gates in the delivery pipeline.'],
+    ITGC:['ITGC','risk','IT general controls: what auditors check, like change management and access. Evidence must prove every change followed the rules.'],
+    CICD:['CI/CD','value','Continuous integration and delivery: an automated pipeline that builds, tests and releases every change.'],
+    PR:['Pull request','risk','A proposed change that another person must review before it is merged. The first control in the chain.'],
+    ARTIFACT:['Artefact','value','The built package, like a container image. Proposed control: build once and promote the same digest.'],
+    CANARY:['Canary release','risk','A small share sees the new version first. Guardrails and rollback require testing before live use.'],
+    CHANGEREC:['Change record','risk','A bank-controlled record of what, why, risk, approvals and evidence. Drafting can be automated; approval remains owned.'],
+    SAST:['SAST','risk','Static application security testing scans source code for known unsafe patterns.'],
+    SCADEP:['SCA (composition analysis)','risk','Scans open-source dependencies for known vulnerabilities. Different from strong customer authentication.'],
+    SECRETSCAN:['Secret scanning','risk','Finds passwords and keys accidentally written into code. One leaked key can open the door to attackers.'],
+    DAST:['DAST','risk','Dynamic security testing probes a running application in a controlled environment.'],
+    RISKEXC:['Risk exception','risk','A written decision to accept a finding for a while, with an owner and an expiry date. When it expires, the build fails again.'],
+    SBOM:['SBOM','value','Software bill of materials: a list of every library inside a piece of software, with versions. Like an ingredients label.'],
+    SIGN:['Code signing','risk','A digital signature on the artefact. It proves who built it, and that nobody changed it afterwards.'],
+    PROV:['Provenance','risk','A record of how, where and from which commit an artefact was built. Admission controls can use it.'],
+    ADMISSION:['Admission check','risk','A gate inside Kubernetes that refuses to run any image not signed by our pipeline.'],
+    CVE:['CVE','risk','A public ID for a vulnerability. SBOMs help trace exposure; response time must be measured.'],
+    STDCHANGE:['Standard change','value','A change category pre-approved by the bank. Automation applies only where its policy permits.'],
+    NORMCHANGE:['Normal change','risk','A change with a higher risk score. A named person — not the author — must approve it.'],
+    EMERG:['Emergency change','risk','A live-incident change handled under the bank’s emergency policy, including evidence and review timing.'],
+    SOD:['Segregation of duties','risk','No single person can write, approve and deploy a change alone. A core control in every bank audit.'],
+    BREAKGLASS:['Break-glass access','risk','Emergency production access designed with time limits, approval and audit logging under bank policy.'],
+    PROGRESSIVE:['Progressive delivery','value','Releasing step by step — 1%, 10%, 50%, 100% — and checking health at every step.'],
+    ROLLBACK:['Rollback','risk','On a failed guardrail, stop the rollout and execute a tested recovery path; database and message changes may need special handling.'],
+    BIZMETRIC:['Business health check','value','A proposed canary guardrail can include bank-approved payment outcomes, not only technical metrics.'],
+    FLAG:['Feature flag','risk','A switch that turns a feature on for chosen customers. Deploying code and releasing a feature become separate steps.'],
+    EXPAND:['Expand and contract','risk','A compatibility pattern: add new structure, migrate carefully, then remove the old part after evidence and approval.'],
+    EVIDSTORE:['Evidence store','risk','One place where every change’s proof is kept: reviews, tests, scans, approvals and deploy logs.'],
+    WORM:['Write once, read many','risk','Storage with controlled retention, such as S3 Object Lock. The bank sets retention and audit access.'],
+    DORAM:['DORA metrics','value','Four delivery measures: deploy frequency, lead time, change failure rate and time to restore. Not the EU law with the same name.'],
+    POISON:['Poisoned suggestion','risk','AI-suggested code that looks fine but hides a weakness. Reviews and scans are there to catch it.'],
+    RECON:['Reconciliation','risk','Comparing two sets of numbers to the cent. In the next episode, the shadow ledger is reconciled every day.'],
+  },
+  slides:[
+    {icon:'🏦',kicker:'EP18 · 1/7 · WHY IT’S DIFFERENT',title:'Fast and Safe Are Not Opposites',time:'00:00 – 01:45',draw:d1,
+     key:'Propose small releases and bank-approved controls as code.',next:'🔜 Next: the pipeline, end to end',
+     open:'Here is a reference delivery model for a controlled environment.',
+     land:'The pipeline should capture answers to four audit questions.',
+     gloss:[['CAB',[1]],['BIGREL',[2]],['LEADTIME',[1,3]],['CONTROLSCODE',[4]],['ITGC',[5]]],
+     demo:['Proposed proof: encode controls in a reviewed pipeline definition',
+           'Exercise <b>CodePipeline</b> and <b>CodeBuild</b> gates and inspect generated evidence'],
+     steps:[['Old: slow and risky','Illustrative manual approval and bundled release.'],
+            ['Big releases, big risk','Bundled changes can make diagnosis harder.'],
+            ['New: small and often','Proposed smaller changes, subject to bank policy.'],
+            ['Controls as code','Tests, scans and policies run the same way every time.'],
+            ['Four questions','Who changed it, who approved it, was it tested, can you undo it?']]},
+    {icon:'⚙️',kicker:'EP18 · 2/7 · THE PIPELINE',title:'One Change, End to End',time:'01:45 – 03:25',draw:d2,
+     key:'AI assists. The pipeline checks. People approve.',next:'🔜 Next: security scans',
+     open:'Let’s follow one change through the pipeline.',
+     land:'This timing is illustrative; measure the bank’s actual path.',
+     gloss:[['PR',[1]],['ARTIFACT',[2,4]],['CHANGEREC',[5]],['CANARY',[6]],['CICD',[8]]],
+     demo:['Proposed proof: define the pipeline stages and failure gates',
+           'Validate build, promotion and evidence flow across <b>CodeBuild</b>, <b>ECR</b> and <b>EKS</b>'],
+     steps:[['Every change: a PR + review','The author never reviews their own change.'],
+            ['Build once','One artefact, promoted everywhere.'],
+            ['Tests + scans','Contract, golden and NFR tests; code, library and secret scans.'],
+            ['Sign it','SBOM and signature on every artefact.'],
+            ['Approve by risk','Approval category follows bank policy.'],
+            ['Canary + on-call','1% to 100%; on-call can stop any rollout.'],
+            ['Evidence','Capture and retain under bank policy.'],
+            ['AI assists, never decides','Summaries, fix drafts, change records.']]},
+    {icon:'🔍',kicker:'EP18 · 3/7 · SHIFT-LEFT SECURITY',title:'Scan Every Change',time:'03:25 – 05:00',draw:d3,
+     key:'Find it before it ships — and fix it, or accept it in writing.',next:'🔜 Next: the software supply chain',
+     open:'Security controls should be designed into each change.',
+     land:'A developer reviews every AI fix.',
+     gloss:[['SAST',[2]],['SCADEP',[3]],['SECRETSCAN',[4]],['DAST',[1]],['RISKEXC',[6]]],
+     demo:['Proposed proof: run representative code, dependency, secret, IaC and image scans',
+           'Verify severity thresholds, exception records and <b>ECR</b> scan evidence'],
+     steps:[['Scan every change','Select coverage and gates with bank Security.'],
+            ['Our code','SAST finds unsafe patterns, like injection.'],
+            ['Libraries','SCA finds known vulnerable open-source libraries.'],
+            ['No secrets','Scan and block exposed credentials.'],
+            ['Containers too','Image scans in the pipeline and in ECR.'],
+            ['Fix or accept','Exceptions require bank approval and expiry.'],
+            ['AI drafts fixes','It explains findings; developers review the fixes.']]},
+    {icon:'📦',kicker:'EP18 · 4/7 · SUPPLY CHAIN',title:'Know What You Ship',time:'05:00 – 06:50',draw:d4,
+     key:'Promote one trusted image digest through controlled environments.',next:'🔜 Next: change approval',
+     open:'Most of our code is not written by us. It comes from open-source libraries.',
+     land:'SBOMs can speed exposure analysis; measure the response.',
+     gloss:[['SBOM',[2]],['SIGN',[3]],['PROV',[3]],['ADMISSION',[4]],['CVE',[6]]],
+     demo:['Proposed proof: generate an SBOM, sign an image and test a trusted-image admission rule',
+           'Record image digest, provenance and policy decision before promoting to <b>EKS</b>'],
+     steps:[['Build once','From a reviewed pull request, in an isolated build.'],
+            ['What’s inside','The SBOM lists every library and version.'],
+            ['Who built it, how','Signature and provenance for every image.'],
+            ['Trusted-image gate','Test admission policy for untrusted images.'],
+            ['Promote, never rebuild','The same image: test, pre-prod, prod.'],
+            ['Trace exposure','Query SBOMs; measure assessment and patch time.'],
+            ['Why it matters','Make provenance and exposure visible.']]},
+    {icon:'✍️',kicker:'EP18 · 5/7 · APPROVAL',title:'Approval by Risk, Not by Meeting',time:'06:50 – 08:25',draw:d5,
+     key:'Nobody writes, approves and deploys alone.',next:'🔜 Next: the canary release',
+     open:'Now the question every auditor asks: who approved this change?',
+     land:'Emergency access needs policy, expiry and review.',
+     gloss:[['STDCHANGE',[1]],['NORMCHANGE',[2]],['EMERG',[3]],['SOD',[5,6]],['BREAKGLASS',[7]]],
+     demo:['Proposed proof: map a pull request to a bank-approved change class',
+           'Verify author, reviewer, approver and production access separation in the audit trail'],
+     steps:[['Standard: policy-based','Pre-approved categories only where bank policy allows.'],
+            ['Normal: a named approver','Higher risk — someone other than the author.'],
+            ['Emergency: fast, then review','Bank policy defines path and review window.'],
+            ['Score the risk','Illustrative score; bank sets factors and thresholds.'],
+            ['Four eyes','Author, reviewer and approver are different people.'],
+            ['Control production access','Bank sets and audits privileged access.'],
+            ['Break-glass, logged','Emergency access is rare, short and recorded.']]},
+    {icon:'🐤',kicker:'EP18 · 6/7 · RELEASE',title:'Release in Small Steps',time:'08:25 – 10:00',draw:d6,
+     key:'Separate deployment from release; test guardrails and rollback.',next:'🔜 Next: evidence & handover',
+     open:'Now the release itself.',
+     land:'Old and new versions can run side by side.',
+     gloss:[['PROGRESSIVE',[1,2]],['ROLLBACK',[3]],['BIZMETRIC',[4]],['FLAG',[5,6]],['EXPAND',[7]]],
+     demo:['Proposed proof: challenge canary gates with failing metrics and rollback cases',
+           'Use <b>CloudWatch</b> and <b>AppConfig</b> only after bank-set thresholds and controls are tested'],
+     steps:[['Start with 1%','The new version gets a tiny share of payments.'],
+            ['Check, then grow','10%, 50%, 100% — only if every check passes.'],
+            ['Fail → stop and assess','Use a tested rollback path; measure recovery time.'],
+            ['Watch business numbers','Success rate, p99, errors, duplicates.'],
+            ['Deploy dark','The code is live but switched off.'],
+            ['Release with a flag','Pilot customers first.'],
+            ['Compatible DB changes','Expand first, contract after safe migration.']]},
+    {icon:'🗄️',kicker:'EP18 · 7/7 · EVIDENCE & HANDOVER',title:'Evidence by Design',time:'10:00 – 11:30',draw:d7,
+     key:'Capture evidence and measure delivery outcomes.',next:'🔜 Next episode: EP19 — The Shadow Ledger',
+     open:'Here is the proposed evidence chain.',
+     land:'Next: the shadow ledger — through this pipeline.',
+     gloss:[['EVIDSTORE',[1]],['WORM',[2]],['DORAM',[3]],['POISON',[4]],['RECON',[5]]],
+     demo:['Proposed proof: capture review, test, scan, approval and rollout records per change',
+           'Check <b>S3 Object Lock</b> retention and <b>Athena</b> queries against bank audit needs'],
+     steps:[['Evidence by design','Reviews, approvals, tests, scans, SBOM, canary, links.'],
+            ['Locked, searchable','Retention and auditor access follow bank policy.'],
+            ['Measure the outcome','Baseline deployment, lead time, failure and recovery.'],
+            ['AI risks, guarded','No self-approval; reviews and scans; no secrets in prompts.'],
+            ['Next: shadow ledger','EP19 parallel run · EP20 the flip.']]},
+  ],
+};
+startDeck(DECK);
+</script>
+</body>
+</html>

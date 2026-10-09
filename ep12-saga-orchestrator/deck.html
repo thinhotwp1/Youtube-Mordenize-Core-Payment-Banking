@@ -1,0 +1,421 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EP12 The Saga Orchestrator</title>
+<link rel="stylesheet" href="../shared/deck.css">
+</head>
+<body>
+<script src="../shared/deck.js"></script>
+<script>
+/* ============================================================
+   EP12 · The Saga Orchestrator — diagrams (1280x800)
+   ============================================================ */
+/* state box: terminal states get a thick border */
+function st(x,y,t,k,term){
+  const c=K[k];
+  return `<g><rect x="${x}" y="${y}" width="140" height="52" rx="10" fill="${c.f}" stroke="${c.s}" stroke-width="${term?4:2}"/>`+
+    `<text x="${x+70}" y="${y+31}" text-anchor="middle" font-size="13.5" font-weight="800" letter-spacing=".6" fill="${c.t}">${esc(t)}</text></g>`;
+}
+
+/* 1 · What the orchestrator does */
+function d1(){return [
+  box({x:470,y:120,w:340,h:420,k:'aws',i:'🔄',t:'Payment Orchestrator',s:'technical owner of workflow state\n\nsends commands\nlistens to replies\nstarts timers\nfollows approved rules'}),
+  box({x:470,y:580,w:340,h:90,k:'neutral',i:'🐘',t:'Orchestrator database',s:'saga state · inbox · outbox · timers'}),
+  box({x:40,y:135,w:330,h:90,k:'aws',i:'📥',t:'Payment Initiation (EP11)',s:'sends PaymentInitiated'}),
+  box({x:40,y:285,w:330,h:90,k:'neutral',i:'🔔',t:'Notifications',s:'bank-approved customer status'}),
+  box({x:40,y:435,w:330,h:90,k:'human',i:'🧑‍💼',t:'Ops console',s:'manual review · investigations'}),
+  box({x:910,y:120,w:330,h:80,k:'risk',i:'🛡️',t:'Screening & limits (EP16)',s:'check → passed / hit'}),
+  box({x:910,y:230,w:330,h:80,k:'legacy',i:'🏛️',t:'Ledger adapter (EP14)',s:'hold · release · post'}),
+  box({x:910,y:340,w:330,h:80,k:'aws',i:'📤',t:'Scheme gateway (EP15)',s:'send · inquire · recall'}),
+  box({x:910,y:450,w:330,h:80,k:'good',i:'🗄️',t:'Audit trail',s:'proposed append-only record'}),
+  arrow([[370,180],[470,180]],{k:'aws',st:1,label:'event'}),
+  arrow([[470,330],[370,330]],{k:'neutral',st:5,label:'status'}),
+  arrow([[370,480],[470,480]],{k:'human',st:5,both:1,label:'decide'}),
+  arrow([[810,160],[910,160]],{k:'risk',st:3,both:1,label:'check'}),
+  arrow([[810,270],[910,270]],{k:'legacy',st:3,both:1,label:'hold'}),
+  arrow([[810,380],[910,380]],{k:'aws',st:3,both:1,label:'send'}),
+  arrow([[810,490],[910,490]],{k:'good',st:3,label:'log'}),
+  arrow([[640,540],[640,580]],{k:'neutral',st:4,both:1}),
+  box({x:10,y:694,w:1260,h:86,k:'good',i:'🎯',t:'Why one orchestrator?',s:'one workflow view · reviewable state machine · ledger and scheme remain authoritative'}),
+  tag(1,50,135,'Starts with an event'),
+  tag(2,480,120,'Workflow state owner'),
+  tag(3,1230,120,'Commands and replies','r'),
+  tag(4,480,580,'Its own database'),
+  tag(5,50,435,'People in the loop'),
+  tag(6,20,694,'Why one orchestrator'),
+].join('')}
+
+/* 2 · The state machine */
+function d2(){
+  const X=[30,220,410,600,790,980];
+  const happy=[['INITIATED','neutral'],['SCREENING','aws'],['HOLDING FUNDS','aws'],['SUBMITTED','aws'],['ACCEPTED','aws'],['SETTLED','good',1]];
+  const lab=['start','passed','held','accepted','posted'];
+  const out=[group({x:10,y:30,w:1260,h:420,k:'aws',label:'🔄 PAYMENT SAGA · CANDIDATE STATE MACHINE · SLICE 1'})];
+  happy.forEach((s,i)=>{
+    out.push(st(X[i],90,s[0],s[1],s[2]));
+    if(i<5){ out.push(arrow([[X[i]+140,116],[X[i+1],116]],{k:'good',st:1}), txt((X[i]+140+X[i+1])/2,84,lab[i],'cl','middle','#2E8B57')); }
+  });
+  out.push(
+    `<line x1="765" y1="96" x2="765" y2="424" stroke="#222530" stroke-width="3" stroke-dasharray="10 7"/>`,
+    txt(755,440,'◀ compensation candidate','lbl','end','#222530'),
+    txt(775,440,'pivot candidate · confirm ▶','lbl','start','#222530'),
+    st(220,230,'MANUAL REVIEW','human'),
+    st(410,230,'RELEASING','bad'),
+    st(600,230,'INQUIRING','risk'),
+    st(980,230,'RECALL','neutral'),
+    `<g><rect x="220" y="360" width="330" height="52" rx="10" fill="${K.bad.f}" stroke="${K.bad.s}" stroke-width="4"/><text x="385" y="391" text-anchor="middle" font-size="13.5" font-weight="800" letter-spacing=".6" fill="${K.bad.t}">FAILED</text></g>`,
+    st(600,360,'INVESTIGATION','human'),
+    arrow([[290,142],[290,230]],{k:'risk',st:2,label:'hit',ly:186}),
+    arrow([[360,240],[380,240],[380,128],[410,128]],{k:'human',st:2,label:'approved',lx:380,ly:206}),
+    arrow([[260,282],[260,360]],{k:'bad',st:2,label:'rejected',ly:322}),
+    arrow([[440,142],[440,200],[395,200],[395,360]],{k:'bad',st:3,label:'hold failed',lx:395,ly:322}),
+    arrow([[630,142],[630,180],[500,180],[500,230]],{k:'bad',st:5,dash:1,label:'rejected',lx:565,ly:180}),
+    arrow([[690,142],[690,230]],{k:'risk',st:5,label:'timeout',ly:200}),
+    arrow([[740,256],[860,256],[860,142]],{k:'good',st:5,label:'arrived',lx:860,ly:200}),
+    arrow([[600,256],[550,256]],{k:'bad',st:5,dash:1}),
+    arrow([[480,282],[480,360]],{k:'bad',st:5,label:'released',ly:322}),
+    arrow([[670,282],[670,360]],{k:'human',st:6,label:'still unknown',ly:322}),
+    arrow([[1050,142],[1050,230]],{k:'neutral',st:4,dash:1,label:'dispute',ly:186}),
+
+    group({x:10,y:470,w:1260,h:310,k:'neutral',label:'📋 THE SAME MACHINE AS A TABLE · EXAMPLE ROWS'}),
+    table({x:30,y:506,w:1220,hh:28,rh:44,cols:[['STATE',0],['EVENT',260],['NEXT STATE',560],['CANDIDATE COMMAND',820]],
+      rows:[['SCREENING','ScreeningPassed','HOLDING FUNDS','HoldFunds'],
+            ['HOLDING FUNDS','FundsHeld','SUBMITTED','SendToScheme (pacs.008)'],
+            ['SUBMITTED','SchemeAccepted','ACCEPTED','PostFunds'],
+            ['SUBMITTED','TimeoutFired','INQUIRING','SendStatusInquiry (pacs.028)'],
+            ['INQUIRING','NotReceived','RELEASING','ReleaseFunds']],hl:{3:'risk'}}),
+    tag(1,40,90,'Happy path'),
+    tag(2,30,256,'People decide hits'),
+    tag(3,230,412,'Hold failure path'),
+    tag(4,765,56,'Pivot needs bank review','c'),
+    tag(5,870,300,'No answer → ask'),
+    tag(6,610,412,'Ops investigate'),
+    tag(7,1250,470,'Same machine as a table','r'),
+  );
+  return out.join('');
+}
+
+/* 3 · In the code */
+function d3(){return [
+  code({x:10,y:30,w:700,h:570,title:'PaymentSagaHandler.java · design sketch',lines:[
+    ['1','public sealed interface SagaEvent'],
+    ['2','    permits ScreeningPassed, ScreeningHit, FundsHeld,'],
+    ['3','            InsufficientFunds, SchemeAccepted, SchemeRejected,'],
+    ['4','            TimeoutFired, InquiryResult, FundsReleased {}'],
+    ['5',''],
+    ['6','@Transactional','y'],
+    ['7','void on(SagaEvent event, UUID eventId) {'],
+    ['8','  if (!inbox.firstTime(eventId)) return;   // duplicate','y'],
+    ['9','  PaymentSaga saga = sagas.load(event.paymentId());'],
+    ['10','  List<Command> next = switch (event) {','o'],
+    ['11','    case ScreeningPassed e  -> saga.holdFunds();'],
+    ['12','    case FundsHeld e        -> saga.sendToScheme();'],
+    ['13','    case SchemeAccepted e   -> saga.postFunds();'],
+    ['14','    case SchemeRejected e   -> saga.releaseFunds();'],
+    ['15','    case TimeoutFired e     -> saga.inquireStatus();'],
+    ['16','    // … one case per event — no default branch'],
+    ['17','  };','o'],
+    ['18','  sagas.save(saga);        // version check','y'],
+    ['19','  outbox.add(next);        // same transaction','y'],
+    ['20','}'],
+  ]}),
+  group({x:730,y:30,w:540,h:570,k:'good',label:'🧪 SAFETY CHECKS TO TEST'}),
+  box({x:750,y:80,w:500,h:150,k:'good',i:'🔒',t:'One transaction',s:'inbox + saga state + outbox commands\nverify atomic commit and crash replay'}),
+  box({x:750,y:250,w:500,h:150,k:'aws',i:'🧩',t:'Compiler checks known events',s:'sealed interface + switch, no default\nexternal unknowns still need a safe path'}),
+  box({x:750,y:420,w:500,h:150,k:'risk',i:'⚔️',t:'Two events at the same time?',s:'compare version retry vs locking\nbenchmark contention and deadlocks'}),
+  group({x:10,y:620,w:1260,h:160,k:'ai',label:'🤖 PROPOSED AI-ASSISTED WORKFLOW'}),
+  box({x:30,y:660,w:390,h:100,k:'ai',i:'🤖',t:'AI could draft',s:'switch and commands\nfrom approved state table'}),
+  box({x:445,y:660,w:390,h:100,k:'human',i:'👀',t:'Engineers would review',s:'transitions with bank SMEs'}),
+  box({x:860,y:660,w:390,h:100,k:'good',i:'🧪',t:'ArchUnit to add',s:'check saga/Kafka boundary (EP09)'}),
+  tag(1,690,84,'Every event is a type','r'),
+  tag(2,690,252,'Duplicate? Skip','r'),
+  tag(3,690,300,'No default branch','r'),
+  tag(4,690,516,'Same transaction','r'),
+  tag(5,760,420,'Race strategy to test'),
+  tag(6,1250,620,'AI draft, engineer review','r'),
+].join('')}
+
+/* 4 · Time is a state too */
+function d4(){return [
+  group({x:10,y:30,w:1260,h:330,k:'neutral',label:'⏱️ EVERY WAITING STATE HAS A DEADLINE · EXAMPLE'}),
+  table({x:30,y:66,w:1220,hh:28,rh:46,cols:[['WAITING IN',0],['DEADLINE',260],['IF IT PASSES',560]],
+    rows:[['SCREENING','300 ms example','bank-approved fallback (EP05)'],
+          ['HOLDING FUNDS','2 s example','check hold status; act by ledger rule'],
+          ['SUBMITTED','10 s example','approved inquiry path (e.g. pacs.028)'],
+          ['INQUIRING','5 s · 6 tries example','ops investigation queue'],
+          ['MANUAL REVIEW','4 hours example','escalate by bank policy']],hl:{2:'risk'}}),
+  group({x:10,y:380,w:620,h:400,k:'aws',label:'🧰 HOW TIMERS WORK'}),
+  box({x:30,y:420,w:580,h:66,k:'aws',i:'⏳',t:'The saga enters a waiting state'}),
+  box({x:30,y:506,w:580,h:66,k:'neutral',i:'🗄️',t:'A timer row is saved — same transaction',s:'saga_timer: payment id · fires at'}),
+  box({x:30,y:592,w:580,h:66,k:'neutral',i:'🔁',t:'The timer worker checks every second',s:'which deadlines have passed?'}),
+  box({x:30,y:678,w:580,h:66,k:'good',i:'📨',t:'TimeoutFired → back into the saga',s:'handled like any other event'}),
+  arrow([[320,486],[320,506]],{k:'aws',st:4}),
+  arrow([[320,572],[320,592]],{k:'aws',st:4}),
+  arrow([[320,658],[320,678]],{k:'good',st:4}),
+  group({x:650,y:380,w:620,h:400,k:'risk',label:'⚠️ WHY NOT A TIMER IN MEMORY?'}),
+  box({x:670,y:424,w:580,h:96,k:'bad',i:'💥',t:'Pods restart',s:'timers kept in memory are lost'}),
+  box({x:670,y:532,w:580,h:96,k:'good',i:'🗄️',t:'Timers in the database',s:'pod restart recovery; failover to test'}),
+  box({x:670,y:640,w:580,h:96,k:'risk',i:'📬',t:'A late answer?',s:'race with inquiry; process or park by approved rule'}),
+  tag(1,1250,30,'Every wait has a deadline','r'),
+  tag(2,1242,212,'Ask, never undo','r'),
+  tag(3,1242,258,'Then people','r'),
+  tag(4,600,380,'Timers in the database','r'),
+  tag(5,1250,380,'Late answers need rules','r'),
+].join('')}
+
+/* 5 · Undo before the pivot, forward after */
+function d5(){return [
+  group({x:10,y:30,w:620,h:430,k:'good',label:'↩️ BEFORE PIVOT · CANDIDATE COMPENSATION'}),
+  table({x:30,y:70,w:580,hh:30,rh:52,cols:[['STEP ALREADY DONE',0],['ITS UNDO',260]],
+    rows:[['Funds held','release if ledger permits'],['Customer limit used','restore if risk rules permit'],['Customer told “in progress”','approved status update'],['Screening passed','no technical reversal']]}),
+  box({x:30,y:340,w:580,h:100,k:'good',i:'🔁',t:'Design idempotent commands',s:'same key + adapter contract; test retries'}),
+  `<line x1="640" y1="20" x2="640" y2="468" stroke="#222530" stroke-width="3" stroke-dasharray="10 7"/>`,
+  group({x:650,y:30,w:620,h:430,k:'risk',label:'➡️ AFTER PIVOT · FORWARD RECOVERY'}),
+  table({x:670,y:70,w:580,hh:30,rh:52,cols:[['SITUATION',0],['WHAT WE DO',250]],
+    rows:[['Pivot confirmed','post by approved ledger rules'],['Posting is slow','bounded retry · example 1 min alert'],['Customer disputes','bank-led process; e.g. camt.056'],['Recall refused','investigate; approved customer answer']]}),
+  box({x:670,y:340,w:580,h:100,k:'risk',i:'⛔',t:'No blind undo after pivot',s:'bank scheme owner defines finality'}),
+  group({x:10,y:480,w:1260,h:300,k:'neutral',label:'📜 RULES FOR EVERY UNDO'}),
+  box({x:30,y:524,w:290,h:120,k:'neutral',i:'📝',t:'Append, never delete',s:'an undo is a new event\nin the history'}),
+  box({x:340,y:524,w:290,h:120,k:'neutral',i:'🔑',t:'Idempotent',s:'same key + adapter contract\ntest duplicate effects'}),
+  box({x:650,y:524,w:290,h:120,k:'neutral',i:'🔁',t:'Bounded retry',s:'backoff, then\nescalate visibly'}),
+  box({x:960,y:524,w:290,h:120,k:'neutral',i:'👀',t:'Visible',s:'on the dashboard and\nin the audit trail'}),
+  box({x:30,y:664,w:1220,h:96,k:'aws',i:'🧾',t:'Hypothetical rejection · bank SMEs confirm meaning',s:'If release is permitted: REJECTED → ReleaseFunds → FundsReleased → FAILED → approved customer reason'}),
+  tag(1,600,30,'Undo before the pivot','r'),
+  tag(2,40,340,'Undo is idempotent'),
+  tag(3,1250,30,'Forward only after','r'),
+  tag(4,1242,233,'Bank-led recall path','r'),
+  tag(5,1250,480,'Rules for every undo','r'),
+  tag(6,40,664,'Hypothetical case'),
+].join('')}
+
+/* 6 · Testing every cell */
+function d6(){
+  const cols=['Passed','Hit','Held','No funds','Accepted','Rejected','Timeout'];
+  const rows=[
+    ['SCREENING',['HOLD','REVIEW','park','park','park','park','retry']],
+    ['MANUAL REVIEW',['HOLD','ign','park','park','park','park','escalate']],
+    ['HOLDING FUNDS',['ign','park','SUBMIT','FAILED','park','park','RELEASE']],
+    ['SUBMITTED',['ign','park','ign','park','ACCEPT','RELEASE','INQUIRE']],
+    ['INQUIRING',['ign','park','ign','park','ACCEPT','RELEASE','ask again']],
+    ['RELEASING',['ign','park','ign','park','⚠ ALERT','ign','retry']],
+    ['ACCEPTED',['ign','park','ign','park','ign','⚠ ALERT','retry']],
+    ['SETTLED',['ign','ign','ign','ign','ign','ign','ign']],
+    ['FAILED',['ign','ign','ign','ign','⚠ ALERT','ign','ign']],
+  ];
+  const X0=200,Y0=92,CW=80,RH=44;
+  const out=[group({x:10,y:30,w:780,h:520,k:'ai',label:'🧮 CANDIDATE STATE × EVENT MATRIX'})];
+  cols.forEach((c,j)=>out.push(txt(X0+j*CW+CW/2,84,c,'cl','middle')));
+  rows.forEach(([name,cells],i)=>{
+    const y=Y0+i*RH;
+    out.push(txt(24,y+27,name,'cl'));
+    cells.forEach((v,j)=>{
+      const x=X0+j*CW;
+      const k=v==='ign'?'legacy':v==='park'?'risk':v.startsWith('⚠')?'bad':'good';
+      const c=K[k];
+      out.push(`<rect x="${x+2}" y="${y+2}" width="${CW-4}" height="${RH-4}" rx="5" fill="${v==='ign'?'rgba(123,129,144,.10)':c.f}" stroke="${c.s}" stroke-width="${k==='bad'?3:1}"/>`,
+        `<text x="${x+CW/2}" y="${y+RH/2+4}" text-anchor="middle" font-size="11.5" font-weight="${k==='legacy'?600:800}" fill="${k==='legacy'?'#7B8190':c.t}">${esc(v)}</text>`);
+    });
+  });
+  out.push(
+    txt(24,534,'green = next step · grey = ignore (duplicate or late) · orange = park + alert · red = dangerous','note'),
+    group({x:810,y:30,w:460,h:520,k:'neutral',label:'🧪 TEST LAYERS'}),
+    box({x:830,y:74,w:420,h:82,k:'ai',i:'🧮',t:'Transition test plan',s:'63 candidate cells → expected actions'}),
+    box({x:830,y:168,w:420,h:82,k:'aws',i:'📨',t:'Contract tests (EP08)',s:'validate event schemas'}),
+    box({x:830,y:262,w:420,h:82,k:'aws',i:'🎭',t:'Scheme simulator',s:'SMEs validate accept · reject · late'}),
+    box({x:830,y:356,w:420,h:82,k:'risk',i:'💥',t:'Chaos test',s:'kill mid-saga → verify recovery'}),
+    box({x:830,y:450,w:420,h:82,k:'good',i:'🔁',t:'Duplicate storm',s:'verify no duplicate financial effect'}),
+    group({x:10,y:570,w:1260,h:210,k:'human',label:'👀 REVIEW AND OWNERSHIP PLAN'}),
+    box({x:30,y:610,w:390,h:150,k:'ai',i:'🤖',t:'AI could draft',s:'matrix and candidate tests\nfrom approved state table'}),
+    box({x:445,y:610,w:390,h:150,k:'human',i:'📐',t:'Engineers + SMEs review',s:'orange and red cells\n3 example alerts to validate'}),
+    box({x:860,y:610,w:390,h:150,k:'good',i:'🧪',t:'Squad owns the tests',s:'CI gate proposed for each change'}),
+    tag(1,770,30,'Every state × every event','r'),
+    tag(2,520,504,'Three dangerous cells','c'),
+    tag(3,1250,262,'Late & duplicate answers','r'),
+    tag(4,1250,356,'Test crash recovery','r'),
+    tag(5,760,570,'AI drafts, architect reviews','r'),
+    tag(6,1250,570,'Proposed CI gate','r'),
+  );
+  return out.join('');
+}
+
+/* 7 · Run it and hand over */
+function d7(){
+  const tl=[['INITIATED','0 ms','neutral'],['SCREENING','+12 ms','aws'],['HOLDING FUNDS','+170 ms','aws'],['SUBMITTED','+300 ms','aws'],['ACCEPTED','+1,410 ms','aws'],['SETTLED','+1,460 ms','good']];
+  const out=[group({x:10,y:30,w:620,h:380,k:'aws',label:'🔭 ONE PAYMENT, END TO END · BY UETR · EXAMPLE'}),
+    `<line x1="60" y1="90" x2="60" y2="340" stroke="#0F7F77" stroke-width="3"/>`];
+  tl.forEach((r,i)=>{
+    const y=90+i*50, c=K[r[2]];
+    out.push(`<circle cx="60" cy="${y}" r="9" fill="${c.f}" stroke="${c.s}" stroke-width="3"/>`,txt(84,y+6,r[0],'kl'),txt(600,y+6,r[1],'kv','end',c.s));
+  });
+  out.push(
+    txt(30,394,'illustrative: inside bank 300 ms · external leg about 1.1 s','note'),
+    group({x:650,y:30,w:620,h:380,k:'good',label:'📊 PROPOSED SAGA DASHBOARD · SAMPLE'}),
+    kpi({x:670,y:72,w:580,h:52,k:'aws',i:'✈️',t:'Payments in flight',v:'1,240'}),
+    kpi({x:670,y:134,w:580,h:52,k:'good',i:'🧊',t:'Stuck for more than 30 s',v:'0 sample'}),
+    kpi({x:670,y:196,w:580,h:52,k:'risk',i:'🔎',t:'Status inquiries today (pacs.028)',v:'37'}),
+    kpi({x:670,y:258,w:580,h:52,k:'neutral',i:'↩️',t:'Compensations today',v:'0.4%'}),
+    kpi({x:670,y:320,w:580,h:52,k:'good',i:'⚡',t:'Orchestrator p99 (target 30 ms)',v:'24 ms ex.'}),
+    group({x:10,y:430,w:620,h:350,k:'human',label:'🧑‍💼 OPS CONSOLE · PEOPLE IN THE LOOP'}),
+    box({x:30,y:474,w:580,h:90,k:'human',i:'🚫',t:'Manual review queue',s:'possible sanctions hits · approve or reject'}),
+    box({x:30,y:578,w:580,h:90,k:'human',i:'🔎',t:'Investigation queue',s:'still unknown after six inquiries'}),
+    box({x:30,y:682,w:580,h:80,k:'good',i:'🗄️',t:'Audit every action',s:'second approver if bank policy requires'}),
+    group({x:650,y:430,w:620,h:350,k:'neutral',label:'📦 RELEASE EVIDENCE TO COLLECT'}),
+    kpi({x:670,y:474,w:580,h:50,k:'good',i:'🧮',t:'Candidate transition cells',v:'63 to test'}),
+    kpi({x:670,y:534,w:580,h:50,k:'good',i:'💥',t:'Chaos and duplicate tests',v:'to run'}),
+    box({x:670,y:606,w:186,h:150,k:'aws',i:'🔀',t:'EP13',s:'strangler\nrouter'}),
+    box({x:867,y:606,w:186,h:150,k:'aws',i:'🏛️',t:'EP14',s:'mainframe\nbridge'}),
+    box({x:1064,y:606,w:186,h:150,k:'aws',i:'📤',t:'EP15',s:'scheme\ngateway'}),
+    tag(1,600,30,'Follow one payment','r'),
+    tag(2,1250,30,'Dashboard proposal','r'),
+    tag(3,40,474,'Ops console'),
+    tag(4,40,682,'Every action audited'),
+    tag(5,1250,430,'Release evidence','r'),
+  );
+  return out.join('');
+}
+
+/* ============================================================
+   Episode config
+   ============================================================ */
+const DECK={
+  brand:'🏦 CORE BANKING PAYMENTS MODERNIZATION · AWS',
+  ep:'EP 12', epShort:'EP12', title:'The Saga Orchestrator', subtitle:'Reference payment scenario',
+  seriesTitle:'Core Payments Modernization · Reference',
+  logo:'../shared/jo-logo.png', background:'../shared/background.png',
+  stages:[['🔍','Discover'],['📋','Requirements'],['📐','Design & Plan'],['🛠️','Build'],['🚀','Test & Deploy'],['🔧','Operate']],
+  stage:4,
+  glossary:{
+    ORCH:['Orchestrator','value','A proposed service that tracks technical workflow state and sends the next command under bank-approved rules. Ledger and scheme records remain authoritative.'],
+    SAGA:['Saga','risk','A long-running workflow model with explicit steps, recovery actions and investigation states. Compensation depends on the bank-defined pivot and rules.'],
+    CMD:['Command vs event','value','A command asks a service to do something (“hold the funds”). An event says something happened (“funds held”).'],
+    OUTBOX:['Transactional outbox','risk','Commands are stored atomically with workflow state, then published. Delivery and downstream effects still need idempotency and recovery tests.'],
+    OPSCON:['Ops console','risk','A proposed console for authorised bank operators to review uncertain cases. The bank defines permissions and audit policy.'],
+    STATEMACH:['State machine','value','A candidate list of states and allowed transitions. Bank SMEs validate the business meaning; engineers test the implementation.'],
+    MANUAL:['Manual review','risk','A possible screening match may need an authorised person to decide under bank policy.'],
+    AM04:['Reason code AM04','value','A possible insufficient-funds code in this reference. Scheme and product specialists must confirm whether it applies.'],
+    PIVOT:['Point of no return','risk','The bank-defined point after which automatic compensation may no longer be valid. A generic acceptance event does not prove finality.'],
+    P028:['pacs.028','risk','A possible status inquiry message under the chosen scheme profile when the external outcome is unknown.'],
+    SEALED:['Sealed interface','value','A Java 21 feature that lists every possible event type. The compiler then checks that the code handles each one.'],
+    INBOX:['Inbox','risk','A proposed store of processed event IDs. It reduces duplicate handling; downstream financial effects need separate safeguards.'],
+    TXN:['Database transaction','risk','A group of local changes committed together. Atomic inbox, state and outbox writes need failure testing.'],
+    OPTLOCK:['Optimistic lock','risk','A version check that detects concurrent updates. Under contention, compare retries with pessimistic locking and benchmark waits and deadlocks.'],
+    ARCHUNIT:['ArchUnit','risk','A proposed automated check for architecture rules, such as keeping Kafka clients out of saga logic.'],
+    DEADLINE:['Deadline','risk','A bank-approved limit for waiting in a state. On expiry, the workflow must follow a reviewed next action or escalation.'],
+    BACKOFF:['Backoff','value','Waiting a little longer between each retry, so we don’t overload a system that is already slow.'],
+    TIMERWORKER:['Timer worker','value','A proposed process that polls stored deadlines; polling interval and duplicate firing need tests.'],
+    LATE:['Late answer','risk','A scheme reply after a deadline can race with an inquiry. Process or park it under approved state rules.'],
+    COMP:['Compensation','risk','The planned undo for a step, like releasing a funds hold. It is a new action, not a deletion of history.'],
+    IDEMP:['Idempotent','risk','Repeated commands produce no duplicate effect when the receiving adapter honours the key and contract. Test it.'],
+    FWD:['Forward recovery','value','After the bank-defined pivot, retry, reconcile or escalate under approved ledger and scheme rules.'],
+    C056:['camt.056','risk','A possible recall request message for the reference route; the bank confirms whether and when it applies.'],
+    APPEND:['Append-only history','risk','Every change is a new record; nothing is edited or deleted. The audit trail tells the full story.'],
+    MATRIX:['Transition matrix','value','A candidate state-event table for review with bank SMEs, then implementation and tests. Unknown events need a safe path.'],
+    PARK:['Park and alert','risk','A proposed response to an unexpected or dangerous event: pause the workflow and alert an authorised owner.'],
+    SIM:['Scheme simulator','value','A fake payment scheme for testing. It can accept, reject, time out, answer late, or answer twice.'],
+    CHAOS:['Chaos test','risk','A planned fault test, such as stopping a pod mid-workflow, to check durable recovery and duplicate financial effects.'],
+    GENTEST:['AI-generated tests','value','AI could draft tests from an approved matrix; engineers and bank SMEs review risky cells, then CI runs the accepted suite.'],
+    UETR:['UETR','value','A tracking identifier where the scheme route uses one. Correlate it with internal IDs, workflow events and timestamps.'],
+    INFLIGHT:['In-flight payment','value','A payment that has started but not finished. Normal for a few seconds; a problem if it stays.'],
+    STUCK:['Stuck payment','risk','A payment with no progress beyond a bank-approved threshold. Thirty seconds is an example alert rule.'],
+    FOUREYES:['Four-eyes principle','risk','A second approver for sensitive actions when required by the bank’s policy.'],
+    BUDGET:['Latency budget','value','A proposed time allowance per step. Thirty milliseconds at p99 is an example orchestrator target requiring a workload and test result.'],
+  },
+  slides:[
+    {icon:'🔄',kicker:'EP12 · 1/7 · THE ROLE',title:'What the Orchestrator Does',time:'00:00 – 01:55',draw:d1,
+     key:'Technical owner of workflow state, under bank-approved rules.',next:'🔜 Next: the state machine',
+     open:'This reference design shows how I would coordinate a complex payment workflow.',
+     land:'One workflow view for engineering and operations.',
+     gloss:[['ORCH',[2]],['CMD',[3]],['OUTBOX',[4]],['OPSCON',[5]],['SAGA',[6]]],
+     demo:['proposed test harness: Docker, Kafka, Postgres and a bank-reviewed <b>WireMock</b> scheme simulator',
+           'deployment option to assess: <b>EKS</b>, <b>MSK</b> and <b>Aurora</b>'],
+     steps:[['Starts with an event','PaymentInitiated arrives from the initiation service (EP11).'],
+            ['Workflow state owner','It records technical state and selects commands from approved rules.'],
+            ['Commands and replies','Screening, ledger, scheme: it asks, they answer.'],
+            ['Its own database','Proposed state, inbox, outbox and durable timers.'],
+            ['People in the loop','Bank-defined queues for possible hits and unknown outcomes.'],
+            ['Why one orchestrator','Reviewable workflow view; ledger and scheme remain authoritative.']]},
+    {icon:'🗺️',kicker:'EP12 · 2/7 · THE DESIGN',title:'The State Machine',time:'01:55 – 04:05',draw:d2,
+     key:'The bank validates state meaning and the pivot.',next:'🔜 Next: the code',
+     open:'Here is a candidate state machine for the first slice.',
+     land:'The table becomes code and tests after SME review.',
+     gloss:[['STATEMACH',[1,7]],['MANUAL',[2]],['AM04',[3]],['PIVOT',[4]],['P028',[5]]],
+     demo:['proposed: maintain an approved state table in YAML and generate code and tests from it',
+           'proposed CI: compare YAML, generated transitions and <b>CodeBuild</b> results'],
+     steps:[['Happy path','Initiated, screening, holding funds, submitted, accepted, settled.'],
+            ['People decide hits','A possible sanctions hit waits for manual review.'],
+            ['Hold failure path','Bank SMEs confirm reason code and customer response.'],
+            ['Pivot needs bank review','Acceptance alone does not prove finality.'],
+            ['No answer → ask','Unknown status may trigger an approved inquiry.'],
+            ['Ops investigate','Example six-try limit, subject to bank review.'],
+            ['Same machine as a table','Candidate state, event, next state and command.']]},
+    {icon:'☕',kicker:'EP12 · 3/7 · THE CODE',title:'In the Code: Java 21',time:'04:05 – 06:00',draw:d3,
+     key:'A Java sketch makes the engineering controls reviewable.',next:'🔜 Next: timers & timeouts',
+     open:'This Java sketch shows the proposed handler design.',
+     land:'The controls need failure tests and bank rule review.',
+     gloss:[['SEALED',[1,3]],['INBOX',[2]],['TXN',[4]],['OPTLOCK',[5]],['ARCHUNIT',[6]]],
+     demo:['planned verification: <b>mvn verify</b>, ArchUnit boundary checks and crash replay tests',
+           'proposed <b>CodeBuild</b> gate before any <b>EKS</b> deployment'],
+     steps:[['Every event is a type','A sealed interface lists all possible events.'],
+            ['Duplicate? Skip','The inbox ignores events we have already seen.'],
+            ['No default branch','Forget an event and the build fails.'],
+            ['Same transaction','Test atomic state, inbox and command writes.'],
+            ['Race strategy to test','Compare optimistic retry and locking under contention.'],
+            ['AI draft, engineer review','AI could draft; engineers and SMEs validate transitions.']]},
+    {icon:'⏱️',kicker:'EP12 · 4/7 · TIMERS',title:'Time Is a State Too',time:'06:00 – 07:30',draw:d4,
+     key:'Nothing waits forever, and nothing is undone blindly.',next:'🔜 Next: undo & the point of no return',
+     open:'Time is a state too.',
+     land:'A late answer needs an approved race rule.',
+     gloss:[['DEADLINE',[1]],['P028',[2]],['BACKOFF',[3]],['TIMERWORKER',[4]],['LATE',[5]]],
+     demo:['planned scenario: simulate a timeout and validate the permitted inquiry path',
+           'proposed metric: due timers and age of unresolved cases in <b>CloudWatch</b>'],
+     steps:[['Every wait has a deadline','Screening, funds hold, scheme, inquiry, manual review.'],
+            ['Ask, never undo','Example 10 s; scheme owner approves inquiry path.'],
+            ['Then people','Example six inquiries; operations sets escalation.'],
+            ['Timers in the database','Save with state; test duplicate firing and failover.'],
+            ['Late answers need rules','Process or park under bank-approved state rules.']]},
+    {icon:'↩️',kicker:'EP12 · 5/7 · COMPENSATION',title:'Undo Before the Pivot, Forward After',time:'07:30 – 09:20',draw:d5,
+     key:'Bank scheme and ledger owners define the pivot and recovery.',next:'🔜 Next: testing every cell',
+     open:'What happens when a step fails?',
+     land:'Customer status follows the bank-approved result.',
+     gloss:[['COMP',[1]],['IDEMP',[2]],['FWD',[3]],['C056',[4]],['APPEND',[5]]],
+     demo:['planned rejection scenario: verify whether release is permitted by the ledger contract',
+           'proposed <b>CloudWatch</b> metric: compensation count and unresolved cases'],
+     steps:[['Undo before the pivot','Candidate release or limit restoration needs bank approval.'],
+            ['Undo is idempotent','Test same key against the receiving adapter.'],
+            ['Forward only after','Recover under approved ledger rules, reconcile and alert.'],
+            ['Bank-led recall path','A dispute may use camt.056 on this reference route.'],
+            ['Rules for every undo','Append, idempotency, bounded retry and audit.'],
+            ['Hypothetical case','Reject → release only if approved → bank-defined message.']]},
+    {icon:'🧮',kicker:'EP12 · 6/7 · TESTING',title:'Test Every Cell, Not Just the Happy Path',time:'09:20 – 11:00',draw:d6,
+     key:'Sixty-three candidate cells guide a test plan.',next:'🔜 Next: run it & hand over',
+     open:'How do we know the saga is correct?',
+     land:'The approved matrix and failure evidence become release gates.',
+     gloss:[['MATRIX',[1]],['PARK',[2]],['SIM',[3]],['CHAOS',[4]],['GENTEST',[5]]],
+     demo:['test plan: 63 candidate cells; use <b>Testcontainers</b> for Kafka/Postgres and crash replay',
+           'optional fault test: stop pods under load, then verify no duplicate financial effect'],
+     steps:[['Every state × every event','9 states × 7 events = 63 candidate cells.'],
+            ['Three dangerous cells','A late “accepted” after we released the funds → park and alert.'],
+            ['Late & duplicate answers','Use a bank-reviewed scheme simulator.'],
+            ['Test crash recovery','Stop mid-saga; check state and financial effects.'],
+            ['AI drafts, architect reviews','AI could draft; engineers and SMEs challenge risky cells.'],
+            ['Proposed CI gate','A named squad would own approved tests.']]},
+    {icon:'🔭',kicker:'EP12 · 7/7 · OPERATE',title:'Operations and Handover',time:'11:00 – 12:20',draw:d7,
+     key:'Visibility supplies evidence for decisions.',next:'🔜 Next episode: EP13 — The Strangler Router',
+     open:'Finally, here is a proposed operating view.',
+     land:'Release needs test, reconciliation and operations evidence.',
+     gloss:[['UETR',[1]],['INFLIGHT',[2]],['STUCK',[2]],['FOUREYES',[3,4]],['BUDGET',[5]]],
+     demo:['proposed trace: correlate an internal ID with UETR where applicable in <b>Jaeger</b>',
+           'proposed <b>X-Ray</b> trace and <b>CloudWatch</b> dashboard; figures are illustrative'],
+     steps:[['Follow one payment','Sample timestamps, not measured production latency.'],
+            ['Dashboard proposal','In flight, stuck, inquiries, compensations and p99.'],
+            ['Ops console','Bank-defined review and investigation queues.'],
+            ['Every action audited','Second approver if bank policy requires.'],
+            ['Release evidence','Run tests, reconcile effects and review operations.']]},
+  ],
+};
+startDeck(DECK);
+</script>
+</body>
+</html>

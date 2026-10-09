@@ -1,0 +1,496 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EP03 Mapping the Estate</title>
+<link rel="stylesheet" href="../shared/deck.css">
+</head>
+<body>
+<script src="../shared/deck.js"></script>
+<script>
+/* ============================================================
+   EP03 · Mapping the Payment Estate — diagrams (1280x800 canvas)
+   ============================================================ */
+const line=(d,col,extra='')=>`<path d="${d}" fill="none" stroke="${col}" stroke-width="2.4" stroke-linejoin="round" ${extra}/>`;
+
+/* 1 · What the CMDB says vs what really runs */
+function d1(){return [
+  group({x:10,y:30,w:600,h:500,k:'neutral',label:'📘 WHAT THE CMDB SAYS'}),
+  box({x:40,y:100,w:180,h:70,k:'neutral',i:'📱',t:'Channels'}),
+  box({x:210,y:260,w:220,h:80,k:'legacy',i:'🏛️',t:'Core payments',s:'mainframe'}),
+  box({x:400,y:100,w:180,h:70,k:'neutral',i:'🌐',t:'Schemes'}),
+  box({x:400,y:410,w:180,h:70,k:'neutral',i:'📒',t:'General ledger'}),
+  line('M130 170 L130 300 L210 300','#7B8190','marker-end="url(#ah-legacy)"'),
+  line('M430 300 L490 300 L490 170','#7B8190','marker-end="url(#ah-legacy)"'),
+  line('M320 340 L320 445 L400 445','#7B8190','marker-end="url(#ah-legacy)"'),
+  txt(310,508,'4 systems · 3 interfaces','note','middle'),
+
+  group({x:650,y:30,w:620,h:500,k:'risk',label:'🔍 WHAT REALLY RUNS'}),
+  box({x:670,y:80,w:170,h:64,k:'neutral',i:'📱',t:'Channels'}),
+  box({x:870,y:80,w:170,h:64,k:'neutral',i:'🛡️',t:'Fraud engine'}),
+  box({x:1070,y:80,w:180,h:64,k:'neutral',i:'🌐',t:'Schemes'}),
+  box({x:670,y:230,w:170,h:64,k:'neutral',i:'🚫',t:'Sanctions'}),
+  box({x:870,y:222,w:170,h:80,k:'legacy',i:'🏛️',t:'Core payments',s:'CICS · DB2'}),
+  box({x:1070,y:230,w:180,h:64,k:'risk',i:'💧',t:'Treasury report'}),
+  box({x:670,y:390,w:170,h:64,k:'bad',i:'🕵️',t:'AML monitoring'}),
+  box({x:870,y:390,w:170,h:64,k:'risk',i:'🏬',t:'Data warehouse'}),
+  box({x:1070,y:390,w:180,h:64,k:'neutral',i:'📒',t:'General ledger'}),
+  line('M755 144 L755 190 L925 190 L925 222','#7B8190','marker-end="url(#ah-legacy)"'),
+  line('M1040 240 L1055 240 L1055 112 L1070 112','#7B8190','marker-end="url(#ah-legacy)"'),
+  line('M1040 290 L1055 290 L1055 422 L1070 422','#7B8190','marker-end="url(#ah-legacy)"'),
+  arrow([[985,222],[985,144]],{k:'risk',st:2,both:1,dash:1,label:'API',ly:183}),
+  arrow([[870,262],[840,262]],{k:'risk',st:2,both:1,dash:1}),
+  arrow([[1040,262],[1070,262]],{k:'risk',st:2,dash:1}),
+  arrow([[955,302],[955,390]],{k:'risk',st:2,dash:1,label:'file',ly:346}),
+  arrow([[900,302],[900,340],[755,340],[755,390]],{k:'bad',st:3,dot:1,w:3.6,label:'DB read',lx:828,ly:340}),
+  txt(960,508,'9 systems · 8 interfaces · 5 never documented','note','middle'),
+
+  group({x:10,y:560,w:960,h:220,k:'bad',label:'✂️ IF WE CUT A HIDDEN WIRE'}),
+  box({x:30,y:610,w:300,h:140,k:'bad',i:'🕵️',t:'AML feed may fail',s:'impact needs bank assessment'}),
+  box({x:350,y:610,w:300,h:140,k:'risk',i:'💧',t:'Treasury report is empty',s:'wrong liquidity decisions'}),
+  box({x:670,y:610,w:280,h:140,k:'risk',i:'📒',t:'Finance totals don’t match',s:'month-end is late'}),
+  group({x:990,y:560,w:280,h:220,k:'good',label:'🎯 THE GOAL'}),
+  lines(1010,616,['✅ every system','✅ every interface','✅ every payment flow','✅ owner · volume','✅ how critical it is'],'kl',30),
+
+  tag(1,300,30,'CMDB is a starting view'),
+  tag(2,1262,30,'Hidden wires','r'),
+  tag(3,680,454,'Reads DB2 directly'),
+  tag(4,300,560,'Cut the wrong wire'),
+  tag(5,1262,560,'Map everything','r'),
+].join('')}
+
+/* 2 · Many sources, one graph, four views */
+function d2(){
+  const src=[['📘','CMDB','official list · often incomplete'],['📬','MQ & file definitions','queues · Connect:Direct'],['🌐','Network flow logs','who really talks to whom'],
+             ['⏰','Batch schedule','Control-M jobs and times'],['📈','SMF records','what runs · how often'],['🕸️','EP02 call graph','programs · tables'],
+             ['🚨','Incident history','what broke before'],['🗣️','Interviews','operations · experts']];
+  return [
+    group({x:10,y:30,w:270,h:620,k:'neutral',label:'📥 SOURCES'}),
+    ...src.map((s,i)=>box({x:24,y:70+i*70,w:242,h:56,k:'neutral',i:s[0],t:s[1],s:s[2]})),
+    box({x:320,y:70,w:290,h:80,k:'neutral',i:'🧰',t:'Loaders',s:'import and link the facts · no AI'}),
+    box({x:320,y:190,w:290,h:150,k:'aws',i:'🕸️',t:'Estate knowledge graph',s:'every system, interface,\nflow and table — linked'}),
+    box({x:320,y:380,w:290,h:110,k:'ai',i:'🤖',t:'AI assistant',s:'finds conflicts between sources\ndrafts diagrams · suggests questions'}),
+    box({x:320,y:520,w:290,h:110,k:'risk',i:'⚠️',t:'Conflict found',s:'network logs: AML ↔ DB2\nCMDB: no link → ask the owner'}),
+    arrow([[280,110],[320,110]],{k:'neutral',st:2}),
+    arrow([[465,150],[465,190]],{k:'aws',st:2}),
+    arrow([[560,340],[560,380]],{k:'ai',st:3}),
+    arrow([[560,490],[560,520]],{k:'risk',st:3}),
+
+    group({x:650,y:30,w:620,h:460,k:'good',label:'🗺️ FOUR VIEWS OF THE ESTATE'}),
+    box({x:670,y:76,w:285,h:190,k:'good',i:'🗺️',t:'1 · Systems & interfaces',s:'who talks to whom,\nhow, and how often'}),
+    box({x:970,y:76,w:285,h:190,k:'good',i:'💸',t:'2 · Payment flows',s:'each payment type,\nhop by hop'}),
+    box({x:670,y:280,w:285,h:190,k:'good',i:'⏰',t:'3 · Batch & time',s:'the night schedule\nand every cut-off'}),
+    box({x:970,y:280,w:285,h:190,k:'good',i:'🗄️',t:'4 · Data',s:'who reads and writes\neach table'}),
+    arrow([[610,265],[650,265]],{k:'good',st:4}),
+
+    box({x:760,y:520,w:400,h:90,k:'good',i:'✅',t:'Reviewed map',s:'owners confirm their scope'}),
+    arrow([[960,490],[960,520]],{k:'good',st:6}),
+    group({x:10,y:670,w:1260,h:110,k:'human',label:'👥 WALK-THE-FLOW WORKSHOPS'}),
+    box({x:30,y:705,w:380,h:60,k:'human',i:'🧑‍💼',t:'Operations',s:'“that job also sends a file to Treasury”'}),
+    box({x:430,y:705,w:380,h:60,k:'human',i:'🧓',t:'Mainframe experts',s:'confirm programs and tables'}),
+    box({x:830,y:705,w:420,h:60,k:'human',i:'✍️',t:'System owners',s:'sign the map for their system'}),
+    arrow([[1040,670],[1040,610]],{k:'human',st:5,label:'verify',ly:640}),
+
+    tag(1,120,30,'None is complete'),
+    tag(2,330,340,'One graph'),
+    tag(3,330,490,'AI finds conflicts'),
+    tag(4,1262,30,'Four views','r'),
+    tag(5,1262,670,'People verify','r'),
+    tag(6,770,610,'Owner-reviewed map'),
+  ].join('');
+}
+
+/* 3 · The current-state map: systems and interfaces */
+function d3(){return [
+  group({x:10,y:30,w:200,h:430,k:'neutral',label:'📱 CHANNELS'}),
+  box({x:24,y:70,w:172,h:64,k:'neutral',i:'📱',t:'Mobile app'}),
+  box({x:24,y:150,w:172,h:64,k:'neutral',i:'💻',t:'Internet banking'}),
+  box({x:24,y:230,w:172,h:64,k:'neutral',i:'🏦',t:'Branches'}),
+  box({x:24,y:310,w:172,h:64,k:'neutral',i:'🏢',t:'Corporate files',s:'host-to-host'}),
+  group({x:230,y:30,w:180,h:430,k:'neutral',label:'🔌 INTEGRATION'}),
+  box({x:244,y:110,w:152,h:70,k:'legacy',i:'📬',t:'IBM MQ',s:'real-time'}),
+  box({x:244,y:300,w:152,h:70,k:'legacy',i:'📁',t:'Connect:Direct',s:'file transfer'}),
+  group({x:430,y:30,w:380,h:430,k:'legacy',label:'🏛️ MAINFRAME CORE'}),
+  box({x:450,y:76,w:340,h:70,k:'legacy',i:'🖥️',t:'CICS payments',s:'online payment programs'}),
+  box({x:450,y:186,w:340,h:70,k:'legacy',i:'🗄️',t:'DB2',s:'ledger · balances · history'}),
+  box({x:450,y:296,w:340,h:70,k:'legacy',i:'🌙',t:'Batch jobs',s:'JCL · run by Control-M'}),
+  group({x:840,y:190,w:200,h:270,k:'neutral',label:'⚡ REAL-TIME CHECKS'}),
+  box({x:854,y:230,w:172,h:60,k:'risk',i:'🛡️',t:'Fraud engine',s:'per payment'}),
+  box({x:854,y:300,w:172,h:60,k:'risk',i:'🚫',t:'Sanctions',s:'per payment'}),
+  box({x:854,y:370,w:172,h:60,k:'neutral',i:'🔔',t:'Notifications',s:'via MQ'}),
+  group({x:1060,y:30,w:210,h:430,k:'neutral',label:'🌐 SCHEMES'}),
+  box({x:1074,y:76,w:182,h:60,k:'neutral',i:'🌍',t:'SWIFT'}),
+  box({x:1074,y:150,w:182,h:60,k:'neutral',i:'💶',t:'SEPA',s:'SCT · SCT Inst'}),
+  box({x:1074,y:224,w:182,h:60,k:'neutral',i:'💵',t:'FedNow'}),
+  box({x:1074,y:370,w:182,h:60,k:'legacy',i:'🏛️',t:'Clearing files',s:'overnight'}),
+
+  group({x:10,y:480,w:1260,h:200,k:'risk',label:'🔍 CANDIDATE DOWNSTREAM DEPENDENCIES'}),
+  box({x:30,y:530,w:230,h:84,k:'risk',i:'💧',t:'Treasury',s:'liquidity · nightly file'}),
+  box({x:280,y:530,w:230,h:84,k:'risk',i:'📒',t:'General ledger',s:'nightly file'}),
+  box({x:530,y:530,w:230,h:84,k:'risk',i:'🏬',t:'Data warehouse',s:'nightly file'}),
+  box({x:780,y:530,w:230,h:84,k:'bad',i:'🕵️',t:'AML monitoring',s:'reads DB2 directly ⚠'}),
+  box({x:1030,y:530,w:220,h:84,k:'risk',i:'📑',t:'Regulatory reports',s:'monthly file'}),
+
+  group({x:10,y:700,w:1260,h:84,k:'neutral'}),
+  line('M30 728 L80 728','#0F7F77'), txt(90,733,'real-time (MQ / API)','kl'),
+  line('M290 728 L340 728','#7B8190','stroke-dasharray="8 6"'), txt(350,733,'batch file','kl'),
+  line('M490 728 L540 728','#C0392B','stroke-dasharray="1 7" stroke-linecap="round" stroke-width="3.6"'), txt(550,733,'candidate direct DB read — validate before change','kl'),
+  txt(30,766,'Example estate: 23 systems · 61 interfaces · 9 nightly files · 1 direct DB read','hd'),
+
+  arrow([[210,145],[244,145]],{k:'aws',st:1}),
+  arrow([[196,338],[244,338]],{k:'legacy',st:1,dash:1}),
+  arrow([[396,145],[420,145],[420,111],[450,111]],{k:'aws',st:2}),
+  arrow([[396,333],[450,333]],{k:'legacy',st:2,dash:1}),
+  arrow([[620,146],[620,186]],{k:'legacy',st:2,both:1}),
+  arrow([[620,296],[620,256]],{k:'legacy',st:2,both:1}),
+  arrow([[790,126],[822,126],[822,260],[854,260]],{k:'aws',st:3,both:1}),
+  arrow([[790,138],[832,138],[832,330],[854,330]],{k:'aws',st:3,both:1}),
+  arrow([[790,100],[1074,100]],{k:'aws',st:4,label:'MQ / API',lx:940}),
+  arrow([[1050,100],[1050,180],[1074,180]],{k:'aws',st:4}),
+  arrow([[1050,180],[1050,254],[1074,254]],{k:'aws',st:4}),
+  arrow([[790,350],[812,350],[812,470],[1048,470],[1048,400],[1074,400]],{k:'legacy',st:4,dash:1}),
+  arrow([[620,366],[620,530]],{k:'legacy',st:5,dash:1,label:'nightly files',ly:498}),
+  arrow([[790,232],[800,232],[800,530]],{k:'bad',st:6,dot:1,w:3.6}),
+
+  tag(1,30,70,'Ways in'),
+  tag(2,460,76,'The core'),
+  tag(3,860,190,'Customers wait'),
+  tag(4,1262,30,'Schemes','r'),
+  tag(5,330,480,'Owners to validate'),
+  tag(6,790,614,'Test replacement first'),
+  tag(7,1262,700,'The estate in numbers','r'),
+].join('')}
+
+/* 4 · Payment flow catalog + one payment traced hop by hop */
+function d4(){
+  const hops=[['📱','App','','neutral'],['🚪','API','20 ms','legacy'],['📬','MQ','15 ms','legacy'],['🖥️','CICS checks','40 ms','legacy'],
+              ['🛡️','Fraud','180 ms','risk'],['🚫','Sanctions','120 ms','risk'],['🗄️','DB2 posting','30 ms','legacy'],['🌐','Scheme','1,100 ms','neutral']];
+  const out=[
+    group({x:10,y:30,w:1260,h:340,k:'neutral',label:'📋 PAYMENT FLOW CATALOG · EXAMPLE ESTATE'}),
+    table({x:30,y:70,w:1220,hh:32,rh:50,
+      cols:[['PAYMENT FLOW',0],['PER DAY',330],['SYSTEMS',460],['RULES (EP02)',590],['SCHEME',760],['STP RATE',1060]],
+      rows:[['Domestic instant','1.8 M','9','64','SEPA Inst · FedNow','97%'],
+            ['Domestic batch','6.5 M','11','112','SEPA SCT · ACH','99%'],
+            ['Bulk payroll files','2.4 M','12','87','SEPA SCT','98%'],
+            ['Cross-border','0.3 M','14','141','SWIFT','82%'],
+            ['Standing orders','0.9 M','7','23','SEPA SCT','99%']],
+      hl:{0:'aws'}}),
+    group({x:10,y:400,w:1260,h:380,k:'aws',label:'🔎 ILLUSTRATIVE HOP TIMES · MEASURE IN BANK LOGS'}),
+  ];
+  hops.forEach((h,i)=>{
+    const x=30+i*153;
+    out.push(box({x,y:450,w:130,h:70,k:h[3],i:h[0],t:h[1],s:h[2]}));
+    if(i<7) out.push(arrow([[x+130,485],[x+153,485]],{k:'neutral',st:3}));
+  });
+  out.push(
+    box({x:444,y:570,w:220,h:70,k:'human',i:'🧑‍🔧',t:'Manual repair',s:'3% · slow and costly'}),
+    arrow([[554,520],[554,570]],{k:'risk',st:4,dash:1,label:'3%',ly:545}),
+    `<rect x="30" y="680" width="323" height="36" rx="8" fill="rgba(15,127,119,.22)" stroke="#0F7F77" stroke-width="1.6"/>`,
+    `<rect x="353" y="680" width="877" height="36" rx="8" fill="rgba(79,93,117,.12)" stroke="#4F5D75" stroke-width="1.6"/>`,
+    `<rect x="90" y="675" width="239" height="46" rx="8" fill="none" stroke="#C9661E" stroke-width="2.4" stroke-dasharray="6 5"/>`,
+    txt(191,703,'example internal time · 0.4 s','kl','middle'),
+    txt(791,703,'scheme round trip · 1.1 s','kl','middle'),
+    txt(1230,666,'total ≈ 1.5 s','kl','end'),
+    txt(209,744,'fraud + sanctions = 0.3 s','note','middle'),
+    tag(1,400,30,'Every payment type'),
+    tag(2,700,30,'Volume · rules · STP'),
+    tag(3,700,400,'Follow one payment'),
+    tag(4,454,640,'Manual repair = cost'),
+    tag(5,652,520,'Candidate constraint'),
+    tag(6,1262,520,'Outside our control','r'),
+  );
+  return out.join('');
+}
+
+/* 5 · The night: batch schedule and critical path */
+function d5(){
+  const X=h=>120+h*70;                 // hours after 16:00 → x
+  const rowY=r=>130+(r-1)*60;          // rows 1..6
+  const bar=(r,h0,h1,t,k)=>{const c=K[k];return `<g><rect x="${X(h0)}" y="${rowY(r)}" width="${X(h1)-X(h0)}" height="36" rx="7" fill="${c.f}" stroke="${c.s}" stroke-width="2"/>`+
+    `<text x="${(X(h0)+X(h1))/2}" y="${rowY(r)+23}" text-anchor="middle" font-size="12.5" font-weight="700" fill="${c.t}">${esc(t)}</text></g>`};
+  const out=[group({x:10,y:30,w:1260,h:500,k:'neutral',label:'🌙 THE NIGHT · BATCH SCHEDULE · EXAMPLE',lp:'b'})];
+  ['16:00','18:00','20:00','22:00','00:00','02:00','04:00','06:00','08:00'].forEach((t,i)=>{
+    out.push(`<line x1="${X(i*2)}" y1="74" x2="${X(i*2)}" y2="470" stroke="rgba(34,37,48,.10)" stroke-width="1"/>`, txt(X(i*2),66,t,'cl','middle'));
+  });
+  out.push(
+    `<rect x="${X(0)}" y="80" width="${X(4)-X(0)}" height="22" rx="5" fill="rgba(46,139,87,.18)"/>`,
+    `<rect x="${X(4)}" y="80" width="${X(13.5)-X(4)}" height="22" rx="5" fill="rgba(201,102,30,.20)"/>`,
+    `<rect x="${X(13.5)}" y="80" width="${X(16)-X(13.5)}" height="22" rx="5" fill="rgba(46,139,87,.18)"/>`,
+    txt((X(2)+X(4))/2,96,'online: full','cl','middle'),
+    txt((X(4)+X(13.5))/2,96,'online: memo posting only','cl','middle'),
+    txt(24,96,'ONLINE','hd'),
+  );
+  ['Payments','Ledger','Interest & fees','Finance','Risk & AML','Reporting'].forEach((t,i)=>out.push(txt(24,rowY(i+1)+23,t,'kl')));
+  out.push(
+    `<rect x="${X(13.5)}" y="116" width="${X(14)-X(13.5)}" height="354" fill="rgba(232,185,49,.28)"/>`,
+    `<line x1="${X(1.5)}" y1="74" x2="${X(1.5)}" y2="470" stroke="#C0392B" stroke-width="2.4" stroke-dasharray="8 6"/>`,
+    `<line x1="${X(14)}" y1="74" x2="${X(14)}" y2="470" stroke="#2E8B57" stroke-width="2.4" stroke-dasharray="8 6"/>`,
+    txt(X(14),488,'06:00 morning peak','note','middle'),
+    txt(X(1.5),488,'17:30 cut-off','note','middle'),
+    bar(1,2,3.5,'clearing file','bad'),
+    bar(2,4,7,'end-of-day posting','bad'),
+    bar(3,7,9,'interest & fees','bad'),
+    bar(4,3.5,4.5,'treasury','neutral'),
+    bar(4,9,10.5,'GL file','bad'),
+    bar(5,10.5,12,'AML extract','bad'),
+    bar(6,12,13.5,'reports','bad'),
+    arrow([[X(3.5),148],[420,148],[420,190]],{k:'bad',st:3}),
+    arrow([[X(7),208],[630,208],[630,250]],{k:'bad',st:3}),
+    arrow([[X(9),268],[770,268],[770,310]],{k:'bad',st:3}),
+    arrow([[X(10.5),328],[875,328],[875,370]],{k:'bad',st:3}),
+    arrow([[X(12),388],[980,388],[980,430]],{k:'bad',st:3}),
+
+    group({x:10,y:550,w:1260,h:230,k:'neutral',label:'💡 WHAT THE NIGHT TELLS US'}),
+    box({x:30,y:596,w:390,h:150,k:'risk',i:'⏳',t:'The night is full',s:'about 30 minutes of slack\nbefore the morning peak'}),
+    box({x:440,y:596,w:390,h:150,k:'bad',i:'🔗',t:'One late job delays the rest',s:'payroll day: posting runs late →\nAML late → reports late'}),
+    box({x:850,y:596,w:400,h:150,k:'good',i:'🎯',t:'Potential benefit to test',s:'remove a verified workload\nmeasure batch impact after cutover'}),
+
+    tag(1,X(1.5)+8,116,'17:30 cut-off'),
+    tag(2,X(4)+10,116,'Online is limited'),
+    tag(3,X(4)+10,250,'Critical path'),
+    tag(4,X(14)+8,450,'30 min slack'),
+    tag(5,450,596,'One delay spreads'),
+    tag(6,860,596,'Measure batch change'),
+  );
+  return out.join('');
+}
+
+/* 6 · Value vs risk heatmap → choose the first slice */
+function d6(){
+  const PX=r=>80+r*640, PY=v=>620-v*560;
+  const bub=(r,v,rad,k,t,side='r')=>{const c=K[k],x=PX(r),y=PY(v);
+    return `<circle cx="${x}" cy="${y}" r="${rad}" fill="${c.f}" stroke="${c.s}" stroke-width="2.4"/>`+
+      txt(side==='r'?x+rad+8:x-rad-8,y+5,t,'kl',side==='r'?'start':'end');};
+  return [
+    group({x:10,y:30,w:750,h:640,k:'neutral',label:'🗺️ VALUE vs RISK · EXAMPLE ESTATE'}),
+    `<rect x="80" y="60" width="320" height="280" fill="rgba(46,139,87,.10)"/>`,
+    `<rect x="400" y="60" width="320" height="280" fill="rgba(201,102,30,.10)"/>`,
+    `<rect x="80" y="340" width="320" height="280" fill="rgba(79,93,117,.07)"/>`,
+    `<rect x="400" y="340" width="320" height="280" fill="rgba(192,57,43,.08)"/>`,
+    txt(92,84,'START HERE','hd','start','#2E8B57'),
+    txt(708,330,'PLAN CAREFULLY','hd','end','#C9661E'),
+    txt(92,608,'WARM-UPS','hd','start','#4F5D75'),
+    txt(708,608,'LEAVE FOR LATER','hd','end','#C0392B'),
+    `<path d="M80 620 L724 620" stroke="#222530" stroke-width="2" marker-end="url(#ah-neutral)"/>`,
+    `<path d="M80 620 L80 56" stroke="#222530" stroke-width="2" marker-end="url(#ah-neutral)"/>`,
+    txt(400,650,'migration risk →','kl','middle'),
+    `<text class="kl" x="50" y="340" transform="rotate(-90 50 340)" style="text-anchor:middle">business value →</text>`,
+    bub(.35,.85,26,'good','Domestic instant · retail mobile ★'),
+    bub(.12,.45,18,'neutral','Payment status API (read-only)'),
+    bub(.72,.75,30,'risk','Bulk payroll files','l'),
+    bub(.86,.58,14,'risk','Cross-border','l'),
+    bub(.62,.50,38,'risk','Domestic batch','l'),
+    bub(.38,.22,20,'neutral','Standing orders'),
+    bub(.95,.92,32,'bad','Ledger (system of record)','l'),
+
+    group({x:780,y:30,w:490,h:200,k:'neutral',label:'🧮 HOW WE SCORE'}),
+    txt(800,80,'VALUE','hd','start','#0F7F77'),
+    lines(800,106,['• revenue and new products','• regulatory deadline','• customer impact','• MIPS change to measure'],'kl',26),
+    txt(1035,80,'RISK','hd','start','#C0392B'),
+    lines(1035,106,['• rules to rebuild (EP02)','• interfaces to change','• peak volume','• batch dependency','• direct DB reads'],'kl',24),
+
+    group({x:780,y:250,w:490,h:230,k:'neutral',label:'🏁 TOP CANDIDATES'}),
+    table({x:800,y:290,w:450,hh:30,rh:46,
+      cols:[['FLOW',0],['VALUE',190],['RISK',270],['VERDICT',345]],
+      rows:[['Domestic instant','8.5','3.5','Start'],['Status API','4.5','1.2','Warm-up'],['Bulk payroll','7.5','7.5','Later']],
+      hl:{0:'good'}}),
+    box({x:780,y:500,w:490,h:170,k:'ai',i:'🤖',t:'AI drafts the scores',s:'from the knowledge graph and the rules catalog\narchitects and business owners adjust and agree'}),
+    box({x:10,y:694,w:1260,h:80,k:'good',i:'🎯',t:'A good first slice',s:'high value · low risk · clear boundary · easy rollback · teaches the team'}),
+
+    tag(1,400,30,'Value vs risk'),
+    tag(2,1262,30,'Clear scores','r'),
+    tag(3,790,500,'AI drafts, people agree'),
+    tag(4,PX(.35),PY(.85)-44,'Start here','c'),
+    tag(5,PX(.12),PY(.45)+36,'Warm-up','c'),
+    tag(6,PX(.95),PY(.92)+48,'Ledger last','c'),
+    tag(7,20,694,'A good first slice'),
+  ].join('');
+}
+
+/* 7 · Slice 1: the decision on one page */
+function d7(){return [
+  group({x:10,y:30,w:760,h:500,k:'good',label:'🎯 SLICE 1 · DOMESTIC INSTANT PAYMENTS · OUTBOUND'}),
+  txt(36,82,'IN SCOPE','hd','start','#2E8B57'),
+  lines(36,112,['✅ retail customers, mobile app','✅ domestic instant, outbound','✅ up to a pilot amount limit','✅ new orchestration + scheme gateway'],'kl',30),
+  txt(400,82,'OUT OF SCOPE','hd','start','#C0392B'),
+  lines(400,112,['❌ corporate and bulk files','❌ cross-border (SWIFT)','❌ inbound payments','❌ ledger move — stays on mainframe'],'kl',30),
+  txt(36,262,'DEPENDS ON','hd'),
+  lines(36,290,['fraud API · sanctions API · ledger adapter (ACL)','sample reviewed rules and characterization tests'],'kl',28),
+  txt(36,368,'INTERFACES','hd'),
+  txt(36,396,'3 new · 1 replaced · 0 direct DB reads (example)','kl'),
+  txt(36,446,'WHY THIS SLICE','hd'),
+    txt(36,474,'proposed value · risk to validate · ledger stays put','kl'),
+
+  group({x:790,y:30,w:480,h:240,k:'aws',label:'📏 EXAMPLE SUCCESS MEASURES'}),
+  lines(810,84,['• proposed p99 target: half a second','• no duplicate debit on retry','• STP against measured baseline','• cost and MIPS change measured','• fallback rehearsed before launch'],'kl',34),
+  box({x:790,y:290,w:480,h:110,k:'risk',i:'↩️',t:'Fallback plan',s:'flag reroutes new requests\nin-flight effects need a separate plan'}),
+  box({x:790,y:430,w:480,h:100,k:'human',i:'✍️',t:'ADR-001 · Proposed slice',s:'bank technology, payments and risk review'}),
+
+  group({x:10,y:560,w:1260,h:220,k:'aws',label:'🔜 WHAT HAPPENS NEXT · REQUIREMENTS STAGE'}),
+  box({x:30,y:610,w:290,h:120,k:'aws',i:'📋',t:'EP04 · User stories',s:'regulation and rules\nfor slice 1'}),
+  box({x:340,y:610,w:290,h:120,k:'aws',i:'🎯',t:'EP05 · NFRs',s:'p99 · TPS · RPO / RTO\nfor slice 1'}),
+  box({x:650,y:610,w:290,h:120,k:'aws',i:'🔐',t:'EP06 · Security',s:'security and compliance\nby design'}),
+  box({x:960,y:610,w:290,h:120,k:'aws',i:'📐',t:'EP07 · Architecture',s:'target design\nand ADRs'}),
+  arrow([[320,670],[340,670]],{k:'aws',st:7}),
+  arrow([[630,670],[650,670]],{k:'aws',st:7}),
+  arrow([[940,670],[960,670]],{k:'aws',st:7}),
+  arrow([[175,530],[175,610]],{k:'good',st:7}),
+
+  tag(1,560,30,'One clear slice'),
+  tag(2,560,76,'What we don’t do'),
+  tag(3,170,256,'Dependencies'),
+  tag(4,1262,30,'Success KPIs','r'),
+  tag(5,800,400,'Rehearsed rollback'),
+  tag(6,800,530,'Approval required'),
+  tag(7,520,560,'Next episodes'),
+].join('')}
+
+/* ============================================================
+   Episode config
+   ============================================================ */
+const DECK={
+  brand:'🏦 CORE BANKING PAYMENTS MODERNIZATION · AWS',
+  ep:'EP 03', epShort:'EP03', title:'Mapping the Payment Estate', subtitle:'Execution Architect · reference scenario',
+  seriesTitle:'Enterprise Modernization · Reference Series',
+  callout:{title:'🧪 EVIDENCE PLAN',first:'Method:',second:'Bank check:'},
+  logo:'../shared/jo-logo.png', background:'../shared/background.png',
+  stages:[['🔍','Discover'],['📋','Requirements'],['📐','Design & Plan'],['🛠️','Build'],['🚀','Test & Deploy'],['🔧','Operate']],
+  stage:1,
+  glossary:{
+    CMDB:['CMDB','risk','A system and configuration record. Compare its entries with runtime evidence and owner knowledge.'],
+    IFACE:['Interface','value','Any way two systems exchange data: a message, an API call, a file or a shared table. Each one must keep working after the move.'],
+    HIDDEN:['Hidden dependency','risk','A link nobody wrote down, like a report that reads the ledger directly. Cut it by mistake and something important stops.'],
+    BLAST:['Blast radius','risk','Everything that breaks if one part fails or changes. Mapping shows the blast radius before we touch anything.'],
+    OWNER:['System owner','value','The named person accountable for a system. They confirm the map for their system and approve changes to it.'],
+    GRAPH:['Knowledge graph','value','Connects systems, flows and evidence sources. Query results still need source and owner validation.'],
+    NETFLOW:['Network flow logs','value','Records of which servers really talk to each other, and how much. They reveal links that the documents forgot.'],
+    SCHED:['Batch scheduler','risk','The tool, like Control-M, that starts every night job in the right order. Its plan is the real timeline of the bank’s night.'],
+    CONFLICT:['Data conflict','risk','When two sources disagree, like the CMDB and the network logs. Each conflict becomes a question for a person — never a guess.'],
+    WORKSHOP:['Walk-the-flow workshop','value','Operations, experts and owners follow one real payment on the map, step by step. It catches what tools miss.'],
+    MQ:['IBM MQ','cost','Messaging technology in this reference estate. The bank confirms its actual flow and route.'],
+    CD:['Connect:Direct','risk','A secure file-transfer tool for batch files between systems and banks. Many hidden dependencies are nightly files.'],
+    AML:['AML monitoring','risk','A control dependency in this scenario. Its owner and compliance team assess the impact of any data-feed change.'],
+    GL:['General ledger','value','Finance’s master books. Payments must reach it correctly every night, or month-end does not close.'],
+    DBREAD:['Direct DB read','risk','Another system reading the mainframe database directly. It bypasses every interface, so it must be replaced before the data moves.'],
+    FLOW:['Payment flow','value','One type of payment from start to end, like domestic instant or bulk payroll. Each flow is a candidate slice to move.'],
+    STP:['STP rate','cost','Straight-through processing: the share of payments that need no human touch. Every lost point means people repairing payments by hand.'],
+    LATENCY:['Latency budget','value','A proposed time allocation for each step. Measure it at the bank’s real peak and percentile.'],
+    BULK:['Bulk payment file','risk','One file with thousands of payments, like a company payroll. Big peaks that the old batch handles at night.'],
+    SCT:['SEPA SCT vs SCT Inst','value','Two European schemes: SCT settles within a business day; SCT Inst settles in seconds, 24/7. Customers now expect the second.'],
+    WINDOW:['Batch window','risk','An overnight job period in this sample. The bank confirms its actual window and capacity.'],
+    CUTOFF:['Cut-off time','value','The last moment a payment can be processed today. After it, the payment moves to the next business day.'],
+    CRIT:['Critical path','risk','The chain of jobs where any delay pushes the end time later. It decides when the bank is ready in the morning.'],
+    MEMO:['Memo posting','risk','A possible deferred posting pattern. The bank confirms accounting treatment and customer-visible balances.'],
+    OVERRUN:['Batch overrun','risk','When the batch finishes late. Reports, statements and sometimes regulatory files are late too.'],
+    HEATMAP:['Heatmap','value','A chart that places every option by value and risk. It turns a long debate into one picture a board can read.'],
+    VALUE:['Value score','value','A bank-defined score using customer impact, timing and measurable cost opportunity.'],
+    RISK:['Risk score','risk','Points for rules to rebuild, interfaces to change, peak volume and hidden dependencies. Higher means move it later.'],
+    SLICE:['Slice','value','One thin piece of the business that we move end to end, like one payment type for one customer group.'],
+    WARMUP:['Warm-up slice','risk','A small, very low-risk first step, like a read-only status API. The team practises the full pipeline before the real slice.'],
+    SCOPE:['Scope boundary','risk','A clear line between what the slice does and doesn’t do. It stops the project from growing quietly.'],
+    KPI:['Success KPI','value','A bank-approved target with a baseline, measurement point and test.'],
+    ROLLBACK:['Rollback plan','risk','New traffic may reroute; in-flight and external effects need separate recovery procedures.'],
+    ADR:['ADR','risk','Architecture Decision Record: one page per big decision and why it was made. Auditors and future teams see the reasoning.'],
+    PILOT:['Pilot limit','risk','A safe maximum amount for the first customers. It caps the impact if something unexpected happens.'],
+  },
+  slides:[
+    {icon:'🧭',kicker:'EP03 · 1/7 · WHY MAP FIRST',title:'Map Before You Move',time:'00:00 – 01:45',draw:d1,
+     key:'You can’t safely move what you haven’t mapped.',next:'🔜 Next: many sources, one graph',
+     open:'We now test the current-state map with bank owners.',
+     land:'The map supports a bank-owned first-slice decision.',
+     gloss:[['CMDB',[1]],['HIDDEN',[2]],['DBREAD',[3]],['BLAST',[4]],['OWNER',[5]]],
+     callout:['Query sample dependencies and show each evidence source.',
+              'Confirm actual links, owners, criticality and impacts.'],
+     steps:[['CMDB starts the map','Compare records with runtime and owners.'],
+            ['Hidden wires','Candidate links need confirmation.'],
+            ['Direct DB reads','The AML–DB2 link is illustrative.'],
+            ['Cut the wrong wire','Bank owners assess operational and legal impact.'],
+            ['Evidence-backed map','Show scope, volume, owner and open gaps.']]},
+    {icon:'🕸️',kicker:'EP03 · 2/7 · THE METHOD',title:'Many Sources, One Graph, Four Views',time:'01:45 – 03:30',draw:d2,
+     key:'Tools collect, AI questions, people confirm.',next:'🔜 Next: the current-state map',
+     open:'Where does the map come from? Not from one document.',
+     land:'Refresh evidence and ask owners to review changes.',
+     gloss:[['GRAPH',[2]],['NETFLOW',[1]],['SCHED',[1]],['CONFLICT',[3]],['WORKSHOP',[5]]],
+     callout:['Propose a graph with source and confidence per link.',
+              'Walk representative flows with operations and system owners.'],
+     steps:[['None is complete','CMDB, MQ, network logs, schedule, SMF, call graph, incidents, interviews.'],
+            ['One graph','Link available facts with their evidence.'],
+            ['AI finds conflicts','It turns each disagreement into a question for a person.'],
+            ['Four views','Systems, payment flows, batch and time, data.'],
+            ['People verify','Walk-the-flow workshops with operations and experts.'],
+            ['Reviewed map','Owners confirm their scope; gaps remain visible.']]},
+    {icon:'🗺️',kicker:'EP03 · 3/7 · VIEW 1 · SYSTEMS & INTERFACES',title:'The Current-State Map',time:'03:30 – 05:20',draw:d3,
+     key:'Every interface is a promise we must keep after the move.',next:'🔜 Next: follow the money',
+     open:'Here is the first view: systems and interfaces.',
+     land:'The counts shown are illustrative until measured.',
+     gloss:[['MQ',[1]],['CD',[1]],['AML',[5,6]],['GL',[5]],['DBREAD',[6]]],
+     callout:['Model this estate and query candidate dependencies.',
+              'Verify counts, timing, flow semantics and direct reads.'],
+     steps:[['Ways in','Mobile, internet banking, branches, corporate files.'],
+            ['The core','CICS online programs, DB2 ledger, nightly batch.'],
+            ['Checks in sample','Bank confirms fraud and sanctions path per flow.'],
+            ['Networks','Possible market-specific scheme routes.'],
+            ['Candidate dependencies','Owners verify Treasury, ledger and reports.'],
+            ['Test replacement','Validate AML feed before removing any direct read.'],
+            ['Example counts','23 systems, 61 interfaces, 9 nightly files.']]},
+    {icon:'💸',kicker:'EP03 · 4/7 · VIEW 2 · PAYMENT FLOWS',title:'Follow the Money',time:'05:20 – 07:10',draw:d4,
+     key:'Measure every hop before you promise any speed.',next:'🔜 Next: the night',
+     open:'The second view is about payment flows.',
+     land:'Knowing this stops us from promising speeds we cannot deliver.',
+     gloss:[['FLOW',[1]],['STP',[2,4]],['SCT',[1]],['LATENCY',[5]],['BULK',[1]]],
+     callout:['Plan per-hop traces and p99 measurements.',
+              'Replace example volumes and times with bank data.'],
+     steps:[['Every payment type','Five illustrative flows; assumed daily volume.'],
+            ['Volume · rules · STP','What each flow touches, and how often people step in.'],
+            ['Follow one payment','Hop times are sample inputs, not results.'],
+            ['Manual repair = cost','Measure real exception rate and causes.'],
+            ['Candidate constraint','Fraud and sanctions time needs validation.'],
+            ['External time','Measure scheme round-trip separately.']]},
+    {icon:'🌙',kicker:'EP03 · 5/7 · VIEW 3 · BATCH & TIME',title:'The Night Is Full',time:'07:10 – 08:45',draw:d5,
+     key:'A removed batch workload may shorten the night; measure it.',next:'🔜 Next: choose the first slice',
+     open:'The third view is time.',
+     land:'Measure the batch impact after each approved change.',
+     gloss:[['CUTOFF',[1]],['MEMO',[2]],['CRIT',[3]],['WINDOW',[4]],['OVERRUN',[5]]],
+     callout:['Trace batch dependencies and measure slack across peak days.',
+              'Validate cut-off, posting meaning and downstream effects.'],
+     steps:[['Sample cut-off','Bank confirms product and exceptions.'],
+            ['Assumed window','Bank confirms balance and posting behavior.'],
+            ['Critical path','Verify links in scheduler and with owners.'],
+            ['30 min slack','Illustrative margin to measure at peaks.'],
+            ['One delay spreads','Test downstream timing and controls.'],
+            ['Batch reduction','Benefit must be measured after cutover.']]},
+    {icon:'🎯',kicker:'EP03 · 6/7 · CHOOSE THE FIRST SLICE',title:'Value vs Risk: Where to Start',time:'08:45 – 10:35',draw:d6,
+     key:'Use value and risk scores to structure a bank decision.',next:'🔜 Next: candidate first slice',
+     open:'Now we have the map. So which slice do we move first?',
+     land:'A good first slice also teaches the team something.',
+     gloss:[['HEATMAP',[1]],['VALUE',[2]],['RISK',[2]],['SLICE',[4,7]],['WARMUP',[5]]],
+     callout:['Compare candidate slices with visible assumptions.',
+              'Bank owners choose weights and approve the boundary.'],
+     steps:[['Two questions','How much value? How much risk?'],
+            ['Clear scores','Value: revenue, deadlines, customers, MIPS. Risk: rules, interfaces, peaks.'],
+            ['AI drafts, people agree','Scores support the decision; they don’t make it.'],
+            ['Candidate first slice','Domestic instant appears favorable in this example.'],
+            ['Warm-up','A read-only status API to practise the pipeline.'],
+            ['Ledger gate','Defer until controls and evidence are ready.'],
+            ['A good first slice','Clear boundary, value, risk and credible fallback.']]},
+    {icon:'✍️',kicker:'EP03 · 7/7 · THE DECISION',title:'Slice 1 — On One Page',time:'10:35 – 12:25',draw:d7,
+     key:'This one-page slice is a proposal for bank review.',next:'🔜 Next episode: EP04 — From Regulation to User Stories',
+     open:'Here is an illustrative first-slice proposal.',
+     land:'Open domain questions stay visible in the decision record.',
+     gloss:[['SCOPE',[1,2]],['PILOT',[1]],['KPI',[4]],['ROLLBACK',[5]],['ADR',[6]]],
+     callout:['Draft an ADR with assumptions, dependencies and exit gates.',
+              'Technology, payments and risk owners approve actual scope.'],
+     steps:[['One clear slice','Outbound domestic instant, retail, mobile, pilot limit.'],
+            ['What we don’t do','No bulk, no cross-border, no inbound, no ledger move.'],
+            ['Dependencies','Fraud and sanctions APIs, ledger adapter, EP02 rules and tests.'],
+            ['Success KPIs','Proposed p99, retry, STP and measured cost.'],
+            ['Fallback plan','Flag reroutes new requests; in-flight needs a plan.'],
+            ['Approval required','Bank technology, payments and risk owners.'],
+            ['Next episodes','EP04 stories · EP05 NFRs · EP06 security · EP07 architecture.']]},
+  ],
+};
+startDeck(DECK);
+</script>
+</body>
+</html>

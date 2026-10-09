@@ -1,0 +1,169 @@
+# EP 16 · Screening & Fraud: Final Script
+
+**Series:** Core Payments Modernization — execution architecture (Stage 4: Build). **Delivery:** clear English for global technology leaders. This is an illustrative bank scenario; Financial Crime, Risk, Legal and Payments owners set and approve the actual policy.
+
+**How to read it**
+- **Bold** = stress this word.
+- A full stop = a short pause.
+- A new **[tag]** = a longer pause. Draw your arrow with the pen here.
+- Numbers are written as words, so they are easy to read aloud.
+
+## Time plan
+
+<!-- TIMETABLE -->
+| Slide | Words | Length | Timestamp |
+|---|---|---|---|
+| 1 · Catch Fraud, Keep Friction Low | 213 | 01:50 | 00:00 – 01:50 |
+| 2 · Where Each Check Sits | 212 | 01:50 | 01:50 – 03:40 |
+| 3 · Customer Screening Boundary | 260 | 02:10 | 03:40 – 05:50 |
+| 4 · The Fraud Decision in 150 ms | 229 | 01:55 | 05:50 – 07:45 |
+| 5 · When Fraud Is Slow or Down | 218 | 01:50 | 07:45 – 09:35 |
+| 6 · From Alert to Decision | 192 | 01:40 | 09:35 – 11:15 |
+| 7 · Evidence and Ownership Handover | 244 | 02:05 | 11:15 – 13:20 |
+| **Total** | **1568** | **13:20** | at 125 words per minute, plus 6 s per slide for drawing |
+
+---
+
+<!-- slide:1 -->
+## Slide 1 · Catch Fraud, Keep Friction Low
+
+**[tag ①]** Faster payments shrink the time available to detect harm. In this reference scenario, decisions are time-sensitive and a later recall may not recover funds. Exact finality and recall rights depend on the scheme and jurisdiction; bank specialists own that interpretation.
+
+**[tag ②]** The diagram highlights three risk classes the bank may need to address: authorised push-payment scams, mule activity, and sanctions restrictions. Their definitions and required controls are bank policy questions.
+
+**[tag ③]** Engineering must make the trade-off visible. Missed fraud may harm customers and the bank; false alarms may block legitimate payments and overload analysts. Liability and customer treatment vary, so Risk and Legal set the acceptable balance.
+
+**[tag ④]** So our goal is a balance: catch fraud, and keep friction low. Every rule and every threshold is a trade-off.
+
+**[tag ⑤]** My execution role is to turn signed risk requirements into four components: rules and limits, an adapter to an approved fraud engine, a controlled status feed, and case-handling plus outage paths. This is a design proposal, not a claim that I own the bank's fraud policy.
+
+**[tag ⑥]** Why does a CFO care? Fraud losses, reimbursement exposure, false positives and investigation cost all affect outcomes. I would ask Finance and Risk for the bank's actual loss and cost baseline before claiming a business case. Fraud is also a **cost** topic.
+<!-- /slide -->
+
+---
+
+<!-- slide:2 -->
+## Slide 2 · Where Each Check Sits
+
+**[tag ①]** A time budget forces an explicit placement decision. The drawing puts confirmation checks such as Verification of Payee and authentication before submission. The bank confirms the scheme timing and customer journey.
+
+**[tag ②]** In the reference design, rules and limits get a forty-millisecond target, and fraud scoring gets one hundred and fifty. These are **performance budgets to test**, not measured service times. Mandatory controls may require a different flow.
+
+**[tag ③]** Some monitoring looks for patterns after a payment; blocked or uncertain payments may create cases. Financial Crime decides which checks must happen before, during or after the transaction.
+
+**[tag ④]** The diagram shows a precomputed blocked-customer status feed as **one possible** sanctions control. It is not a blanket statement that sanctions can always sit outside the flow. Legal and Financial Crime must check the applicable rules, lists and screening points.
+
+**[tag ⑤]** Precomputed status could reduce latency, but the claimed one-hundred-and-twenty-millisecond saving and two-millisecond read are **hypotheses**. I would benchmark them and document freshness, missed-event risk and audit evidence. If a real-time screen is required, the design must include it.
+
+**[tag ⑥]** The execution decision is to place each approved check where its legal deadline, risk and latency can all be met. The three lanes on the slide are a discussion tool for the bank's owners, not a universal compliance model.
+<!-- /slide -->
+
+---
+
+<!-- slide:3 -->
+## Slide 3 · Customer Screening Boundary
+
+**[tag ①]** Here is an **illustrative** interface to an existing screening function owned by Financial Crime. The bank decides which lists, entities and events must be screened, under its jurisdictions and policy. My concern is how an approved decision reaches the payment path reliably.
+
+**[tag ②]** The slide shows scheduled screening and event-driven updates, with fuzzy matching for spelling variants. Frequency and matching policy need approval by Financial Crime, including what happens when a feed is late.
+
+**[tag ③]** Potential matches can go to an analyst; false positives and true matches need governed decisions. A good-guy list and four-eyes review are possible controls, but the bank must specify eligibility, expiry and approval. Engineering should make that decision traceable.
+
+**[tag ④]** If the approved policy marks an account as blocked, a status event can flow to the platform. The design must handle both bulk refresh and urgent changes, prove delivery, and fail safely if status becomes stale.
+
+**[tag ⑤]** The engineering boundary shown here stores an approved account status and applies it to a payment decision. AC06 and two milliseconds are example code and target values; the bank validates the reason mapping and benchmark. This component does not itself decide who should be screened.
+
+**[tag ⑥]** I would not use this architecture slide as legal advice. The bank's Legal and Financial Crime teams must interpret the current instant-payments regulation, list obligations and any per-transaction controls, then sign the required screening design.
+
+**[tag ⑦]** I would instrument coverage, possible matches, review time, feed lag and time to apply an urgent block. Under one hour is an **illustrative service target**, not an observed result or legal standard.
+<!-- /slide -->
+
+---
+
+<!-- slide:4 -->
+## Slide 4 · The Fraud Decision in 150 ms
+
+**[tag ①]** Now the fraud decision, with a proposed one-hundred-and-fifty-millisecond budget. The adapter could collect approved **features**: recent activity, a new payee, confirmation result, device signals and amount patterns. Risk and privacy owners choose the actual signals. In-memory counters are a technical option; ten milliseconds is a benchmark target.
+
+**[tag ②]** The adapter calls the bank-approved fraud service, owned by the fraud team. The zero-to-one-thousand score and reason format are **sample contracts**; a real bank may expose a different decision interface.
+
+**[tag ③]** A versioned policy maps the approved response to a decision. Risk owns thresholds and actions; developers make them testable and observable.
+
+**[tag ④]** The slide's six-hundred and eight-hundred-and-fifty thresholds only illustrate **allow, step-up and block**. They are not a recommended fraud policy. Risk must test false positives, loss exposure and customer messaging before choosing actions.
+
+**[tag ⑤]** One hundred and fifty milliseconds at p99 is the design budget including network time. It must be measured at realistic load with the actual fraud service.
+
+**[tag ⑥]** A sample decision might be step-up at score seven hundred and twenty, with reasons such as a new payee and unusual amount. The platform should retain the approved decision inputs and policy version so a reviewer can reconstruct it.
+
+**[tag ⑦]** Generative AI could help **draft** adapter code, tests and candidate features. The fraud team must validate each feature. This reference design keeps live decisions in the bank-approved policy and model, not a generative response.
+<!-- /slide -->
+
+---
+
+<!-- slide:5 -->
+## Slide 5 · When Fraud Is Slow or Down
+
+**[tag ①]** What if the fraud service is slow or unavailable? A **circuit breaker** can expose normal, degraded and recovery states. The bank must decide whether payments may proceed without a full score.
+
+**[tag ②]** The reference ADR proposes a **degraded** mode with simple rules and lower limits. This remains a bank risk decision, not an accepted production policy. A technical spike would test the mechanics; Risk would decide if the mode is permissible.
+
+**[tag ③]** Recovery should be gradual: limited traffic first, then broader traffic only after stable results. The bank's runbook defines who approves the return to normal.
+
+**[tag ④]** The slide shows **hypothetical** degraded rules: a lower cap, a different route for a new payee, a response to a name mismatch and later scoring. None should be copied into a bank policy without Risk, Legal and Payments approval. Later scoring cannot reverse money already sent.
+
+**[tag ⑤]** A controlled feature flag could activate an approved mode quickly. Access, audit and the scope of the switch need explicit ownership.
+
+**[tag ⑥]** If degraded payments are allowed, later **re-scoring** can create cases, but it is detection after the fact. The on-call team and Risk need visibility during the outage, not only after recovery.
+
+**[tag ⑦]** I would schedule controlled fault tests of this path and record time to detection, decision and recovery. The test frequency belongs to the bank's operational plan.
+<!-- /slide -->
+
+---
+
+<!-- slide:6 -->
+## Slide 6 · From Alert to Decision
+
+**[tag ①]** A blocked or reported payment may start a **case**. The case type, ownership and deadline come from the bank's operations and Financial Crime processes.
+
+**[tag ②]** AI drafts a short case summary: what happened, and why it was flagged. It uses masked data, runs in the bank's region, and every line links back to the source data.
+
+**[tag ③]** Then an analyst checks the facts, and often calls the customer.
+
+**[tag ④]** An analyst follows bank policy to decide and escalate. Extra review, regulatory reporting and any recall are domain and legal decisions. The platform should capture the evidence and approval trail.
+
+**[tag ⑤]** Confirmed cases may become **labels** for model review. The fraud team decides whether a label is reliable and whether retraining is appropriate; model governance approves any change.
+
+**[tag ⑥]** I would measure missed fraud and false alarms side by side, with review time, step-up rate and analyst effort. Risk owners define the outcome labels and acceptable trade-off.
+
+**[tag ⑦]** AI summaries may invent facts or expose private data, so I would require source links, approved data handling and human review. Model drift needs ongoing monitoring set by the fraud team. AI helps the analyst; it does not decide the case.
+<!-- /slide -->
+
+---
+
+<!-- slide:7 -->
+## Slide 7 · Evidence and Ownership Handover
+
+**[tag ①]** Here is how I would organise execution. Start from bank-approved rule cards, such as account status and duplicate treatment, with IDs that connect policy to code and tests.
+
+**[tag ②]** AI can draft Java code and given-when-then tests. Engineers and domain owners review different things: implementation and meaning.
+
+**[tag ③]** AI could help draft **synthetic** scam and mule scenarios, subject to review for realism and privacy. Synthetic does not automatically mean safe.
+
+**[tag ④]** A proposed backtest would use an authorised history window, such as twelve months of properly protected data, to estimate misses and false positives. This is a plan, not a result.
+
+**[tag ⑤]** Before release, Risk would sign thresholds and the model governance team would approve the live model, according to the bank's process.
+
+**[tag ⑥]** The CI gate checks every change: the rule tests, the golden tests from episode two, the synthetic scenarios, a latency test against the one hundred and fifty millisecond budget, and a check that no customer data goes into a prompt.
+
+**[tag ⑦]** The slide lists candidate scenarios: a scam pattern, a mule signal, a blocked account, a fraud outage and an urgent status update. Expected outcomes, AC06 mapping and one-hour or one-hundred-and-fifty-millisecond targets must come from approved policy and measured tests.
+
+**[tag ⑧]** Fourteen rules, one hundred and twenty scenarios and ninety-six milliseconds at p99 are **illustrative dashboard values**, not results I have measured for a bank. The real output would be a signed policy, reproducible tests and load evidence. Episode seventeen examines how to test the pieces **together**.
+<!-- /slide -->
+
+---
+
+## Presenter notes
+
+- Keep the English clear and conversational; pause at each diagram tag.
+- Read figures as examples or targets unless measured evidence is available.
+- Ask bank domain owners to confirm payment meaning, policy and acceptance before implementation.

@@ -1,0 +1,418 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EP13 The Strangler Router</title>
+<link rel="stylesheet" href="../shared/deck.css">
+</head>
+<body>
+<script src="../shared/deck.js"></script>
+<script>
+/* ============================================================
+   EP13 · The Strangler Router & Feature Flags — diagrams (1280x800)
+   ============================================================ */
+const poly=(pts,col,w=2.6,extra='')=>`<polyline points="${pts.map(p=>p.join(',')).join(' ')}" fill="none" stroke="${col}" stroke-width="${w}" stroke-linejoin="round" stroke-linecap="round" ${extra}/>`;
+const diamond=(x,y)=>`<rect x="${x-7}" y="${y-7}" width="14" height="14" transform="rotate(45 ${x} ${y})" fill="#E8B931" stroke="#222530" stroke-width="1.6"/>`;
+
+/* 1 · One front door */
+function d1(){return [
+  group({x:10,y:30,w:1260,h:400,k:'neutral',label:'🚪 THE STRANGLER FACADE · ONE FRONT DOOR'}),
+  box({x:30,y:170,w:180,h:110,k:'neutral',i:'📱',t:'Channels',s:'mobile · web\ncorporate'}),
+  box({x:250,y:170,w:200,h:110,k:'aws',i:'🚪',t:'API Gateway',s:'who is calling?\nIdempotency-Key'}),
+  box({x:490,y:150,w:240,h:150,k:'aws',i:'🔀',t:'Payment Router',s:'asks one question:\nold or new?'}),
+  box({x:530,y:330,w:160,h:70,k:'aws',i:'🚩',t:'Feature flags',s:'AppConfig'}),
+  box({x:800,y:70,w:450,h:110,k:'legacy',i:'🏛️',t:'Legacy route',s:'IBM MQ → CICS · COBOL → DB2'}),
+  box({x:800,y:270,w:450,h:110,k:'aws',i:'☁️',t:'New platform',s:'initiation → orchestrator → scheme gateway'}),
+  arrow([[210,225],[250,225]],{k:'neutral',st:1}),
+  arrow([[450,225],[490,225]],{k:'aws',st:1}),
+  arrow([[730,200],[765,200],[765,125],[800,125]],{k:'legacy',st:3,label:'start: 100%*',lx:765,ly:160}),
+  arrow([[730,250],[765,250],[765,325],[800,325]],{k:'aws',st:3,label:'pilot: a few %',lx:765,ly:290}),
+  arrow([[610,330],[610,300]],{k:'aws',st:4,dash:1}),
+
+  group({x:10,y:450,w:620,h:330,k:'good',label:'✅ WHAT THE ROUTER DOES'}),
+  lines(36,510,['✓ reads approved routing facts','✓ applies bank-owned rules from flags','✓ adds an internal trace header: X-Route','✓ forwards the request — nothing else','⏱️ 20 ms design target (EP05)'],'kl',50),
+  group({x:650,y:450,w:620,h:330,k:'bad',label:'⛔ WHAT THE ROUTER MUST NEVER DO'}),
+  lines(676,510,['⛔ invent bank payment policy','⛔ store payments or balances','⛔ change a payment on the way through','⛔ guess when unsure → proposed: legacy'],'kl',56),
+
+  tag(1,40,170,'Same front door'),
+  tag(2,500,150,'One question'),
+  tag(3,1240,270,'A dial, not a switch','r'),
+  tag(4,540,400,'Rules from flags'),
+  tag(5,600,450,'Thin and fast','r'),
+  tag(6,1250,450,'Never guess','r'),
+].join('')}
+
+/* 2 · How the router decides */
+function d2(){
+  const facts=[['🏷️','Payment type','instant · standard · bulk'],['📱','Channel','mobile · web · corporate'],['👤','Customer segment','staff · retail · SME · corporate'],
+               ['💶','Amount','in EUR'],['🔢','Customer bucket','0–99, from the customer ID'],['🚩','Flags','from AppConfig']];
+  const grid=(x0,y0,n)=>{let s='';for(let i=0;i<100;i++){const c=i%20,r=Math.floor(i/20);
+    s+=`<rect x="${x0+c*18}" y="${y0+r*18}" width="14" height="14" rx="3" fill="${i<n?'rgba(15,127,119,.75)':'rgba(123,129,144,.22)'}"/>`;}return s;};
+  return [
+    group({x:10,y:30,w:400,h:500,k:'neutral',label:'📥 FACTS IT READS (FAST)'}),
+    ...facts.map((f,i)=>box({x:24,y:70+i*74,w:372,h:62,k:'neutral',i:f[0],t:f[1],s:f[2]})),
+    group({x:430,y:30,w:840,h:500,k:'aws',label:'📋 ROUTING RULES · FIRST MATCH WINS · EXAMPLE'}),
+    table({x:450,y:70,w:800,hh:30,rh:54,cols:[['#',0],['IF',60],['THEN',600]],
+      rows:[['R1','kill switch is ON','🏛️ legacy'],['R2','not an outbound instant payment','🏛️ legacy'],['R3','channel is not mobile','🏛️ legacy'],
+            ['R4','amount > pilot limit (e.g. €500)','🏛️ legacy'],['R5','segment = staff','☁️ new platform'],['R6','segment = retail and bucket < 5','☁️ new platform'],
+            ['R7','anything else','🏛️ legacy']],hl:{0:'bad',4:'good',5:'good'}}),
+    txt(450,514,'Proposed default: legacy route · bank approval required.','note'),
+    arrow([[410,300],[450,300]],{k:'aws',st:2}),
+
+    group({x:10,y:550,w:1260,h:230,k:'human',label:'🎯 STICKY BY CUSTOMER'}),
+    box({x:30,y:596,w:400,h:160,k:'human',i:'🧑',t:'Stable cohort selection',s:'bucket = hash(customer ID) mod 100\nother controls handle cross-route work'}),
+    txt(460,620,'at 5%: buckets 0–4','kl'), grid(460,630,5),
+    txt(870,620,'at 25%: buckets 0–24','kl'), grid(870,630,25),
+    txt(845,750,'Raising the % adds cohorts; ownership still needs testing.','note','middle'),
+
+    tag(1,400,30,'Read a few facts','r'),
+    tag(2,1250,30,'First match wins','r'),
+    tag(3,1040,130,'Kill switch first','r'),
+    tag(4,1040,292,'Pilot limits','r'),
+    tag(5,1040,400,'Staff, then 5%','r'),
+    tag(6,1040,454,'Default = legacy','r'),
+    tag(7,1250,550,'Sticky by customer','r'),
+  ].join('');
+}
+
+/* 3 · Flags as code */
+function d3(){return [
+  group({x:10,y:30,w:1260,h:300,k:'neutral',label:'🚩 HOW A FLAG CHANGES · EXAMPLE: 1% → 5%'}),
+  box({x:30,y:90,w:190,h:120,k:'human',i:'🧭',t:'Product owner',s:'opens a pull request\nretailPercent: 1 → 5'}),
+  box({x:240,y:90,w:190,h:120,k:'neutral',i:'🔍',t:'CI checks',s:'schema valid?\nlimits allowed?\ntwo approvals'}),
+  box({x:450,y:90,w:190,h:120,k:'aws',i:'🚩',t:'AWS AppConfig',s:'sample gradual\n10 min rollout'}),
+  box({x:660,y:90,w:190,h:120,k:'aws',i:'🧩',t:'Router agent',s:'checks every 30 s\nkeeps the last good copy'}),
+  box({x:870,y:90,w:190,h:120,k:'aws',i:'🔀',t:'Payment Router',s:'new rule is live\nno restart'}),
+  box({x:1080,y:90,w:170,h:120,k:'good',i:'📈',t:'Watch',s:'errors · p99\nduplicates'}),
+  arrow([[220,150],[240,150]],{k:'neutral',st:2}),
+  arrow([[430,150],[450,150]],{k:'aws',st:3}),
+  arrow([[640,150],[660,150]],{k:'aws',st:4}),
+  arrow([[850,150],[870,150]],{k:'aws',st:5}),
+  arrow([[1060,150],[1080,150]],{k:'good',st:6}),
+  arrow([[1165,210],[1165,256],[545,256],[545,210]],{k:'bad',st:6,dash:1,label:'alarm → automatic rollback',lx:855,ly:256}),
+  txt(640,312,'Every change: who, what, when, why — in Git and in the AppConfig history.','note','middle'),
+
+  group({x:10,y:350,w:620,h:430,k:'risk',label:'🛡️ IF THE FLAG SERVICE IS DOWN'}),
+  box({x:30,y:396,w:580,h:84,k:'aws',i:'✅',t:'Flag service is up',s:'the router uses the latest flags'}),
+  box({x:30,y:506,w:580,h:84,k:'risk',i:'⚠️',t:'Flag service is down',s:'the router keeps its last good copy'}),
+  box({x:30,y:616,w:580,h:84,k:'bad',i:'🛑',t:'No good copy at all',s:'proposed default: new requests → legacy'}),
+  arrow([[320,480],[320,506]],{k:'risk',st:7}),
+  arrow([[320,590],[320,616]],{k:'bad',st:7}),
+  txt(320,742,'Flag-outage behaviour must pass a fault test.','kl','middle'),
+
+  group({x:650,y:350,w:620,h:430,k:'neutral',label:'📄 THE FLAG FILE · VERSIONED IN GIT'}),
+  code({x:666,y:390,w:588,h:370,title:'routing-flags.json',lh:28,lines:[
+    ['1','{'],
+    ['2','  "killSwitch": false,','o'],
+    ['3','  "paymentTypes": ["INSTANT_OUT"],'],
+    ['4','  "channels": ["MOBILE"],'],
+    ['5','  "pilotLimitEur": 500,'],
+    ['6','  "staff": true,'],
+    ['7','  "retailPercent": 5,','y'],
+    ['8','  "changedBy": "po.payments",'],
+    ['9','  "ticket": "CHG-2041"'],
+    ['10','}'],
+  ]}),
+
+  tag(1,40,90,'Pull request'),
+  tag(2,250,90,'CI checks'),
+  tag(3,460,90,'Gradual'),
+  tag(4,670,90,'Cached'),
+  tag(5,880,90,'No restart'),
+  tag(6,1090,90,'Watch'),
+  tag(7,600,350,'Fail safe','r'),
+  tag(8,1250,350,'Flags as code','r'),
+].join('')}
+
+/* 4 · The code: a pure decision */
+function d4(){
+  const L=i=>79+i*25;
+  return [
+    code({x:10,y:30,w:760,h:560,title:'RoutingPolicy.java · Java 21',lh:25,lines:[
+      ['1','public sealed interface Route permits Legacy, NewPlatform {}'],
+      ['2','record Legacy(String rule) implements Route {}'],
+      ['3','record NewPlatform(String rule) implements Route {}'],
+      ['4',''],
+      ['5','public Route decide(PaymentFacts p, RoutingFlags f) {'],
+      ['6','  if (f.killSwitch()) return new Legacy("R1");','o'],
+      ['7','  if (!f.types().contains(p.type())) return new Legacy("R2");'],
+      ['8','  if (!f.channels().contains(p.channel())) return new Legacy("R3");'],
+      ['9','  if (p.amountEur().compareTo(f.pilotLimit()) > 0) return new Legacy("R4");'],
+      ['10','  if (p.segment() == STAFF && f.staff())'],
+      ['11','      return new NewPlatform("R5");','y'],
+      ['12','  if (p.segment() == RETAIL && bucket(p) < f.retailPercent())'],
+      ['13','      return new NewPlatform("R6");','y'],
+      ['14','  return new Legacy("R7");   // safe default','o'],
+      ['15','}'],
+      ['16',''],
+      ['17','static int bucket(PaymentFacts p) {'],
+      ['18','  return Math.floorMod(stableHash(p.customerId()), 100); // 0–99','y'],
+      ['19','}'],
+    ]}),
+    group({x:790,y:30,w:480,h:290,k:'neutral',label:'🧩 WHERE IT RUNS'}),
+    box({x:810,y:72,w:440,h:96,k:'aws',i:'🔀',t:'Spring Cloud Gateway',s:'a small filter calls decide()\nthen forwards the request'}),
+    box({x:810,y:186,w:440,h:114,k:'good',i:'🏷️',t:'Adds a header',s:'X-Route: NEW · R6\nfor logs, traces and support\ninternal only — removed at the edge'}),
+    group({x:790,y:340,w:480,h:250,k:'good',label:'🧪 REQUIRED TEST EVIDENCE'}),
+    lines(810,394,['□ one test per rule (R1–R7)','□ stable-route property test','□ cohort distribution test','□ decide() latency target: < 1 ms','□ missing flags → approved fallback'],'kl',40),
+    group({x:10,y:610,w:1260,h:170,k:'ai',label:'🤖 WHO DID WHAT'}),
+    box({x:30,y:652,w:600,h:108,k:'ai',i:'🤖',t:'AI may draft',s:'policy code and property tests\nfrom an approved rule table'}),
+    box({x:650,y:652,w:600,h:108,k:'human',i:'👀',t:'People must approve',s:'bank owner: policy meaning\narchitect + security: implementation'}),
+    tag(1,762,L(0),'Two answers only','r'),
+    tag(2,762,L(5),'Kill switch first','r'),
+    tag(3,762,L(13),'Safe default','r'),
+    tag(4,762,L(17),'Stable bucket','r'),
+    tag(5,820,72,'Runs in the gateway'),
+    tag(6,1250,340,'Tested rule by rule','r'),
+    tag(7,1250,610,'AI drafts, people review','r'),
+  ].join('');
+}
+
+/* 5 · The dangerous edges */
+function d5(){
+  const pair=(x,y,p,f,st)=>box({x,y,w:280,h:150,k:'bad',i:p[0],t:p[1],s:p[2]})+box({x:x+320,y,w:290,h:150,k:'good',i:f[0],t:f[1],s:f[2]})+arrow([[x+280,y+75],[x+320,y+75]],{k:'good',st});
+  return [
+    pair(30,76,['🔁','Retry after a change','first try → new platform\nretry → legacy?\n= a possible duplicate'],['📌','Pin by Idempotency-Key','proposed route retention\n24 h example · validate\nretry horizon with bank'],1),
+    pair(650,76,['❓','“Where is my payment?”','asked on the wrong system\n= “not found”'],['🏷️','Route status by payment ID','the payment ID shows\nwhich system owns it'],2),
+    pair(30,256,['👯','Duplicate across systems','BR-031: 5 min example\none copy on each side'],['🎯','Sticky + shared index','reduces risk · prove\nindex completeness (EP14)'],3),
+    pair(650,256,['💶','Daily limit on both sides','the customer spends\ntheir limit twice'],['🧮','One limit service','both routes check\nthe same limit store'],4),
+    txt(20,56,'⚠️ WHERE TWO SYSTEMS MEET · AND HOW WE HANDLE IT','hd'),
+
+    group({x:10,y:440,w:1260,h:340,k:'neutral',label:'✈️ A ROLLBACK WITH PAYMENTS IN FLIGHT'}),
+    txt(30,535,'☁️ new platform','kl'), txt(30,635,'🏛️ legacy','kl'),
+    `<line x1="180" y1="530" x2="1240" y2="530" stroke="rgba(15,127,119,.35)" stroke-width="2"/>`,
+    `<line x1="180" y1="630" x2="1240" y2="630" stroke="rgba(123,129,144,.45)" stroke-width="2"/>`,
+    `<rect x="300" y="512" width="460" height="36" rx="8" fill="rgba(15,127,119,.25)" stroke="#0F7F77" stroke-width="2"/>`,
+    `<rect x="450" y="560" width="250" height="36" rx="8" fill="rgba(15,127,119,.25)" stroke="#0F7F77" stroke-width="2"/>`,
+    `<rect x="640" y="612" width="260" height="36" rx="8" fill="rgba(123,129,144,.25)" stroke="#7B8190" stroke-width="2"/>`,
+    `<rect x="760" y="656" width="290" height="36" rx="8" fill="rgba(123,129,144,.25)" stroke="#7B8190" stroke-width="2"/>`,
+    txt(312,535,'P1 · started on new','cl'), txt(462,583,'P2','cl'),
+    txt(652,635,'P3 · after rollback','cl'), txt(772,679,'P4 · after rollback','cl'),
+    `<line x1="600" y1="486" x2="600" y2="712" stroke="#C0392B" stroke-width="3" stroke-dasharray="8 6"/>`,
+    txt(608,500,'rollback: flag → 0%','kl','start','#C0392B'),
+    txt(640,750,'New traffic moves; in-flight ownership needs recovery tests.','kl','middle'),
+
+    tag(1,40,76,'Pin retries'),
+    tag(2,660,76,'Status by payment ID'),
+    tag(3,40,256,'Sticky + shared index'),
+    tag(4,660,256,'One limit service'),
+    tag(5,1250,440,'Only new payments move','r'),
+  ].join('');
+}
+
+/* 6 · Ramp up, roll back */
+function d6(){
+  const X=w=>110+w*90, Y=p=>330-p*2.6;
+  const steps=[[0,0],[2,0],[2,1],[4,1],[4,5],[6,5],[6,25],[6.6,25],[6.6,5],[7.4,5],[7.4,25],[8,25],[8,50],[10,50],[10,100],[12,100]];
+  const out=[group({x:10,y:30,w:1260,h:360,k:'neutral',label:'📈 THE RAMP · RETAIL MOBILE INSTANT · EXAMPLE',lp:'b'})];
+  [0,25,50,100].forEach(p=>out.push(`<line x1="110" y1="${Y(p)}" x2="${X(12)}" y2="${Y(p)}" stroke="rgba(34,37,48,.10)"/>`,txt(102,Y(p)+4,p+'%','cl','end')));
+  for(let w=0;w<=12;w+=2) out.push(txt(X(w),350,'week '+w,'cl','middle'));
+  out.push(
+    `<path d="M110 330 L${X(12)+8} 330" stroke="#222530" stroke-width="2"/>`,
+    poly(steps.map(([w,p])=>[X(w),Y(p)]),'#0F7F77',3.4),
+    ...[2,4,6,8,10].map(w=>diamond(X(w),Y(0)+0)),
+    txt(X(1),Y(0)-10,'staff only','cl','middle'),
+    txt(X(3),Y(1)-10,'1%','kv','middle','#0F7F77'), txt(X(5),Y(5)-10,'5%','kv','middle','#0F7F77'),
+    txt(X(7.7),Y(25)-10,'25%','kv','middle','#0F7F77'), txt(X(9),Y(50)-10,'50%','kv','middle','#0F7F77'),
+    txt(X(11),Y(100)-10,'100%','kv','middle','#0F7F77'),
+    `<circle cx="${X(6.6)}" cy="${Y(25)}" r="9" fill="#C0392B"/>`,
+  );
+  out.push(
+    group({x:10,y:410,w:620,h:370,k:'good',label:'🚦 GUARDRAIL METRICS · NEW vs OLD · EXAMPLE'}),
+    table({x:30,y:450,w:580,hh:28,rh:46,cols:[['METRIC',0],['NEW',220],['OLD',330],['RULE',440]],
+      rows:[['Error rate','0.04%','0.05%','≤ old'],['p99 accept time','0.41 s','0.62 s','< 0.5 s'],['Duplicates','0','0','= 0'],
+            ['STP rate','98.2%','97.0%','≥ old'],['Complaints / 10k','0.8','1.1','≤ old']]}),
+    txt(320,752,'The bank sets metrics and observation window.','note','middle'),
+    group({x:650,y:410,w:620,h:370,k:'bad',label:'↩️ ROLLBACK · TWO WAYS'}),
+    box({x:670,y:456,w:580,h:136,k:'bad',i:'🤖',t:'Automatic · proposed',s:'CloudWatch alarm → AppConfig rollback\nabout 1 min is a test target\nnew eligible traffic only'}),
+    box({x:670,y:612,w:580,h:136,k:'human',i:'🖐️',t:'Manual · authorised',s:'kill switch under bank change controls\nrehearsal required before pilot'}),
+    tag(1,120,276,'Staff first'),
+    tag(2,1250,30,'A gate at every step','r'),
+    tag(3,X(6.6)-14,236,'Auto rollback','r'),
+    tag(4,X(10)+10,100,'100% when green'),
+    tag(5,600,410,'Compare new vs old','r'),
+    tag(6,1250,410,'Two ways back','r'),
+  );
+  return out.join('');
+}
+
+/* 7 · Demo, done, next */
+function d7(){return [
+  group({x:10,y:30,w:1260,h:330,k:'aws',label:'🧪 VALIDATION PLAN · SYNTHETIC TRAFFIC'}),
+  box({x:30,y:150,w:170,h:90,k:'neutral',i:'📈',t:'k6',s:'sends payments'}),
+  box({x:240,y:140,w:220,h:110,k:'aws',i:'🔀',t:'Router',s:'Spring Cloud Gateway'}),
+  box({x:270,y:276,w:160,h:60,k:'aws',i:'🚩',t:'Unleash'}),
+  box({x:520,y:76,w:300,h:90,k:'legacy',i:'🏛️',t:'Mainframe simulator',s:'WireMock'}),
+  box({x:520,y:220,w:300,h:90,k:'aws',i:'📥',t:'New initiation service',s:'from EP11'}),
+  box({x:870,y:96,w:380,h:200,k:'good',i:'📊',t:'Grafana',s:'live split: legacy vs new\nerror rate · p99 · duplicates'}),
+  arrow([[200,195],[240,195]],{k:'neutral',st:1}),
+  arrow([[460,175],[490,175],[490,121],[520,121]],{k:'legacy',st:2}),
+  arrow([[460,215],[490,215],[490,265],[520,265]],{k:'aws',st:2}),
+  arrow([[350,276],[350,250]],{k:'aws',st:3,dash:1}),
+  arrow([[820,121],[845,121],[845,170],[870,170]],{k:'good',st:4,dash:1}),
+  arrow([[820,265],[845,265],[845,220],[870,220]],{k:'good',st:4,dash:1}),
+
+  group({x:10,y:380,w:620,h:400,k:'good',label:'🧪 REQUIRED EVIDENCE · BEFORE PILOT'}),
+  lines(36,436,['□ each rule has an approved test','□ stable-route property test','□ retries stay with original owner','□ p99 target: gateway + router < 20 ms','□ flag-outage path tested','□ rollback timing measured','□ X-Route removed at external edge'],'kl',46),
+  group({x:650,y:380,w:620,h:250,k:'aws',label:'🛠️ ON AWS · TERRAFORM'}),
+  lines(676,436,['🚩 AppConfig: application · environment · profile','📈 rollout: linear over 10 min + bake time','🔔 CloudWatch alarm → automatic rollback','🚪 API Gateway → router on EKS'],'kl',46),
+  box({x:650,y:650,w:620,h:130,k:'aws',i:'🔜',t:'Next: EP14 · The Mainframe Bridge',s:'CDC from DB2 and the anti-corruption layer —\nthe legacy side of this router'}),
+
+  tag(1,40,150,'Traffic'),
+  tag(2,250,140,'The router'),
+  tag(3,280,336,'Flip the flag'),
+  tag(4,880,96,'Watch the split'),
+  tag(5,600,380,'Evidence before pilot','r'),
+  tag(6,1250,380,'Same on AWS','r'),
+  tag(7,660,650,'Next: the mainframe bridge'),
+].join('')}
+
+/* ============================================================
+   Episode config
+   ============================================================ */
+const DECK={
+  brand:'🏦 CORE BANKING PAYMENTS MODERNIZATION · AWS',
+  ep:'EP 13', epShort:'EP13', title:'The Strangler Router', subtitle:'Execution Architecture · Reference Scenario',
+  seriesTitle:'Core Payments Modernization · Execution Architecture',
+  logo:'../shared/jo-logo.png', background:'../shared/background.png',
+  stages:[['🔍','Discover'],['📋','Requirements'],['📐','Design & Plan'],['🛠️','Build'],['🚀','Test & Deploy'],['🔧','Operate']],
+  stage:4,
+  glossary:{
+    STRANGLER:['Strangler Fig','risk','Replace an old system one slice at a time, like a fig tree growing around a trunk. The router is how traffic moves, slice by slice.'],
+    FACADE:['Strangler facade','value','One front door in front of old and new. Channels never need to know which system handles a payment.'],
+    APIGW:['API Gateway','value','The entry point for every payment request: it checks who is calling, limits traffic and reads the Idempotency-Key.'],
+    FAILSAFE:['Fail safe','risk','A bank-approved response to missing routing facts. Legacy is the proposed fallback in this scenario.'],
+    LATBUDGET:['Latency budget','value','The time each step may use. Gateway and router have a proposed 20 ms target (EP05).'],
+    DTABLE:['Decision table','value','Rules in a simple table: if this, then that. Read from top to bottom — the first match wins.'],
+    KILLSWITCH:['Kill switch','risk','A controlled flag proposed to send new eligible payments to the legacy route. In-flight work needs separate handling.'],
+    PILOTLIMIT:['Pilot limit','risk','A maximum amount for the first customers on the new platform. It caps the impact of a surprise.'],
+    STICKY:['Sticky routing','risk','A stable customer cohort reduces route changes. It does not alone prevent cross-system duplicates.'],
+    BUCKET:['Hash bucket','value','A number from 0 to 99 made from the customer ID. “5%” means buckets 0 to 4 — the same people every time.'],
+    FLAG:['Feature flag','risk','A setting that changes behaviour without a new release. Here, it decides how much traffic goes to the new platform.'],
+    APPCONFIG:['AWS AppConfig','value','AWS’s service for safe configuration changes: validation, gradual rollout, and automatic rollback on alarms.'],
+    GRADUAL:['Gradual rollout','risk','A new flag value reaches the routers step by step, over minutes — not all at once.'],
+    LKG:['Last known good','risk','A cached validated flag copy may support an outage. The fallback needs a fault test.'],
+    CONFIGCODE:['Config as code','risk','Flags live in Git and change by pull request. Every change has an author, a reason and an approval.'],
+    SCG:['Spring Cloud Gateway','value','An open-source Java gateway proposed here for a thin routing filter.'],
+    PURE:['Pure function','value','Same inputs, same answer, no side effects. Easy to test and easy to trust — perfect for routing rules.'],
+    SEALED:['Sealed interface','value','A Java 21 feature that lists every possible answer. Here: Legacy or NewPlatform — nothing else can exist.'],
+    PROPTEST:['Property-based test','risk','Random cases challenge route stability and cohort distribution; they support evidence, not bank policy approval.'],
+    TRACEHDR:['Trace header','value','A small label like X-Route on each request, so logs and support can see which system handled a payment.'],
+    IDEM:['Idempotency-Key','risk','A unique key the app sends with a payment. A retry with the same key must never create a second payment.'],
+    PIN:['Pinning','risk','The router remembers which route a key took, so retries follow the first attempt — even if the % changes.'],
+    STATUSROUTE:['Status routing','value','Questions like “where is my payment?” go to the system that owns it, using the payment ID.'],
+    CROSSDUP:['Cross-system duplicate','risk','The same payment accepted on both routes. Sticky cohorts and a shared index reduce risk; test their gaps.'],
+    INFLIGHT:['In-flight payment','risk','A payment that has started but not finished. Ownership must survive a route rollback and system failure.'],
+    RAMP:['Ramp-up','value','Raising traffic in small steps — staff, 1%, 5%, 25%, 50%, 100% — each step only when the last one was healthy.'],
+    GUARDMETRIC:['Guardrail metric','risk','A number that must stay healthy before we go further, like the error rate or p99.'],
+    ABCOMP:['Side-by-side comparison','value','The same metrics for the old and new routes at the same time. The new route must be at least as good.'],
+    AUTOROLL:['Automatic rollback','risk','An alarm can reverse a flag change. One minute is a proposed target that requires a measured drill.'],
+    BLAST:['Blast radius','risk','How many customers a problem can reach. Small steps keep it small.'],
+    LEGACYSIM:['Mainframe simulator','cost','WireMock can represent the legacy boundary in an isolated engineering test; bank contracts need separate testing.'],
+    K6:['k6','value','An open-source load testing tool for synthetic traffic and repeatable routing checks.'],
+    DOD:['Definition of Done','risk','The checklist the router must pass before it carries real customers.'],
+    CHAOS:['Fault test','risk','Injecting a controlled failure to measure flag-outage and rollback behaviour.'],
+    ACL:['Anti-corruption layer','value','The translator between the new platform and the mainframe. It is the topic of the next episode.'],
+  },
+  slides:[
+    {icon:'🚪',kicker:'EP13 · 1/7 · THE IDEA',title:'One Front Door',time:'00:00 – 01:55',draw:d1,
+     key:'The router asks one question: old or new?',next:'🔜 Next: how the router decides',
+     open:'An enterprise routing pattern can transfer; payment policy cannot.',
+     land:'Legacy is the proposed fallback, subject to bank approval.',
+     gloss:[['STRANGLER',[1]],['FACADE',[2]],['APIGW',[1]],['LATBUDGET',[5]],['FAILSAFE',[6]]],
+     demo:['reference harness: synthetic traffic, legacy simulator and proposed new route',
+           'bank validation: <b>API Gateway</b> → proposed router → approved legacy or new service'],
+     steps:[['Same front door','Channels never change; one entry for every payment.'],
+            ['One question','Old system or new platform — for each payment.'],
+            ['A dial, not a switch','Example starts 100% legacy, then moves by approved slice.'],
+            ['Rules from flags','The answer comes from feature flags, not from code.'],
+            ['Thin and fast','Read, decide, trace, forward; 20 ms target.'],
+            ['Never guess','No invented policy; fallback needs bank approval.']]},
+    {icon:'📋',kicker:'EP13 · 2/7 · THE RULES',title:'How the Router Decides',time:'01:55 – 03:35',draw:d2,
+     key:'First match wins in this proposed bank-owned policy.',next:'🔜 Next: flags as code',
+     open:'So how does the router decide?',
+     land:'Cohorts stay stable; cross-route ownership still needs tests.',
+     gloss:[['DTABLE',[2]],['KILLSWITCH',[3]],['PILOTLIMIT',[4]],['BUCKET',[5,7]],['STICKY',[7]]],
+     demo:['the rules are a JSON file plus unit tests: one test for each rule',
+           'the same rules live in <b>AppConfig</b>, checked by a JSON schema before every change'],
+     steps:[['Read a few facts','Type, channel, segment, amount, customer bucket, flags.'],
+            ['First match wins','Seven rules, read from top to bottom.'],
+            ['Kill switch first','One flag sends everything back to legacy.'],
+            ['Pilot limits','Example: mobile instant payments under €500.'],
+            ['Staff, then 5%','Illustrative staff then retail cohort.'],
+            ['Default = legacy','No rule matched? The safe answer.'],
+            ['Sticky by customer','Stable cohort, with separate ownership controls.']]},
+    {icon:'🚩',kicker:'EP13 · 3/7 · FLAGS',title:'Flags as Code',time:'03:35 – 05:20',draw:d3,
+     key:'Flag-outage fallback needs a measured fault test.',next:'🔜 Next: the code',
+     open:'How does a flag change, safely?',
+     land:'The fallback is a proposal until it passes a fault test.',
+     gloss:[['CONFIGCODE',[1,8]],['APPCONFIG',[3]],['GRADUAL',[3]],['LKG',[4,7]],['FLAG',[5]]],
+     demo:['test plan: <b>Unleash</b> outage and last-validated-copy behaviour',
+           'AWS option: <b>AppConfig</b> rollout and alarm path, subject to rehearsal'],
+     steps:[['Pull request','The product owner changes 1% to 5% in Git.'],
+            ['CI checks','Schema, allowed limits, two approvals.'],
+            ['Gradual','Ten minutes is an illustrative rollout.'],
+            ['Cached','The router agent keeps a local copy.'],
+            ['No restart','The new rule is live without a deployment.'],
+            ['Watch','Test alarm-triggered rollback timing.'],
+            ['Fail safe','Down → last good copy; no copy → legacy.'],
+            ['Flags as code','Every change has an author, a ticket and a history.']]},
+    {icon:'☕',kicker:'EP13 · 4/7 · THE CODE',title:'A Pure Decision',time:'05:20 – 07:15',draw:d4,
+     key:'Routing is a pure function: same facts, same answer.',next:'🔜 Next: the dangerous edges',
+     open:'Now the code.',
+     land:'AI may draft; bank and technical owners must review.',
+     gloss:[['SEALED',[1]],['PURE',[1,2]],['SCG',[5]],['TRACEHDR',[5]],['PROPTEST',[6]]],
+     demo:['planned: <b>mvn test</b> for approved rule and property cases',
+           'planned: <b>CodeBuild</b> gate on reviewed pull requests'],
+     steps:[['Two answers only','A sealed interface: Legacy or NewPlatform.'],
+            ['Kill switch first','Rule R1 runs before anything else.'],
+            ['Safe default','R7: no match → legacy.'],
+            ['Stable bucket','Customer ID → 0–99, the same every time.'],
+            ['Runs in the gateway','A small filter in Spring Cloud Gateway.'],
+            ['Tested rule by rule','Require a test per rule and property tests.'],
+            ['AI drafts, people review','Domain, architect and security reviews required.']]},
+    {icon:'⚠️',kicker:'EP13 · 5/7 · THE HARD PART',title:'The Dangerous Edges',time:'07:15 – 09:00',draw:d5,
+     key:'Change where new payments go — never move one in flight.',next:'🔜 Next: ramp up, roll back',
+     open:'Two systems at the same time create some dangerous edges.',
+     land:'In-flight ownership needs crash and rollback tests.',
+     gloss:[['IDEM',[1]],['PIN',[1]],['STATUSROUTE',[2]],['CROSSDUP',[3]],['INFLIGHT',[5]]],
+     demo:['planned test: change a cohort and retry with the same key',
+           'candidate: <b>DynamoDB</b> route pins; retention set by bank retry policy'],
+     steps:[['Pin retries','Twenty-four hours is sample route retention.'],
+            ['Status by payment ID','Ask the system that owns the payment.'],
+            ['Sticky + shared index','Reduces risk; test index completeness.'],
+            ['One limit service','Both routes check the same daily limit.'],
+            ['Only new payments move','The flag never moves a payment in flight.']]},
+    {icon:'📈',kicker:'EP13 · 6/7 · IN REAL LIFE',title:'Ramp Up, Roll Back',time:'09:00 – 10:40',draw:d6,
+     key:'Small steps keep the blast radius small.',next:'🔜 Next: demo, done, next',
+     open:'How might a bank move the dial with evidence?',
+     land:'A timed rollback drill is required before relying on it.',
+     gloss:[['RAMP',[1,2]],['BLAST',[2]],['AUTOROLL',[3]],['GUARDMETRIC',[5]],['ABCOMP',[5]]],
+     demo:['planned synthetic load and controlled fault test with <b>k6</b>',
+           'AWS option: <b>CloudWatch</b> and <b>AppConfig</b>, timing to measure'],
+     steps:[['Staff first','Example cohort and two-week window.'],
+            ['A gate at every step','1%, 5%, 25%, 50%, 100% — each with green metrics.'],
+            ['Auto rollback','One-minute response is a test target.'],
+            ['100% when green','Ten-week path is illustrative.'],
+            ['Compare new vs old','Errors, p99, duplicates, STP, complaints.'],
+            ['Two ways back','Automatic alarm or authorised manual switch.']]},
+    {icon:'🧪',kicker:'EP13 · 7/7 · PROOF PLAN',title:'Proof Plan and Next',time:'10:40 – 12:20',draw:d7,
+     key:'Require evidence before routing real customers.',next:'🔜 Next episode: EP14 — The Mainframe Bridge',
+     open:'This is the engineering evidence I would require.',
+     land:'Next, examine the actual legacy boundary.',
+     gloss:[['K6',[1]],['LEGACYSIM',[2]],['CHAOS',[5]],['DOD',[5]],['ACL',[7]]],
+     demo:['proposed harness: router, Unleash, simulators, Grafana and k6',
+           'proposed IaC: AppConfig, alarms and gateway; verify in bank environment'],
+     steps:[['Traffic','k6 can send synthetic payment traffic.'],
+            ['The router','Spring Cloud Gateway applies the rules.'],
+            ['Flip the flag','Exercise the cohort change in a harness.'],
+            ['Watch the split','Measure route split and failure signals.'],
+            ['Evidence before pilot','Rules, pins, latency and rollback.'],
+            ['Same on AWS','Implement then test IaC and alarms.'],
+            ['Next: the mainframe bridge','EP14: CDC and the anti-corruption layer.']]},
+  ],
+};
+startDeck(DECK);
+</script>
+</body>
+</html>

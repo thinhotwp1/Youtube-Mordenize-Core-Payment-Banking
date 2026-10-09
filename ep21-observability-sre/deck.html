@@ -1,0 +1,422 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EP21 Observability & SRE</title>
+<link rel="stylesheet" href="../shared/deck.css">
+</head>
+<body>
+<script src="../shared/deck.js"></script>
+<script>
+/* ============================================================
+   EP21 · Observability & SRE — diagrams (1280x800 canvas)
+   ============================================================ */
+const poly=(pts,col,w=2.6,extra='')=>`<polyline points="${pts.map(p=>p.join(',')).join(' ')}" fill="none" stroke="${col}" stroke-width="${w}" stroke-linejoin="round" stroke-linecap="round" ${extra}/>`;
+const trap=(pts,k)=>`<polygon points="${pts.map(p=>p.join(',')).join(' ')}" fill="${K[k].f}" stroke="${K[k].s}" stroke-width="2" stroke-linejoin="round"/>`;
+
+/* 1 · The 3 a.m. question */
+function d1(){return [
+  box({x:10,y:30,w:1260,h:90,k:'risk',i:'📞',t:'“I sent €500 an hour ago. Where is it?”',s:'illustrative customer question at 3 a.m.'}),
+
+  group({x:10,y:140,w:620,h:420,k:'bad',label:'❌ FRAGMENTED SEARCH · EXAMPLE'}),
+  box({x:30,y:186,w:280,h:60,k:'legacy',i:'📱',t:'App logs'}),
+  box({x:330,y:186,w:280,h:60,k:'legacy',i:'🚪',t:'API gateway logs'}),
+  box({x:30,y:262,w:280,h:60,k:'legacy',i:'☸️',t:'Kubernetes logs'}),
+  box({x:330,y:262,w:280,h:60,k:'legacy',i:'🧵',t:'Kafka topics'}),
+  box({x:30,y:338,w:280,h:60,k:'legacy',i:'🏛️',t:'Mainframe logs'}),
+  box({x:330,y:338,w:280,h:60,k:'legacy',i:'🌐',t:'Scheme gateway'}),
+  box({x:30,y:420,w:580,h:110,k:'bad',i:'⏳',t:'8 teams · 6 tools · 2–3 hours',s:'the customer waits — the call centre guesses'}),
+
+  group({x:650,y:140,w:620,h:420,k:'good',label:'✅ CORRELATED VIEW · PROPOSED'}),
+  box({x:670,y:186,w:580,h:56,k:'neutral',i:'🔎',t:'UETR 7b3a0c2e-…-2f6b8d4e0e91'}),
+  table({x:670,y:254,w:580,hh:26,rh:34,cols:[['TIME',0],['WHAT HAPPENED',150]],
+    rows:[['10:02:11.000','initiated'],['10:02:11.202','screened'],['10:02:11.388','funds reserved'],['10:02:11.461','external handoff attempted'],['10:02:41','no answer → approved inquiry']],
+    hl:{4:'risk'}}),
+  box({x:670,y:470,w:580,h:72,k:'good',i:'⚡',t:'Search target · 20 seconds',s:'Use only a bank-approved customer status message.'}),
+  arrow([[610,300],[670,300]],{k:'good',st:3}),
+
+  group({x:10,y:580,w:1260,h:200,k:'aws',label:'🎯 WHAT OBSERVABILITY GIVES THE BANK'}),
+  box({x:30,y:626,w:290,h:130,k:'aws',i:'📞',t:'Investigate faster',s:'measure search time in drills'}),
+  box({x:340,y:626,w:290,h:130,k:'aws',i:'🔍',t:'Detect earlier',s:'test against incident records'}),
+  box({x:650,y:626,w:290,h:130,k:'aws',i:'📋',t:'Support reporting',s:'evidence for applicable\nincident duties'}),
+  box({x:960,y:626,w:290,h:130,k:'aws',i:'💶',t:'Know the cost',s:'cost per payment,\nper slice (EP23)'}),
+
+  tag(1,1250,30,'The 3 a.m. question','r'),
+  tag(2,600,140,'Silos','r'),
+  tag(3,680,186,'One search: reference'),
+  tag(4,680,470,'Search target'),
+  tag(5,1250,580,'Four benefits','r'),
+].join('')}
+
+/* 2 · Four signals, one key */
+function d2(){
+  const src=[['☸️','New services','OpenTelemetry SDK'],['🧵','Kafka','business events'],['🏛️','Mainframe & MQ','log forwarding'],['🌐','Scheme gateway','ISO 20022 messages'],['🚪','API gateway','access logs']];
+  return [
+    group({x:10,y:30,w:300,h:500,k:'neutral',label:'📤 SOURCES'}),
+    ...src.map((s,i)=>box({x:24,y:70+i*88,w:272,h:72,k:i===2?'legacy':'neutral',i:s[0],t:s[1],s:s[2]})),
+  box({x:350,y:180,w:260,h:200,k:'aws',i:'🧲',t:'OpenTelemetry Collector',s:'collects approved signals\nlinks safe IDs\nsampling needs testing'}),
+    box({x:350,y:400,w:260,h:110,k:'risk',i:'🙈',t:'PII masking',s:'no names or IBANs in logs\nmasked before storage'}),
+    group({x:650,y:30,w:620,h:500,k:'aws',label:'📡 FOUR SIGNALS'}),
+    box({x:670,y:76,w:580,h:96,k:'aws',i:'📜',t:'Logs',s:'what happened, in words'}),
+    box({x:670,y:188,w:580,h:96,k:'aws',i:'📈',t:'Metrics',s:'how much, how fast — numbers over time'}),
+    box({x:670,y:300,w:580,h:96,k:'aws',i:'🧵',t:'Traces',s:'one payment, step by step'}),
+  box({x:670,y:412,w:580,h:96,k:'good',i:'💼',t:'Domain events',s:'states mapped to bank-approved business meaning'}),
+    arrow([[296,280],[350,280]],{k:'neutral',st:2}),
+    arrow([[610,280],[650,280]],{k:'aws',st:4}),
+    arrow([[480,380],[480,400]],{k:'risk',st:3}),
+
+    group({x:10,y:550,w:1260,h:230,k:'good',label:'🔑 ONE KEY JOINS EVERYTHING'}),
+    box({x:30,y:596,w:250,h:90,k:'aws',i:'🌍',t:'External reference',s:'UETR where supplied'}),
+    box({x:310,y:596,w:250,h:90,k:'aws',i:'🧵',t:'Trace ID',s:'from OpenTelemetry'}),
+    box({x:590,y:596,w:250,h:90,k:'aws',i:'🆔',t:'Payment ID',s:'inside our platform'}),
+    box({x:870,y:596,w:380,h:90,k:'good',i:'🔎',t:'Search one → linked signals',s:'subject to tested ID coverage'}),
+    arrow([[280,641],[310,641]],{k:'aws',st:6,both:1}),
+    arrow([[560,641],[590,641]],{k:'aws',st:6,both:1}),
+    arrow([[840,641],[870,641]],{k:'good',st:7}),
+    txt(640,738,'🤖 AI watches all four signals for unusual patterns — read-only.','kl','middle'),
+
+    tag(1,296,30,'Every source','r'),
+    tag(2,360,180,'One collector'),
+    tag(3,360,510,'Mask personal data'),
+    tag(4,1250,30,'Four signals','r'),
+    tag(5,1240,412,'Business events','r'),
+    tag(6,40,596,'One key'),
+    tag(7,880,596,'Search one, see all'),
+  ].join('');
+}
+
+/* 3 · Follow one payment: the trace */
+function d3(){
+  const X=ms=>330+ms*1.45, RY=i=>152+i*46;
+  const spans=[['🚪','API gateway & auth',0,14,20],['🔄','Orchestrator',14,22,30],['📖','Rules & limits',36,28,40],['🛡️','Fraud score',64,138,150],
+               ['🏛️','Funds hold (mainframe)',202,186,120],['🧵','Outbox → Kafka',388,31,40],['📤','Scheme gateway',419,42,50]];
+  const out=[
+    box({x:10,y:30,w:1260,h:62,k:'neutral',i:'🔎',t:'Sample reference 7b3a0c2e-41d5-4f7e-9a1c-2f6b8d4e0e91',s:'synthetic instant payment · 250 EUR · example time 10:02:11'}),
+    group({x:10,y:110,w:1260,h:460,k:'neutral',label:'🧵 SYNTHETIC TRACE · EXAMPLE',lp:'b'}),
+  ];
+  [0,100,200,300,400,600].forEach(ms=>out.push(txt(X(ms),140,ms+' ms','cl','middle')));
+  [0,100,200,300,400,500,600].forEach(ms=>out.push(`<line x1="${X(ms)}" y1="146" x2="${X(ms)}" y2="506" stroke="rgba(34,37,48,.08)"/>`));
+  spans.forEach((s,i)=>{
+    const y=RY(i), over=s[3]>s[4], k=over?'risk':'aws', c=K[k];
+    out.push(txt(30,y+20,s[0]+' '+s[1],'kl'),
+      `<rect x="${X(s[2])}" y="${y}" width="${s[3]*1.45}" height="28" rx="5" fill="${c.f}" stroke="${c.s}" stroke-width="2"/>`,
+      `<line x1="${X(s[2]+s[4])}" y1="${y-4}" x2="${X(s[2]+s[4])}" y2="${y+32}" stroke="#222530" stroke-width="1.6" stroke-dasharray="3 3"/>`,
+      txt(X(s[2]+Math.max(s[3],s[4]))+8,y+19,s[3]+' ms','cl','start',over?'#C9661E':'#0F7F77'));
+  });
+  out.push(
+    txt(30,RY(7)+20,'🌐 Scheme round trip · 1.12 s','kl'),
+    `<rect x="${X(461)}" y="${RY(7)}" width="${1240-X(461)}" height="28" rx="5" fill="${K.neutral.f}" stroke="${K.neutral.s}" stroke-width="2"/>`,
+    `<path d="M1150 ${RY(7)-4} l10 18 l-10 18 M1162 ${RY(7)-4} l10 18 l-10 18" stroke="#F5EEE2" stroke-width="5" fill="none"/>`,
+    `<line x1="${X(500)}" y1="132" x2="${X(500)}" y2="506" stroke="#C0392B" stroke-width="3"/>`,
+    txt(330,530,'dashed tick = the step’s budget (EP05)','note'),
+
+    group({x:10,y:590,w:780,h:190,k:'aws',label:'💼 BANK-APPROVED STATES · SAMPLE'}),
+    chevron({x:30,y:640,w:150,h:80,k:'neutral',t:'Initiated',s:'0 ms',first:1}),
+    chevron({x:180,y:640,w:150,h:80,k:'aws',t:'Screened',s:'202 ms'}),
+    chevron({x:330,y:640,w:150,h:80,k:'aws',t:'Reserved',s:'388 ms'}),
+    chevron({x:480,y:640,w:150,h:80,k:'aws',t:'Submitted',s:'461 ms'}),
+    chevron({x:630,y:640,w:150,h:80,k:'good',t:'Settled',s:'≈ 1.6 s'}),
+    group({x:810,y:590,w:460,h:190,k:'ai',label:'🤖 AI READS THE TRACE'}),
+    lines(830,642,['“Funds hold took 186 ms — 66 ms over.','Same pattern in 4% of payments since 09:40.','Likely cause: mainframe response time.”','👀 SRE confirms before anyone acts.'],'kl',30),
+
+    tag(1,1250,30,'Search by UETR','r'),
+    tag(2,40,110,'Each step = a span'),
+    tag(3,X(500),124,'Our budget: 500 ms','c'),
+    tag(4,X(388)+64,RY(4)+14,'+66 ms over budget'),
+    tag(5,X(461)+4,RY(7)+44,'Outside our control'),
+    tag(6,40,590,'Business timeline'),
+    tag(7,1250,590,'AI explains, SRE confirms','r'),
+  );
+  return out.join('');
+}
+
+/* 4 · SLOs and error budgets */
+function d4(){
+  const X=d=>700+d*17, Y=p=>346-p*2.3;
+  const pts=[[0,100],[4,97],[8,94],[11,92],[12,64],[16,61],[19,58],[20,45],[24,42],[28,39],[30,38]];
+  const P=pts.map(([d,p])=>[X(d),Y(p)]);
+  return [
+    group({x:10,y:30,w:620,h:370,k:'neutral',label:'📏 SAMPLE NFR TO SLO · 30 DAYS'}),
+    table({x:30,y:70,w:580,hh:30,rh:52,cols:[['SLI · WHAT WE MEASURE',0],['SLO',300],['FROM',420]],
+      rows:[['Payments accepted OK','99.99%','sample NFR'],['Accepted in < 500 ms','99%','sample NFR'],['Settled in < 10 s','99.9%','bank-defined'],
+            ['Duplicate debits','0','NFR-DUP-01'],['Stuck, no inquiry','0','integrity']],hl:{3:'good',4:'good'}}),
+
+    group({x:650,y:30,w:620,h:370,k:'aws',label:'⏳ ERROR BUDGET · LAST 30 DAYS · EXAMPLE'}),
+    `<polygon points="${[[X(0),Y(0)],...P,[X(30),Y(0)]].map(p=>p.join(',')).join(' ')}" fill="rgba(15,127,119,.12)"/>`,
+    `<path d="M700 346 L1218 346" stroke="#222530" stroke-width="2"/>`,`<path d="M700 346 L700 104" stroke="#222530" stroke-width="2"/>`,
+    ...[0,50,100].map(p=>txt(692,Y(p)+4,p+'%','cl','end')),
+    ...[0,10,20,30].map(d=>txt(X(d),366,'day '+d,'cl','middle')),
+    `<line x1="700" y1="${Y(50)}" x2="${X(30)}" y2="${Y(50)}" stroke="#C9661E" stroke-width="2" stroke-dasharray="7 5"/>`,
+    txt(708,Y(50)-8,'policy line: 50%','cl','start','#C9661E'),
+    poly(P,'#0F7F77',3.4),
+    txt(X(20)-10,Y(45)+28,'bad release: −13%','cl','end'),
+    txt(X(30),Y(38)+24,'38% left','kl','end','#0F7F77'),
+
+    group({x:10,y:420,w:1260,h:360,k:'neutral',label:'🔥 BURN RATE · HOW FAST ARE WE SPENDING IT?'}),
+    box({x:30,y:466,w:390,h:150,k:'bad',i:'🚨',t:'Fast burn → page now',s:'2% of the monthly budget\nin 1 hour (about 14× too fast)'}),
+    box({x:445,y:466,w:390,h:150,k:'risk',i:'⚠️',t:'Slow burn → ticket',s:'10% of the budget\nin 3 days'}),
+    box({x:860,y:466,w:390,h:150,k:'good',i:'✅',t:'Normal burn',s:'no alert — the budget\nis there to be used'}),
+    box({x:30,y:636,w:1220,h:120,k:'human',i:'📜',t:'Proposed error budget policy',s:'below 50% → slower releases, more testing · at 0 → reliability work until recovery\nto agree with product, SRE and Risk'}),
+
+    tag(1,600,30,'SLI → SLO','r'),
+    tag(2,40,400,'Correctness counts too'),
+    tag(3,1250,30,'Budget spent','r'),
+    tag(4,X(12)+8,Y(78),'One incident: −28%'),
+    tag(5,40,466,'Fast burn: page'),
+    tag(6,455,466,'Slow burn: ticket'),
+    tag(7,40,636,'Error budget policy'),
+  ].join('');
+}
+
+/* 5 · Alerts that wake the right person */
+function d5(){return [
+  group({x:10,y:30,w:620,h:480,k:'neutral',label:'🔻 FROM NOISE TO ACTION · ONE DAY · EXAMPLE'}),
+  trap([[30,76],[610,76],[560,196],[80,196]],'neutral'),
+  txt(320,128,'📊 Signals collected','bt','middle','#222530'),txt(320,152,'≈ 2 billion data points a day','bs','middle'),
+  trap([[90,212],[550,212],[470,332],[170,332]],'risk'),
+  txt(320,262,'⚠️ Warnings','bt','middle','#5A2C0B'),txt(320,286,'about 140 — on dashboards, no page','bs','middle'),
+  trap([[180,348],[460,348],[400,468],[240,468]],'bad'),
+  txt(320,398,'📟 Pages','bt','middle','#5C1A13'),txt(320,422,'2 — a person wakes up','bs','middle'),
+
+  group({x:650,y:30,w:620,h:480,k:'aws',label:'✅ PAGE ON IMPACT · TUNE PREDICTIVE SIGNALS'}),
+  box({x:670,y:76,w:580,h:190,k:'good',i:'✅',t:'Page on symptoms',s:'error budget burning fast\npayments stuck · scheme not answering\n→ customers feel it'}),
+  box({x:670,y:296,w:580,h:190,k:'risk',i:'⚠️',t:'Dependencies need context',s:'CPU, restarts or disk trends\npage if they predict customer harm\nrunbook defines the threshold'}),
+
+  group({x:10,y:530,w:1260,h:250,k:'human',label:'📟 EVERY PAGE · THE SAME PATH'}),
+  box({x:30,y:576,w:280,h:130,k:'risk',i:'🚨',t:'Alerts fire',s:'fraud latency\n+ stuck payments\n+ inquiry spike'}),
+  box({x:340,y:576,w:280,h:130,k:'ai',i:'🤖',t:'AI groups them',s:'3 alerts →\n1 candidate incident\nengineer checks cause'}),
+  box({x:650,y:576,w:280,h:130,k:'human',i:'📟',t:'Right person',s:'on-call of the\nowning squad (EP09)'}),
+  box({x:960,y:576,w:290,h:130,k:'good',i:'📘',t:'With a runbook',s:'every page links\nto what to do'}),
+  arrow([[310,641],[340,641]],{k:'ai',st:4}),
+  arrow([[620,641],[650,641]],{k:'human',st:5}),
+  arrow([[930,641],[960,641]],{k:'good',st:6}),
+  txt(640,750,'Every alert: actionable · owned · has a runbook · tested.','kl','middle'),
+
+  tag(1,600,30,'Noise to action','r'),
+  tag(2,320,482,'Only 2 pages','c'),
+  tag(3,1250,30,'Symptoms, not causes','r'),
+  tag(4,350,576,'AI groups alerts'),
+  tag(5,660,576,'Right person'),
+  tag(6,970,576,'Runbook on every page'),
+].join('')}
+
+/* 6 · Runbooks and on-call, with AI */
+function d6(){return [
+  group({x:10,y:30,w:620,h:500,k:'neutral',label:'📘 RUNBOOK · STUCK PAYMENTS · EXAMPLE'}),
+  code({x:26,y:66,w:588,h:450,title:'runbooks/stuck-payments.md',lh:30,lines:[
+    ['1','## Trigger: > 50 payments, no answer for 30 s'],
+    ['2',''],
+    ['3','1. Check partner status and approved inquiry path.'],
+    ['4','2. Show a bank-approved customer status.','y'],
+    ['5','3. Open the trace by available reference.'],
+    ['6','4. Mainframe slow? Call the mainframe on-call.'],
+    ['7','5. Never re-send a payment by hand.','o'],
+    ['8','   Retry only under the bank-approved rule.'],
+    ['9','6. Follow the approved update cadence.'],
+    ['10','7. Ask Compliance about reporting duties.'],
+  ]}),
+  group({x:650,y:30,w:620,h:500,k:'ai',label:'🤖 AI ON-CALL ASSISTANT · READ-ONLY'}),
+  box({x:670,y:76,w:580,h:90,k:'ai',i:'🧾',t:'Summarises the incident',s:'what, since when, how many customers'}),
+  box({x:670,y:180,w:580,h:90,k:'ai',i:'📘',t:'Suggests the runbook',s:'and similar past incidents'}),
+  box({x:670,y:284,w:580,h:90,k:'ai',i:'✍️',t:'Drafts the status update',s:'for customers and for management'}),
+  box({x:670,y:388,w:580,h:118,k:'bad',i:'⛔',t:'Never acts on money',s:'no re-sends · no refunds · no config changes\npeople decide'}),
+
+  group({x:10,y:550,w:1260,h:230,k:'good',label:'⚙️ WHAT RUNS BY ITSELF · WHAT NEEDS A PERSON'}),
+  box({x:30,y:596,w:600,h:160,k:'good',i:'✅',t:'Tested technical fixes',s:'restart a stateless pod · bounded capacity\nfraud-mode changes need bank risk approval\nlog and rehearse each action'}),
+  box({x:650,y:596,w:600,h:160,k:'human',i:'🙋',t:'A person approves',s:'anything that moves money\nfailover to the second region\nmessages to customers and regulators'}),
+
+  tag(1,600,30,'One runbook per alert','r'),
+  tag(2,600,300,'Never re-send by hand','r'),
+  tag(3,680,76,'AI summarises'),
+  tag(4,680,284,'AI drafts updates'),
+  tag(5,680,388,'Never acts on money'),
+  tag(6,40,596,'Tested fixes'),
+  tag(7,660,596,'People approve the rest'),
+].join('')}
+
+/* 7 · Dashboards for every audience */
+function d7(){return [
+  group({x:10,y:30,w:620,h:330,k:'aws',label:'👔 BOARD & CXO · ILLUSTRATIVE DATA'}),
+  kpi({x:30,y:76,w:580,h:54,k:'aws',i:'💸',t:'Payments today',v:'1.82 M'}),
+  kpi({x:30,y:140,w:580,h:54,k:'good',i:'⚡',t:'Straight-through rate',v:'97.4%'}),
+  kpi({x:30,y:204,w:580,h:54,k:'good',i:'🎯',t:'SLOs met this month',v:'5 of 5'}),
+  kpi({x:30,y:268,w:580,h:54,k:'aws',i:'🔻',t:'MIPS change · sample',v:'↓ 12%'}),
+
+  group({x:650,y:30,w:620,h:330,k:'risk',label:'🖥️ OPERATIONS · SAMPLE VIEW'}),
+  kpi({x:670,y:76,w:580,h:54,k:'aws',i:'📈',t:'Payments per second, now',v:'74'}),
+  kpi({x:670,y:140,w:580,h:54,k:'risk',i:'⏳',t:'Stuck for more than 30 s',v:'3'}),
+  kpi({x:670,y:204,w:580,h:54,k:'good',i:'🌐',t:'Scheme health · sample',v:'2 routes healthy'}),
+  kpi({x:670,y:268,w:580,h:54,k:'good',i:'🚨',t:'Open incidents',v:'0'}),
+
+  group({x:10,y:380,w:620,h:250,k:'neutral',label:'🧑‍💻 SQUAD · PER SERVICE'}),
+  kpi({x:30,y:424,w:580,h:54,k:'good',i:'⏱️',t:'Fraud score p99 vs budget',v:'138 / 150 ms'}),
+  kpi({x:30,y:488,w:580,h:54,k:'risk',i:'⏳',t:'Error budget left',v:'38%'}),
+  kpi({x:30,y:552,w:580,h:54,k:'aws',i:'🚀',t:'Deploys this week',v:'9'}),
+
+  group({x:650,y:380,w:620,h:250,k:'human',label:'📋 RISK & AUDIT'}),
+  kpi({x:670,y:424,w:580,h:54,k:'good',i:'🏛️',t:'Major incidents (DORA)',v:'0 this quarter'}),
+  kpi({x:670,y:488,w:580,h:54,k:'aws',i:'🗄️',t:'Evidence export · goal',v:'each release'}),
+  kpi({x:670,y:552,w:580,h:54,k:'risk',i:'🌍',t:'Last DR drill',v:'42 days ago'}),
+
+  group({x:10,y:650,w:1260,h:130,k:'good',label:'🔁 EVERY WEEK · THEN THE NEXT EPISODES'}),
+  box({x:30,y:690,w:390,h:70,k:'good',i:'🗓️',t:'Weekly SLO review',s:'squads + SRE · fix the top issue · cut toil'}),
+  box({x:445,y:690,w:390,h:70,k:'aws',i:'🚨',t:'EP22 · Incidents & DR',s:'when things really break'}),
+  box({x:860,y:690,w:390,h:70,k:'aws',i:'💶',t:'EP23 · FinOps',s:'the cost of every payment'}),
+
+  tag(1,600,30,'Board view','r'),
+  tag(2,1250,30,'Operations view','r'),
+  tag(3,600,380,'Squad view','r'),
+  tag(4,1250,380,'Risk & audit','r'),
+  tag(5,40,760,'Weekly SLO review'),
+  tag(6,1250,650,'Next episodes','r'),
+].join('')}
+
+/* ============================================================
+   Episode config
+   ============================================================ */
+const DECK={
+  brand:'🏦 CORE BANKING PAYMENTS MODERNIZATION · AWS',
+  ep:'EP 21', epShort:'EP21', title:'Observability & SRE', subtitle:'Execution Architecture · Reference Scenario',
+  seriesTitle:'Core Payments Modernization · Execution Architecture',
+  logo:'../shared/jo-logo.png', background:'../shared/background.png',
+  stages:[['🔍','Discover'],['📋','Requirements'],['📐','Design & Plan'],['🛠️','Build'],['🚀','Test & Deploy'],['🔧','Operate']],
+  stage:6,
+  glossary:{
+    OBSERV:['Observability','value','Being able to see inside a running system and answer new questions — like “where is this payment?” — without adding new code.'],
+    SILO:['Data silo','risk','Logs and data locked in separate tools and teams. One question means asking six teams.'],
+    UETR:['External reference','value','A UETR may be supplied by some rails. Link it to internal IDs; other rails use different identifiers.'],
+    MTTD:['Time to detect','risk','How long until we notice a problem. Good observability means we see it before the customer calls.'],
+    MTTR:['Time to restore','risk','How long until service is back. You can’t fix fast what you can’t see.'],
+    SIGNALS:['Logs, metrics, traces','value','Logs say what happened. Metrics say how much and how fast. Traces follow one request, step by step.'],
+    BIZEVENT:['Domain events','value','Technical events mapped to bank-approved business states. A Kafka event alone is not settlement proof.'],
+    OTEL:['OpenTelemetry','value','Open instrumentation for telemetry. Collector scale, privacy and tool dependencies still need testing.'],
+    CORRID:['Correlation key','risk','One ID carried by every signal, so they can be joined. Without it, you have data — but no answers.'],
+    PIIMASK:['PII masking','risk','Removing names, IBANs and other personal data from logs. Observability must never become a data leak.'],
+    TRACE:['Trace','value','The full journey of one payment through every service, shown as a timeline.'],
+    SPAN:['Span','value','One step inside a trace, like “fraud score: 138 ms”. Spans show exactly where the time goes.'],
+    BUDGET:['Latency budget','risk','The time each step is allowed (EP05). The trace shows which step broke its budget.'],
+    SAMPLING:['Smart sampling','cost','Keeping every slow or failed trace, but only some normal ones. Full detail where it matters, lower storage cost.'],
+    STUCK:['Unresolved payment','risk','A payment without an authoritative final status. Inquiry timing and method depend on bank and rail policy.'],
+    SLI:['SLI','value','Service level indicator: what we measure, like “share of payments accepted in under 500 ms”.'],
+    SLO:['SLO','value','Service level objective: an approved target for an SLI over a defined window. Product and operations owners set it.'],
+    ERRBUDGET:['Error budget','risk','The failures the SLO allows. We spend it on change and risk; when it runs out, reliability comes first.'],
+    BURNRATE:['Burn rate','risk','How fast we are using the error budget. A fast burn wakes someone up; a slow burn becomes a ticket.'],
+    SLA:['SLA vs SLO','cost','An SLA is a contractual promise; an SLO is an internal target. Their relationship is set for each service.'],
+    SYMPTOM:['Symptom-based alert','value','An alert on what customers feel — payments failing or slow — not on technical causes like CPU usage.'],
+    PAGE:['Page','risk','An alert that wakes a person up, day or night. Only for things that need a human right now.'],
+    FATIGUE:['Alert fatigue','risk','Too many alerts, so people stop reading them. Then the one important alert is missed.'],
+    ROUTING:['Alert routing','value','Sending each alert to the on-call person of the team that owns the service, using the ownership map (EP09).'],
+    AIOPS:['Alert correlation','value','AI groups related alerts into one incident, so on-call sees one problem, not twenty alarms.'],
+    ONCALL:['On-call','value','A rota of engineers ready to respond 24/7. Owning squads take part — you build it, you run it.'],
+    RUNBOOK:['Runbook','risk','Step-by-step instructions for one alert. At 3 a.m., nobody should have to think from zero.'],
+    AUTOREM:['Auto-remediation','risk','A tested bounded technical action, such as restarting a stateless pod. Risk-sensitive changes require approval.'],
+    AIASSIST:['AI on-call assistant','value','Summarises the incident, suggests the runbook and drafts updates. It reads; people act.'],
+    ESCALATE:['Escalation','risk','Calling the next level of help — another team, the scheme operator or management — at a clear trigger.'],
+    DASHBOARD:['Dashboard','value','A live screen of the numbers one audience needs. Different people need different dashboards.'],
+    COSTPP:['Cost per payment','cost','Total running cost divided by the number of payments. The simplest way to show modernization savings (EP23).'],
+    DORAIR:['DORA incident reporting','risk','Under the EU DORA rules, major ICT incidents must be classified and reported to the regulator on strict timelines.'],
+    SLOREVIEW:['SLO review','value','A short weekly meeting: which SLOs are at risk, and what is the one thing we fix next?'],
+    TOIL:['Toil','cost','Manual, repetitive operations work. We measure it and automate it away, so engineers can improve the system.'],
+  },
+  slides:[
+    {icon:'📞',kicker:'EP21 · 1/7 · WHY IT MATTERS',title:'The 3 a.m. Question',time:'00:00 – 02:05',draw:d1,
+     key:'If you can’t see it, you can’t fix it — or explain it.',next:'🔜 Next: four signals, one key',
+     open:'In this reference roadmap, we now design how to operate the platform.',
+     land:'The twenty-second search is a target to prove in a drill.',
+     gloss:[['OBSERV',[1,4]],['SILO',[2]],['UETR',[3]],['MTTD',[5]],['MTTR',[5]]],
+     demo:['prototype search across synthetic logs, traces, metrics and events',
+           'measure correlation coverage and lookup time in a sandbox drill'],
+     steps:[['The 3 a.m. question','“I sent €500 an hour ago. Where is it?”'],
+            ['Silos','Example: eight teams, six tools, two to three hours.'],
+            ['One search: reference','Link available external and internal IDs.'],
+            ['Search target','Twenty seconds, to test in an incident drill.'],
+            ['Four benefits','Customers, early warning, regulators, cost.']]},
+    {icon:'📡',kicker:'EP21 · 2/7 · THE SIGNALS',title:'Four Signals, One Key',time:'02:05 – 03:55',draw:d2,
+     key:'One key joins every signal — the payment’s own ID.',next:'🔜 Next: follow one payment',
+     open:'Where does all this data come from?',
+     land:'Search any one ID, and you see all four signals.',
+     gloss:[['OTEL',[2]],['PIIMASK',[3]],['SIGNALS',[4]],['BIZEVENT',[5]],['CORRID',[6,7]]],
+     demo:['test identifier mapping and masking on synthetic signals',
+           'measure collector scale, failure isolation and data controls'],
+     steps:[['Every source','New services, Kafka, mainframe, scheme, API gateway.'],
+            ['One collector','Proposed OpenTelemetry collection and sampling.'],
+            ['Mask personal data','No names or IBANs in logs.'],
+            ['Four signals','Logs, metrics, traces — and business events.'],
+            ['Domain events','Bank owners approve meanings; Kafka is evidence input.'],
+            ['One key','Link available reference, trace and payment IDs.'],
+            ['Search one, see all','AI watches for unusual patterns — read-only.']]},
+    {icon:'🧵',kicker:'EP21 · 3/7 · ONE TRACE',title:'Follow One Payment',time:'03:55 – 05:45',draw:d3,
+     key:'The trace shows exactly where the time goes.',next:'🔜 Next: SLOs and error budgets',
+     open:'Let’s follow one synthetic payment trace.',
+     land:'AI explains. A person confirms.',
+     gloss:[['TRACE',[1]],['SPAN',[2]],['SAMPLING',[2]],['BUDGET',[3,4]],['STUCK',[5]]],
+     demo:['simulate a slow dependency and inspect a synthetic trace',
+           'benchmark representative load before setting a bank target'],
+     steps:[['Search by UETR','Where supplied: sample payment, 250 euros, 10:02.'],
+            ['Each step = a span','Gateway to scheme gateway, each one timed.'],
+            ['Our budget: 500 ms','From EP05 — this payment used 461 ms.'],
+            ['Over budget','Funds hold: 186 ms, 66 ms over its budget.'],
+            ['Outside our control','The scheme round trip: 1.1 seconds.'],
+            ['Business timeline','States need bank-approved authoritative sources.'],
+            ['AI explains, SRE confirms','Same pattern in 4% of payments; likely the mainframe.']]},
+    {icon:'⏳',kicker:'EP21 · 4/7 · SLOs',title:'SLOs and Error Budgets',time:'05:45 – 07:40',draw:d4,
+     key:'An error budget turns reliability into a business decision.',next:'🔜 Next: alerts',
+     open:'The reference NFRs now become candidate measurable SLOs.',
+     land:'Product, SRE and risk owners approve the policy.',
+     gloss:[['SLI',[1]],['SLO',[1,2]],['SLA',[1]],['ERRBUDGET',[3,4,7]],['BURNRATE',[5,6]]],
+     demo:['define sample SLIs and test burn-rate alert thresholds',
+           'validate SLO data against actual customer commitments'],
+     steps:[['SLI → SLO','What we measure, and the target over 30 days.'],
+            ['Correctness counts too','Zero duplicates, zero stuck payments.'],
+            ['Budget spent','In 30 days: 62% used, 38% left.'],
+            ['One incident','Day 12 used 28% of the budget.'],
+            ['Fast burn: page','2% of the budget in one hour.'],
+            ['Slow burn: ticket','10% in three days.'],
+            ['Error budget policy','Below 50%: slow down. At zero: reliability only.']]},
+    {icon:'📟',kicker:'EP21 · 5/7 · ALERTS',title:'Alerts That Wake the Right Person',time:'07:40 – 09:15',draw:d5,
+     key:'Page on symptoms, not causes — and only the right person.',next:'🔜 Next: runbooks & on-call',
+     open:'Too many alerts are as bad as none.',
+     land:'Every alert is actionable, owned, has a runbook, and is tested.',
+     gloss:[['FATIGUE',[1,2]],['PAGE',[2]],['SYMPTOM',[3]],['AIOPS',[4]],['ROUTING',[5]]],
+     demo:['test alert grouping and routing with synthetic incidents',
+           'tune thresholds against customer impact and false pages'],
+     steps:[['Noise to action','About two billion data points a day.'],
+            ['Only 2 pages','140 warnings stay on dashboards.'],
+            ['Impact first','Page on impact or tested predictors.'],
+            ['AI groups alerts','Three alerts become one incident.'],
+            ['Right person','The on-call of the owning squad.'],
+            ['Runbook on every page','No page without instructions.']]},
+    {icon:'📘',kicker:'EP21 · 6/7 · RESPONSE',title:'Runbooks and On-Call, with AI',time:'09:15 – 10:55',draw:d6,
+     key:'AI reads and explains. People decide anything that moves money.',next:'🔜 Next: dashboards',
+     open:'At three in the morning, nobody should think from zero.',
+     land:'You build it, you run it.',
+     gloss:[['RUNBOOK',[1]],['ESCALATE',[1]],['AIASSIST',[3,4]],['AUTOREM',[6]],['ONCALL',[7]]],
+     demo:['draft a sample runbook and test it in a game day',
+           'validate bounded automation and read-only AI access'],
+     steps:[['One runbook per alert','Stuck payments: seven clear steps.'],
+            ['Never re-send by hand','Retry only under a bank-approved rule.'],
+            ['AI summarises','What, since when, how many customers.'],
+            ['AI drafts updates','For customers and for management.'],
+            ['Never acts on money','No re-sends, refunds or config changes.'],
+            ['Tested fixes','Restart or bounded scale; fraud mode needs risk approval.'],
+            ['People approve the rest','Money, failover, messages to regulators.']]},
+    {icon:'📊',kicker:'EP21 · 7/7 · DASHBOARDS & HANDOVER',title:'Dashboards for Every Audience',time:'10:55 – 12:00',draw:d7,
+     key:'Different people need different numbers — from the same data.',next:'🔜 Next episode: EP22 — Incidents & DR',
+     open:'Different people need different numbers.',
+     land:'Next: what happens when things really break.',
+     gloss:[['DASHBOARD',[1,2,3]],['COSTPP',[1]],['DORAIR',[4]],['SLOREVIEW',[5]],['TOIL',[5]]],
+     demo:['design four role-specific sample dashboards from reconciled metrics',
+           'verify data sources and reporting scope with bank owners'],
+     steps:[['Board view','Sample payments, straight-through rate, SLOs, MIPS.'],
+            ['Operations view','Payments per second, stuck payments, schemes.'],
+            ['Squad view','p99 against budget, error budget, deploys.'],
+            ['Risk & audit','Major incidents, DORA reporting, DR drills.'],
+            ['Weekly SLO review','Fix the top issue; automate toil.'],
+            ['Next episodes','EP22 incidents & DR · EP23 FinOps.']]},
+  ],
+};
+startDeck(DECK);
+</script>
+</body>
+</html>

@@ -1,0 +1,157 @@
+# EP 03 · Mapping the Payment Estate: Final Script
+
+**Series:** Enterprise modernization reference scenario (Stage 1: Discover). **Speed:** 120–130 words per minute. **Voice:** clear English for technology and business leaders.
+
+**How to read it**
+- **Bold** = stress this word.
+- A full stop = a short pause.
+- A new **[tag]** = a longer pause. Draw your arrow with the pen here.
+- Numbers are written as words, so they are easy to read aloud.
+
+## Time plan
+
+<!-- TIMETABLE -->
+| Slide | Words | Length | Timestamp |
+|---|---|---|---|
+| 1 · Map Before You Move | 208 | 01:45 | 00:00 – 01:45 |
+| 2 · Many Sources, One Graph, Four Views | 205 | 01:45 | 01:45 – 03:30 |
+| 3 · The Current-State Map | 213 | 01:50 | 03:30 – 05:20 |
+| 4 · Follow the Money | 220 | 01:50 | 05:20 – 07:10 |
+| 5 · The Night Is Full | 186 | 01:35 | 07:10 – 08:45 |
+| 6 · Value vs Risk: Where to Start | 221 | 01:50 | 08:45 – 10:35 |
+| 7 · Slice 1 — On One Page | 219 | 01:50 | 10:35 – 12:25 |
+| **Total** | **1472** | **12:25** | at 125 words per minute, plus 6 s per slide for drawing |
+
+---
+
+<!-- slide:1 -->
+## Slide 1 · Map Before You Move
+
+**[tag ①]** Episode two showed how to find candidate rules. Now we zoom out. Before changing a payment flow, I would build a **current-state map** with the bank's system owners. The left side is an illustrative CMDB view with four systems and three links. It is a starting hypothesis, not evidence of any bank's actual estate.
+
+**[tag ②]** The right side adds connections that runtime and expert review might reveal. These are **candidate hidden dependencies** until logs and owners confirm them.
+
+**[tag ③]** A direct database read is one risky pattern. In this sample, AML reads DB2. If that link existed, a data move could break monitoring without an obvious API error. The bank must verify the dependency and define the replacement with its AML owner.
+
+**[tag ④]** A broken dependency could affect AML, Treasury, or Finance. The impact and any regulatory consequence are for the bank's domain and compliance teams to assess. My engineering responsibility is to surface the link and make its failure testable.
+
+**[tag ⑤]** The goal is an **evidence-backed** map: systems, interfaces, flows, owners, volumes, and criticality, with gaps clearly marked. It supports a first-slice decision, but does not decide it for the bank.
+
+**[validation plan]** A sample graph can show how a dependency query works. A real answer needs the bank's records and owner review.
+<!-- /slide -->
+
+---
+
+<!-- slide:2 -->
+## Slide 2 · Many Sources, One Graph, Four Views
+
+**[tag ①]** A reliable map needs several sources: CMDB entries, queue and file definitions, network logs, batch schedules, runtime records, call graphs, incidents, and interviews. Which sources exist depends on the bank. Each source has a time window and blind spots.
+
+**[tag ②]** We can load the evidence into a **knowledge graph** of systems and connections. The useful output is a query such as "What might depend on this DB2 table?" Each answer should show its source and confidence, not just a fast graph result.
+
+**[tag ③]** AI can highlight **conflicts**, such as traffic between AML and DB2 absent from the CMDB. It cannot know whether that traffic is current, permitted, or business-critical. A system owner resolves the question.
+
+**[tag ④]** Four views help leaders see the estate: systems and interfaces; flows and hops; batch timing; and data readers and writers. This is a way to structure evidence, not a claim that the map is complete.
+
+**[tag ⑤]** We then walk representative flows with operations, mainframe experts, and system owners. They challenge the graph and add context that logs cannot give, such as why a Treasury file exists.
+
+**[tag ⑥]** Each owner signs the part they can verify. Unknowns stay visible. A graph can be refreshed, but governance must keep it current after releases and operational changes.
+<!-- /slide -->
+
+---
+
+<!-- slide:3 -->
+## Slide 3 · The Current-State Map
+
+**[tag ①]** This first view is the **illustrative bank estate**. It shows mobile, web, branch, and corporate channels. IBM MQ and Connect:Direct stand in for messaging and file transfer. A real bank's channels and protocols may differ.
+
+**[tag ②]** In this reference architecture, CICS runs online programs, DB2 holds ledger-related data, and batch jobs run at night. Those are design assumptions to verify during discovery.
+
+**[tag ③]** The sample includes fraud and sanctions checks on the synchronous path. The bank would confirm which checks apply to each flow, where they run, and what latency they add.
+
+**[tag ④]** On the right are possible external networks and clearing paths: SWIFT, SEPA, FedNow, and batch files. They are alternatives across different markets, not one universal path.
+
+**[tag ⑤]** The bottom row shows candidate dependencies: Treasury, general ledger, warehouse, and reporting. In a real programme, their owners would verify the files, timing, and failure effects before any interface changes.
+
+**[tag ⑥]** The red dotted line is the proposed direct AML read. If it exists, moving its source data requires a tested replacement and a bank-approved monitoring plan. We do not remove it based on a diagram alone.
+
+**[tag ⑦]** The figures here—twenty-three systems, sixty-one interfaces, nine files, one direct read—are **illustrative inventory counts**. The real programme would report measured counts, ownership gaps, and confidence before claiming to know the scope.
+<!-- /slide -->
+
+---
+
+<!-- slide:4 -->
+## Slide 4 · Follow the Money
+
+**[tag ①]** The second view follows flows from entry to final state. This sample includes domestic instant, batch, payroll, cross-border, and standing orders. Twelve million per day is a **scenario assumption**. The bank's product and operations teams would define the actual flow taxonomy and measured volume.
+
+**[tag ②]** For each flow, I would record volume, systems touched, approved rules, external network, and STP rate. STP means the share completed without manual work. We must agree how it is counted before comparing flows.
+
+**[tag ③]** The time figures shown for the domestic instant flow are **illustrative**, not measurements from a bank. They show the method: capture a trace for each hop, separate bank-controlled time from external round-trip time, then use p99 values rather than averages to find the constraint.
+
+**[tag ④]** The sample shows three percent entering manual repair. A bank would measure its own exception rate and classify the reasons. That tells us whether the main value lies in throughput, better decisions, or reducing manual work.
+
+**[tag ⑤]** On this example bar, fraud and sanctions take a large share of internal time. That points engineering to a question, not a conclusion: can we improve response time without weakening controls? The bank's control owners decide the boundary.
+
+**[tag ⑥]** External round-trip time may dominate. We can measure it and design timeouts and status handling, but we cannot promise to make another institution faster.
+<!-- /slide -->
+
+---
+
+<!-- slide:5 -->
+## Slide 5 · The Night Is Full
+
+**[tag ①]** The third view is time. This is an **illustrative batch schedule** with a five-thirty cut-off. A bank must confirm which product has that cut-off and which flows continue outside it.
+
+**[tag ②]** The top band represents an assumed window where some services are limited and posting is deferred. Whether that is memo-posting, and what balance a customer sees, are bank-specific accounting and product questions.
+
+**[tag ③]** The red bars form a candidate **critical path** through clearing, posting, general ledger, AML extract, and reporting. We would confirm dependencies in the scheduler and with owners; the order shown is a model.
+
+**[tag ④]** In this sample, the last job ends at five-thirty and the next peak starts at six: only thirty minutes of slack. A real programme would measure that margin across normal, month-end, and peak days.
+
+**[tag ⑤]** If payroll volume extends one job, downstream jobs may slip. The degree of delay is a testable dependency, not an assumption about every bank.
+
+**[tag ⑥]** The possible modernization benefit is to remove a verified workload from the batch critical path. That benefit must be measured after cutover; a new real-time path does not automatically shrink every downstream job.
+<!-- /slide -->
+
+---
+
+<!-- slide:6 -->
+## Slide 6 · Value vs Risk: Where to Start
+
+**[tag ①]** With the map and its gaps visible, leadership can compare candidate slices. The two questions are business **value** and delivery **risk**. I can structure the decision; the bank sets the weights.
+
+**[tag ②]** Possible value factors are customer impact, product timing, cost, and obligations. Risk factors include rule uncertainty, interfaces, peak load, batch dependencies, and data coupling. These are prompts for a bank-specific assessment, not a formula that chooses the answer.
+
+**[tag ③]** AI can draft evidence summaries from the map and rules catalog. Architects and bank business owners challenge the scores and **agree** on the decision. The score is an aid, not an authority.
+
+**[tag ④]** In this **illustrative matrix**, outbound domestic instant payments sit at high value and lower risk. That makes them a candidate first slice, pending the bank's data, scheme obligations, and operational approval.
+
+**[tag ⑤]** A read-only status API could test the delivery path with fewer money-moving risks. It still needs privacy, data freshness, and status accuracy checks. Its value is learning before a higher-risk cutover.
+
+**[tag ⑥]** The sample places payroll, cross-border, and the ledger at higher risk. I would defer a ledger cutover until its controls and evidence are ready; the bank determines the actual sequence.
+
+**[tag ⑦]** A useful first slice has a clear boundary, measurable value, manageable risk, and a credible fallback. It should teach us something about integration and operations before traffic grows.
+<!-- /slide -->
+
+---
+
+<!-- slide:7 -->
+## Slide 7 · Slice 1 — On One Page
+
+**[tag ①]** This one-page proposal defines an **illustrative** first slice: outbound domestic instant payments from a mobile pilot, within a bank-approved limit. The new path would own orchestration and a scheme connection only if the bank validates that boundary.
+
+**[tag ②]** The proposal excludes corporate, bulk, cross-border, inbound, and ledger changes. This prevents scope from expanding without a fresh risk review. The bank may choose a different boundary.
+
+**[tag ③]** Dependencies include fraud, sanctions, a ledger adapter, reviewed rules, and characterization tests. The diagram's interface counts are planning assumptions. Owners must verify each connection and its failure mode.
+
+**[tag ④]** Success needs agreed measures: internal p99 latency, no duplicate debit from the same authorised request, STP against the current baseline, and actual cost change. Half a second is a **proposed target**, not measured evidence.
+
+**[tag ⑤]** A feature flag can redirect **new** requests to the old route. We still need a rehearsed plan for in-flight requests and any external effects that cannot be undone.
+
+**[tag ⑥]** The proposed decision is recorded as ADR zero zero one, with assumptions, alternatives, and exit gates. In a real bank, the accountable technology, payments, and risk owners would sign it.
+
+**[tag ⑦]** Next, approved rules and bank-validated obligations become requirements. We then set measurable non-functional targets, controls, and architecture. Discovery is not "done" while key ownership or behavior remains unknown; those gaps stay on the decision record.
+<!-- /slide -->
+
+---

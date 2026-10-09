@@ -1,0 +1,430 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EP23 FinOps: Cost per Payment</title>
+<link rel="stylesheet" href="../shared/deck.css">
+</head>
+<body>
+<script src="../shared/deck.js"></script>
+<script>
+/* ============================================================
+   EP23 · FinOps: Cost per Payment — diagrams (1280x800)
+   ============================================================ */
+const poly=(pts,col,w=2.6,extra='')=>`<polyline points="${pts.map(p=>p.join(',')).join(' ')}" fill="none" stroke="${col}" stroke-width="${w}" stroke-linejoin="round" stroke-linecap="round" ${extra}/>`;
+const op=(x,y,s)=>`<text x="${x}" y="${y}" text-anchor="middle" font-size="30" font-weight="800" fill="#222530">${s}</text>`;
+
+/* 1 · Two bills and the FinOps loop */
+function d1(){return [
+  group({x:10,y:30,w:620,h:330,k:'legacy',label:'🏛️ MAINFRAME BILL · CONTRACT-SPECIFIC'}),
+  box({x:30,y:72,w:580,h:84,k:'legacy',i:'📄',t:'Contract terms matter',s:'Finance and Procurement verify them'}),
+  box({x:30,y:168,w:580,h:84,k:'legacy',i:'⛰️',t:'Peak or other pricing',s:'capacity · licences · commitments'}),
+  box({x:30,y:264,w:580,h:84,k:'legacy',i:'🔒',t:'Cash effect may lag',s:'depends on renewal and shared work'}),
+  group({x:650,y:30,w:620,h:330,k:'aws',label:'☁️ CLOUD BILL · USAGE AND COMMITMENTS'}),
+  box({x:670,y:72,w:580,h:84,k:'aws',i:'🧾',t:'Usage-based charges',s:'plus discounts and commitments'}),
+  box({x:670,y:168,w:580,h:84,k:'aws',i:'↕️',t:'Design moves the bill',s:'verify rates and utilisation'}),
+  box({x:670,y:264,w:580,h:84,k:'aws',i:'🧑‍💻',t:'Engineering choices matter',s:'measure their net effect'}),
+
+  group({x:10,y:380,w:780,h:400,k:'good',label:'🔁 PROPOSED FINOPS LOOP'}),
+  box({x:40,y:430,w:220,h:150,k:'aws',i:'👁️',t:'Inform',s:'reconcile cost\nby slice and team'}),
+  box({x:300,y:430,w:220,h:150,k:'good',i:'✂️',t:'Optimise',s:'test candidate\ncost changes'}),
+  box({x:560,y:430,w:210,h:150,k:'human',i:'🤝',t:'Operate',s:'budgets · reviews\nbank-set cadence'}),
+  arrow([[260,505],[300,505]],{k:'good',st:3}),
+  arrow([[520,505],[560,505]],{k:'good',st:3}),
+  arrow([[665,580],[665,624],[150,624],[150,580]],{k:'good',st:3,dash:1,label:'repeat at agreed cadence',lx:408,ly:624}),
+  box({x:40,y:672,w:730,h:84,k:'risk',i:'❓',t:'The board asks: “Is this creating value?”',s:'answer with bills, volume and service evidence'}),
+
+  group({x:810,y:380,w:460,h:400,k:'neutral',label:'👥 WHO OWNS COST'}),
+  box({x:830,y:424,w:420,h:76,k:'human',i:'💼',t:'Finance',s:'accounting · forecast · allocation'}),
+  box({x:830,y:510,w:420,h:76,k:'aws',i:'🧑‍💻',t:'Engineering',s:'usage and design choices'}),
+  box({x:830,y:596,w:420,h:76,k:'human',i:'🧭',t:'Product',s:'customer value vs cost'}),
+  box({x:830,y:682,w:420,h:76,k:'good',i:'📊',t:'FinOps lead · option',s:'connects views; bank sets owners'}),
+
+  tag(1,600,30,'Contract-specific','r'),
+  tag(2,1250,30,'Usage + terms','r'),
+  tag(3,760,380,'The FinOps loop','r'),
+  tag(4,50,672,'The board question'),
+  tag(5,1250,380,'Named cost owners','r'),
+].join('')}
+
+/* 2 · Cost per payment */
+function d2(){
+  const X=q=>80+q*52, Y=v=>720-v*8000;
+  const legacy=[0.020,0.020,0.021,0.022,0.024,0.026,0.029,0.033,0.038];
+  const neu=[null,0.045,0.032,0.022,0.017,0.014,0.012,0.011,0.010,0.009,0.0085,0.008,0.008];
+  const out=[
+    group({x:10,y:30,w:1260,h:250,k:'neutral',label:'🧮 COST PER PAYMENT · BANK-AGREED DEFINITION'}),
+    box({x:30,y:90,w:180,h:100,k:'aws',i:'☁️',t:'AWS for the slice',s:'EKS · Kafka · Aurora'}),
+    op(220,150,'+'),
+    box({x:230,y:90,w:180,h:100,k:'neutral',i:'🧩',t:'Shared platform',s:'fair share by usage'}),
+    op(420,150,'+'),
+    box({x:430,y:90,w:180,h:100,k:'legacy',i:'🏛️',t:'Retained legacy',s:'Finance allocation'}),
+    op(620,150,'+'),
+    box({x:630,y:90,w:180,h:100,k:'human',i:'👥',t:'Run team',s:'on-call · support'}),
+    op(840,152,'÷'),
+    box({x:870,y:90,w:170,h:100,k:'neutral',i:'💳',t:'Payments',s:'approved count'}),
+    op(1055,152,'='),
+    box({x:1075,y:80,w:180,h:120,k:'good',i:'🎯',t:'Cost per\npayment',s:'€ per payment'}),
+    txt(640,240,'Finance approves shared cost, commitments and the payment denominator.','note','middle'),
+
+    group({x:10,y:300,w:780,h:480,k:'neutral',label:'📉 SYNTHETIC COST CURVES · €',lp:'b'}),
+  ];
+  [0,0.01,0.02,0.03,0.04].forEach(v=>out.push(`<line x1="80" y1="${Y(v)}" x2="${X(12)}" y2="${Y(v)}" stroke="rgba(34,37,48,.10)"/>`,txt(72,Y(v)+4,'€'+v.toFixed(2),'cl','end')));
+  [['today',0],['year 1',4],['year 2',8],['year 3',12]].forEach(([t,q])=>out.push(txt(X(q),742,t,'cl','middle')));
+  out.push(
+    `<path d="M80 720 L${X(12)+8} 720" stroke="#222530" stroke-width="2"/>`,`<path d="M80 720 L80 344" stroke="#222530" stroke-width="2"/>`,
+    `<line x1="80" y1="${Y(0.01)}" x2="${X(12)}" y2="${Y(0.01)}" stroke="#2E8B57" stroke-width="2" stroke-dasharray="8 6"/>`,
+    txt(X(12),Y(0.01)-8,'scenario target €0.010','cl','end','#2E8B57'),
+    poly(legacy.map((v,i)=>[X(i),Y(v)]),'#7B8190',3),
+    poly(neu.map((v,i)=>v==null?null:[X(i),Y(v)]).filter(Boolean),'#0F7F77',3.4),
+    txt(X(8)+10,Y(0.038)+5,'retirement assumed','kl','start','#7B8190'),
+    poly([[560,372],[596,372]],'#7B8190',3), txt(604,377,'mainframe flow','kl'),
+    poly([[560,398],[596,398]],'#0F7F77',3.4), txt(604,403,'new platform','kl'),
+    group({x:810,y:300,w:460,h:480,k:'aws',label:'💡 HYPOTHESES TO TEST'}),
+    box({x:830,y:346,w:420,h:120,k:'good',i:'📈',t:'Volume may help',s:'fixed cost is shared;\nvariable cost can offset'}),
+    box({x:830,y:480,w:420,h:120,k:'legacy',i:'🏛️',t:'Legacy cost may remain',s:'contracts and shared work\ndecide removal'}),
+    box({x:830,y:614,w:420,h:120,k:'good',i:'🎯',t:'Scenario target',s:'€0.010 by year 2;\nFinance must validate'}),
+    tag(1,1250,30,'One number','r'),
+    tag(2,240,90,'Fully loaded'),
+    tag(3,880,90,'Divide by payments'),
+    tag(4,X(1)+14,Y(0.045),'Pilot looks expensive'),
+    tag(5,X(4.6),476,'Stranded cost','c'),
+    tag(6,840,346,'Test the volume curve'),
+    tag(7,840,614,'Set a target'),
+  );
+  return out.join('');
+}
+
+/* 3 · Make cost visible */
+function d3(){
+  const split=(x,y,w,parts)=>{let s='',cx=x;parts.forEach(([t,p,k])=>{const pw=w*p/100,c=K[k];
+    s+=`<rect x="${cx}" y="${y}" width="${pw}" height="40" fill="${c.f}" stroke="${c.s}" stroke-width="1.6"/>`+
+       `<text x="${cx+pw/2}" y="${y+25}" text-anchor="middle" font-size="12.5" font-weight="700" fill="${c.t}">${esc(pw>90?t+' '+p+'%':p+'%')}</text>`;cx+=pw});return s};
+  return [
+  group({x:10,y:30,w:620,h:420,k:'aws',label:'🏷️ PROPOSED COST TAGS'}),
+  code({x:26,y:66,w:588,h:250,title:'sample tags · Terraform default_tags',lines:[
+    ['1','slice        = "slice-1-instant-out"'],
+    ['2','service      = "payment-orchestrator"'],
+    ['3','team         = "squad-1"'],
+    ['4','environment  = "prod"'],
+    ['5','cost-centre  = "PAY-4410"'],
+    ['6','data-class   = "confidential"'],
+  ]}),
+  box({x:26,y:334,w:588,h:96,k:'bad',i:'⛔',t:'Tag gate · option',s:'bank approves emergency and shared exceptions'}),
+
+  group({x:650,y:30,w:620,h:420,k:'neutral',label:'🧩 SHARED COST ALLOCATION · EXAMPLE'}),
+  txt(670,82,'KUBERNETES · CPU + MEMORY ESTIMATE','hd'),
+  split(670,94,580,[['Squad 1',45,'aws'],['Squad 2',25,'aws'],['Squad 3',20,'aws'],['Platform',10,'neutral']]),
+  txt(670,168,'KAFKA · TOPIC DATA IS ONE DRIVER','hd'),
+  split(670,180,580,[['payment',50,'aws'],['screening',20,'aws'],['ledger',20,'aws'],['scheme',10,'aws']]),
+  box({x:670,y:248,w:580,h:84,k:'good',i:'🧮',t:'Pod-level estimate',s:'add reservations and idle capacity to allocation'}),
+  box({x:670,y:346,w:580,h:84,k:'neutral',i:'🗄️',t:'Candidate data path',s:'cost export → approved model → dashboard'}),
+
+  group({x:10,y:470,w:1260,h:310,k:'good',label:'📊 PROPOSED SHOWBACK · SYNTHETIC MONTH'}),
+  table({x:30,y:510,w:1220,hh:30,rh:50,
+    cols:[['TEAM',0],['THIS MONTH',400],['VS LAST MONTH',560],['PER PAYMENT',740],['BIGGEST ITEM',920]],
+    rows:[['Squad 1 · Initiation & Orchestration','€41,200','+3%','€0.004','Kubernetes compute'],
+          ['Squad 2 · Screening & Limits','€27,900','−6%','€0.003','fraud model hosting'],
+          ['Squad 3 · Ledger & Scheme','€33,100','+1%','€0.003','Kafka + scheme links'],
+          ['Platform (shared, allocated above)','€18,600','0%','—','observability']]}),
+
+  tag(1,600,30,'Proposed tags','r'),
+  tag(2,36,334,'Tag gate option'),
+  tag(3,1250,30,'Agree allocation','r'),
+  tag(4,680,248,'Pod estimate'),
+  tag(5,1250,470,'Showback per squad','r'),
+].join('')}
+
+/* 4 · Where the money goes — and rightsizing */
+function d4(){
+  const cats=[['🖥️','Kubernetes compute',28,'aws'],['🧵','Kafka (MSK)',16,'aws'],['🐘','Aurora databases',15,'aws'],['🔭','Logs, metrics, traces',12,'risk'],
+              ['🧪','Non-prod environments',14,'risk'],['🌍','Second region (DR)',8,'neutral'],['↔️','Data transfer',5,'risk'],['➕','Other',2,'neutral']];
+  const out=[group({x:10,y:30,w:620,h:500,k:'neutral',label:'💶 SYNTHETIC PLATFORM BILL · EXAMPLE MONTH'})];
+  cats.forEach((c,i)=>{const y=72+i*54, w=c[2]*10.5, k=K[c[3]];
+    out.push(txt(30,y+26,c[0]+' '+c[1],'kl'),
+      `<rect x="270" y="${y+6}" width="${w}" height="32" rx="6" fill="${k.f}" stroke="${k.s}" stroke-width="2"/>`,
+      `<text x="${270+w+8}" y="${y+28}" font-size="15" font-weight="800" fill="${k.s}">${c[2]}%</text>`)});
+  out.push(
+    txt(30,512,'orange = cost to review for value and ownership','note'),
+    group({x:650,y:30,w:620,h:500,k:'good',label:'✂️ CANDIDATE LEVERS · TEST BEFORE CLAIMING'}),
+    table({x:666,y:70,w:588,hh:30,rh:62,cols:[['ACTION',0],['EFFECT TO TEST',318],['OWNER CHECK',448]],
+      rows:[['Rightsize pods and nodes','measure cost','capacity'],
+            ['Graviton (Arm) instances','benchmark','compatibility'],
+            ['Savings Plans for the base','compare rates','Procurement'],
+            ['Spot + off at night (non-prod)','test saving','interruptions'],
+            ['Log levels + retention tiers','test storage','retention'],
+            ['Less cross-zone traffic','measure','resilience']],
+      hl:{5:'risk'}}),
+    group({x:10,y:550,w:1260,h:230,k:'risk',label:'⚠️ CHEAP IS NOT THE GOAL'}),
+    box({x:30,y:596,w:390,h:150,k:'risk',i:'🛟',t:'Protect headroom',s:'bank-approved capacity\nand peak target'}),
+    box({x:445,y:596,w:390,h:150,k:'risk',i:'🏢',t:'Protect resilience',s:'Risk and operations set\nzone and DR needs'}),
+    box({x:860,y:596,w:390,h:150,k:'risk',i:'🗄️',t:'Protect evidence',s:'bank-approved retention\nand audit access'}),
+    tag(1,600,30,'Where it goes','r'),
+    tag(2,270+12*10.5+56,72+3*54+22,'Review for value'),
+    tag(3,1246,106,'Rightsize','r'),
+    tag(4,1246,230,'Commit for the base','r'),
+    tag(5,1246,292,'Switch off at night','r'),
+    tag(6,1250,550,'Cheap is not the goal','r'),
+  );
+  return out.join('');
+}
+
+/* 5 · MIPS removed — and the peak */
+function d5(){
+  const X=h=>80+h*28, Y=m=>440-m*0.28;
+  const before=[[0,700],[2,780],[4,720],[6,420],[8,600],[10,880],[12,960],[14,940],[16,820],[18,640],[20,520],[22,600],[24,700]];
+  const after=[[0,700],[2,780],[4,720],[6,400],[8,540],[10,780],[12,840],[14,830],[16,730],[18,580],[20,480],[22,600],[24,700]];
+  const P=a=>a.map(([h,m])=>[X(h),Y(m)]);
+  const out=[group({x:10,y:30,w:780,h:470,k:'legacy',label:'🏛️ SYNTHETIC MAINFRAME PROFILE · ONE DAY',lp:'b'})];
+  [0,250,500,750,1000].forEach(m=>out.push(`<line x1="80" y1="${Y(m)}" x2="${X(24)}" y2="${Y(m)}" stroke="rgba(34,37,48,.10)"/>`,txt(72,Y(m)+4,String(m),'cl','end')));
+  ['00:00','06:00','12:00','18:00','24:00'].forEach((t,i)=>out.push(txt(X(i*6),460,t,'cl','middle')));
+  out.push(
+    `<rect x="${X(11)}" y="${Y(1000)}" width="${X(15)-X(11)}" height="${440-Y(1000)}" fill="rgba(232,185,49,.22)"/>`,
+    `<path d="M80 440 L${X(24)+6} 440" stroke="#222530" stroke-width="2"/>`,`<path d="M80 440 L80 150" stroke="#222530" stroke-width="2"/>`,
+    txt(88,158,'MSU','cl'),
+    poly(P(before),'#7B8190',3), poly(P(after),'#0F7F77',3.4),
+    poly([[600,394],[636,394]],'#7B8190',3), txt(644,399,'baseline sample','kl'),
+    poly([[600,420],[636,420]],'#0F7F77',3.4), txt(644,425,'post-slice sample','kl'),
+    group({x:810,y:30,w:460,h:470,k:'neutral',label:'📏 SCENARIO CALCULATION · VALIDATE CONTRACT'}),
+    kpi({x:830,y:76,w:420,h:64,k:'legacy',i:'⛰️',t:'Example 4-hour measure',v:'950 → 835'}),
+    kpi({x:830,y:152,w:420,h:64,k:'good',i:'📉',t:'Illustrative change',v:'−12%'}),
+    kpi({x:830,y:228,w:420,h:64,k:'neutral',i:'🧾',t:'Billing basis',v:'verify'}),
+    box({x:830,y:312,w:420,h:150,k:'risk',i:'📄',t:'Cash effect needs proof',s:'Finance and Procurement check\ncontract, invoice and timing'}),
+
+    group({x:10,y:520,w:1260,h:260,k:'good',label:'✅ HOW TO TEST MAINFRAME SAVINGS'}),
+    box({x:30,y:566,w:290,h:180,k:'good',i:'🌞',t:'Study peak drivers',s:'contract and workload\nset the value'}),
+    box({x:340,y:566,w:290,h:180,k:'bad',i:'🪦',t:'Retire safely',s:'check remaining jobs,\nlicences and dependencies'}),
+    box({x:650,y:566,w:290,h:180,k:'neutral',i:'📊',t:'Measure by slice',s:'SMF plus seasonality\nand other work'}),
+    box({x:960,y:566,w:290,h:180,k:'human',i:'🤝',t:'Plan the contract',s:'renewal dates · pricing\nmodel (R4HA or Tailored Fit)'}),
+
+    tag(1,(X(11)+X(15))/2,Y(1000)-14,'Peak may set bill','c'),
+    tag(2,90,190,'Night batch is below the peak'),
+    tag(3,600,330,'Example −12%','c'),
+    tag(4,1250,30,'Verify contract basis','r'),
+    tag(5,350,566,'Retire safely'),
+    tag(6,970,566,'Contract timing'),
+  );
+  return out.join('');
+}
+
+/* 6 · Budgets, anomalies and cost in CI */
+function d6(){
+  const X=d=>690+d*38, Y=v=>350-v*0.55;
+  const logs=[[0,100],[1,96],[2,104],[3,99],[4,101],[5,97],[6,103],[7,100],[8,98],[9,380],[10,400],[11,112],[12,101],[13,99],[14,100]];
+  return [
+  group({x:10,y:30,w:620,h:370,k:'aws',label:'🚦 SAMPLE COST ESTIMATE IN A PULL REQUEST'}),
+  code({x:26,y:66,w:588,h:250,title:'sample PR · cost estimate',lines:[
+    ['','Illustrative monthly change · slice-1'],
+    ['',''],
+    ['','~ aws_msk_cluster.payments'],
+    ['','  kafka.m7g.large → kafka.m7g.xlarge','y'],
+    ['','  + €900 per month (6 brokers)','o'],
+    ['',''],
+    ['','Cost per payment: €0.0100 → €0.0101'],
+  ]}),
+  box({x:26,y:330,w:588,h:56,k:'human',i:'👀',t:'Budget owner reviews cost and resilience trade-off'}),
+
+  group({x:650,y:30,w:620,h:370,k:'risk',label:'📈 SYNTHETIC LOG-COST ANOMALY'}),
+  `<path d="M690 350 L1236 350" stroke="#222530" stroke-width="2"/>`,
+  txt(690,372,'day 1','cl'), txt(X(14),372,'day 15','cl','end'),
+  poly(logs.map(([d,v])=>[X(d),Y(v)]),'#C9661E',3.4),
+  `<circle cx="${X(9)}" cy="${Y(380)}" r="6" fill="#C0392B"/>`,
+  txt(X(9)-10,Y(380)-6,'Friday release: debug logs on','kl','end'),
+  txt(X(10)+12,Y(400)+28,'test alert: 6 h','kl','start','#C0392B'),
+  txt(X(11)+12,Y(112)-14,'test response: same day','kl','start','#2E8B57'),
+
+  group({x:10,y:420,w:1260,h:360,k:'neutral',label:'🛡️ SAMPLE BUDGET POLICY · BANK TO SET'}),
+  table({x:30,y:460,w:1220,hh:30,rh:50,
+    cols:[['SIGNAL',0],['WHEN',260],['WHO IS TOLD',520],['ACTION',860]],
+    rows:[['Budget per squad','sample: 80% / 100%','squad + Finance','review forecast'],
+          ['Cost anomaly','unusual daily jump','named owner','investigate cause'],
+          ['Cost per payment','sample: 2 weeks high','FinOps + product','review drivers'],
+          ['Untagged resource','per approved policy','platform team','review exception']]}),
+  box({x:30,y:706,w:1220,h:58,k:'ai',i:'🤖',t:'AI may suggest a cause and fix · an owner verifies evidence, tests and approves'}),
+
+  tag(1,600,30,'Cost before merge','r'),
+  tag(2,36,330,'A person approves'),
+  tag(3,1250,30,'Anomaly scenario','r'),
+  tag(4,1240,496,'Budgets per squad','r'),
+  tag(5,1240,596,'Per-payment alert','r'),
+  tag(6,40,706,'AI suggests, people verify'),
+].join('')}
+
+/* 7 · The FinOps rhythm and the board page */
+function d7(){return [
+  group({x:10,y:30,w:1260,h:230,k:'neutral',label:'🔁 PROPOSED FINOPS RHYTHM'}),
+  box({x:30,y:76,w:280,h:150,k:'aws',i:'🗓️',t:'Weekly · squads',s:'review cost changes\nand causes'}),
+  box({x:343,y:76,w:280,h:150,k:'human',i:'📅',t:'Monthly · review',s:'Finance + engineering\n+ product'}),
+  box({x:656,y:76,w:280,h:150,k:'good',i:'📊',t:'Quarterly · leaders',s:'one reconciled\ncost view'}),
+  box({x:969,y:76,w:280,h:150,k:'legacy',i:'🔄',t:'Contract dates',s:'follow actual renewals\nand commitments'}),
+  arrow([[310,151],[343,151]],{k:'neutral',st:2}),
+  arrow([[623,151],[656,151]],{k:'neutral',st:3}),
+  arrow([[936,151],[969,151]],{k:'neutral',st:4}),
+
+  group({x:10,y:280,w:780,h:500,k:'good',label:'📊 SYNTHETIC LEADERSHIP PAGE'}),
+  kpi({x:30,y:326,w:740,h:60,k:'good',i:'🎯',t:'Unit cost · scenario target',v:'€0.010 target'}),
+  kpi({x:30,y:396,w:740,h:60,k:'good',i:'⛰️',t:'Mainframe change · scenario',v:'−12% example'}),
+  kpi({x:30,y:466,w:740,h:60,k:'good',i:'📈',t:'Savings vs plan (EP09)',v:'reconcile'}),
+  kpi({x:30,y:536,w:740,h:60,k:'risk',i:'🔮',t:'Forecast · sample',v:'+4% example'}),
+  kpi({x:30,y:606,w:740,h:60,k:'neutral',i:'🏷️',t:'Unallocated spend · sample',v:'0.3% example'}),
+  txt(400,720,'One dataset; Finance checks invoices, volume and allocation.','kl','middle'),
+
+  group({x:810,y:280,w:460,h:500,k:'aws',label:'🔜 FROM COST TO CONTINUOUS CHANGE'}),
+  box({x:830,y:326,w:420,h:120,k:'good',i:'💶',t:'Verified savings may fund more',s:'leaders decide after\nFinance confirmation'}),
+  box({x:830,y:466,w:420,h:120,k:'neutral',i:'🧾',t:'Showback → chargeback?',s:'separate choice with\nFinance approval'}),
+  box({x:830,y:606,w:420,h:150,k:'aws',i:'🔄',t:'EP24 · Continuous Modernisation',s:'scheme updates · upgrades\nbetter AI guardrails'}),
+
+  tag(1,40,76,'Weekly'),
+  tag(2,353,76,'Monthly review'),
+  tag(3,666,76,'Quarterly leaders'),
+  tag(4,979,76,'Contract dates'),
+  tag(5,760,280,'One page for the board','r'),
+  tag(6,840,326,'If verified, reinvest'),
+].join('')}
+
+/* ============================================================
+   Episode config
+   ============================================================ */
+const DECK={
+  brand:'🏦 CORE BANKING PAYMENTS MODERNIZATION · AWS',
+  ep:'EP 23', epShort:'EP23', title:'FinOps: Cost per Payment', subtitle:'Execution Architect · reference scenario',
+  seriesTitle:'Enterprise Modernization · Reference Series',
+  logo:'../shared/jo-logo.png', background:'../shared/background.png',
+  stages:[['🔍','Discover'],['📋','Requirements'],['📐','Design & Plan'],['🛠️','Build'],['🚀','Test & Deploy'],['🔧','Operate']],
+  stage:6,
+  glossary:{
+    FINOPS:['FinOps','value','Finance, engineering and product use agreed cost data to inform, optimise and govern decisions. The bank sets the cadence.'],
+    VARCOST:['Variable cost','cost','A cost that moves with use. Good when volume falls; dangerous when nobody watches it.'],
+    LOOP:['FinOps loop','value','Inform with reconciled data; test cost changes; review results and budgets at an agreed cadence.'],
+    UNITECON:['Unit economics','value','Cost per unit of business, like cost per payment. It shows if growth makes us cheaper or dearer.'],
+    OWNCOST:['Cost ownership','risk','Finance approves accounting and allocation; engineering owns usage; product weighs value. The bank assigns formal owners.'],
+    CPP:['Cost per payment','value','Agreed fully loaded monthly cost divided by the authoritative count of in-scope payments. Finance approves the definition.'],
+    LOADED:['Fully loaded cost','cost','Including shared platform, mainframe and people costs. Without them, the number looks better than the truth.'],
+    SHARED:['Shared cost','cost','Cost used by several teams, such as Kafka. Finance and engineering agree an allocation rule, including reservations and idle capacity.'],
+    STRANDED:['Stranded cost','cost','Legacy commitments may remain after traffic moves. Removal depends on contracts, shared workloads and safe retirement.'],
+    ECONSCALE:['Economies of scale','value','More payments can spread fixed cost, while variable charges, peaks and resilience may offset the gain. Measure the curve.'],
+    TAGS:['Cost tags','risk','Labels on every cloud resource: slice, service, team, environment. Without them, the bill is one big mystery.'],
+    TAGPOL:['Tag policy','risk','A proposed gate for required cost tags. The bank decides shared-resource and emergency exceptions.'],
+    ALLOC:['Cost allocation','cost','Deciding which team or slice pays for what — including fair shares of shared services.'],
+    SPLITEKS:['Pod cost estimate','value','CPU and memory usage can inform allocation; reservations and idle capacity still need a Finance-approved rule.'],
+    SHOWBACK:['Showback','value','A team cost view without charging budgets. It supports decisions but does not itself prove savings or behaviour change.'],
+    RIGHTSIZE:['Rightsizing','cost','Making servers and containers the right size for real use. Too big wastes money; too small breaks NFRs.'],
+    GRAVITON:['Graviton','cost','AWS Arm processors. Any price or performance gain depends on workload compatibility and the bank’s rates; benchmark first.'],
+    SAVPLAN:['Savings Plans','cost','A commitment to a steady level of spend for one or three years, in return for a lower price.'],
+    SPOT:['Spot capacity','cost','Spare AWS capacity at a big discount, which AWS can take back at short notice. Fine for tests, not for live payments.'],
+    LOGRET:['Log retention','risk','Bank legal, risk and operations set retention and access needs before storage-tier changes.'],
+    MSU:['MSU vs MIPS','cost','Mainframe capacity measures. A workload change does not automatically reduce a contract charge; verify the actual basis.'],
+    R4HA:['Rolling 4-hour average','cost','One possible billing measure in a mainframe contract. Procurement and the mainframe team confirm whether it applies.'],
+    TFP:['Tailored Fit Pricing','cost','An IBM pricing model based on total use instead of the peak. Your contract decides which rules apply.'],
+    ZOMBIE:['Residual workload','cost','Legacy programs or jobs may still support other domains. Review dependencies before retirement.'],
+    CONTRACT:['Contract renewal','cost','Finance and Procurement model cash effects from actual pricing, commitments and renewal dates.'],
+    BUDGETS:['Budget alert','risk','A spend threshold that the bank sets using forecasts and seasonality. The 80% and 100% marks are examples.'],
+    ANOMALY:['Cost anomaly','risk','An unusual spend jump requiring investigation. The six-hour alert and same-day fix shown are synthetic test values.'],
+    COSTCI:['Cost in CI','value','A tool like Infracost shows the cost change of a Terraform change inside the pull request, before the merge.'],
+    FORECAST:['Forecast','value','An estimate based on volume, rates and planned changes, reviewed by Finance with engineering input.'],
+    HITL:['Human-in-the-loop','risk','AI may suggest a cause or fix; a named owner checks evidence, tests the change and approves it.'],
+    COUNCIL:['FinOps council','value','A monthly meeting of finance, engineering and product. Same numbers, one decision.'],
+    CHARGEBACK:['Chargeback','cost','Actually charging each team’s budget for its cloud cost. Usually comes after showback, once the numbers are trusted.'],
+    VARIANCE:['Savings vs plan','cost','A comparison of Finance-verified bill changes with a planning hypothesis. Never call an estimate realised savings.'],
+    COSTKPI:['Cost KPI','value','A small set of cost numbers reported the same way every quarter, so the trend is clear.'],
+    CONTINUOUS:['Continuous modernisation','value','Change never stops: new scheme rules, upgrades, better AI. The topic of EP24.'],
+  },
+  callout:{title:'🧪 VALIDATION PLAN',first:'Engineering check:',second:'Finance / bank check:'},
+  slides:[
+    {icon:'💶',kicker:'EP23 · 1/7 · WHY FINOPS',title:'Two Bills, One Question',time:'00:00 – 01:40',draw:d1,
+     key:'Cost claims need invoices, volume and service evidence.',next:'🔜 Next: cost per payment',
+     open:'Lower cost is a hypothesis to measure, not a promise.',
+     land:'Finance, engineering and product each own part of the cost decision.',
+     gloss:[['VARCOST',[1,2]],['FINOPS',[3]],['LOOP',[3]],['UNITECON',[4]],['OWNCOST',[5]]],
+     callout:['Use synthetic costs to test a shared allocation model.',
+              'Finance and Procurement verify bills, terms and baseline.'],
+     steps:[['Contract-specific','Mainframe charges and renewal terms need review.'],
+            ['Usage + terms','Cloud cost depends on rates, use and commitments.'],
+            ['The FinOps loop','Inform, test changes, govern at bank-set cadence.'],
+            ['The board question','“Is this creating value?”'],
+            ['Named cost owners','Finance, engineering and product roles.']]},
+    {icon:'🧮',kicker:'EP23 · 2/7 · THE UNIT',title:'Cost per Payment',time:'01:40 – 03:30',draw:d2,
+     key:'Define unit cost with Finance, then measure it.',next:'🔜 Next: make cost visible',
+     open:'A unit-cost trend can help leaders see how spend changes with volume.',
+     land:'The one-cent line is a scenario target until Finance validates it.',
+     gloss:[['CPP',[1]],['LOADED',[2]],['SHARED',[2]],['STRANDED',[5]],['ECONSCALE',[6]]],
+     callout:['Join synthetic full-cost data to an approved payment count.',
+              'Finance validates allocation, contracts and the target.'],
+     steps:[['One number','Agreed monthly cost divided by in-scope payments.'],
+            ['Fully loaded','Include shared, retained legacy and operating cost.'],
+            ['Divide by payments','Use the authoritative business count, not event count.'],
+            ['Pilot looks expensive','Low volume can raise illustrative unit cost.'],
+            ['Stranded cost','Contract charges may remain as volume leaves.'],
+            ['Test the volume curve','Variable charges and resilience may offset scale.'],
+            ['Set a target','€0.010 by year two is only a scenario target.']]},
+    {icon:'🏷️',kicker:'EP23 · 3/7 · INFORM',title:'Make Cost Visible',time:'03:30 – 04:45',draw:d3,
+     key:'Cost needs owners and a Finance-approved allocation.',next:'🔜 Next: where the money goes',
+     open:'You can’t manage a cost you can’t see.',
+     land:'Showback supports decisions; savings still need proof.',
+     gloss:[['TAGS',[1]],['TAGPOL',[2]],['ALLOC',[3]],['SPLITEKS',[4]],['SHOWBACK',[5]]],
+     callout:['Define tags and test shared-cost allocation on sample usage.',
+              'Finance approves allocation and policy exceptions.'],
+     steps:[['Proposed tags','Slice, service, team, environment, cost centre.'],
+            ['Tag gate option','Bank decides shared and emergency exceptions.'],
+            ['Agree allocation','Kafka and Kubernetes need fair bank-set rules.'],
+            ['Pod estimate','Include reservations and idle capacity.'],
+            ['Showback per squad','A weekly view can support team decisions.']]},
+    {icon:'✂️',kicker:'EP23 · 4/7 · OPTIMIZE',title:'Where the Money Goes',time:'04:45 – 06:10',draw:d4,
+     key:'Test lower-cost options against approved service needs.',next:'🔜 Next: mainframe cost proof',
+     open:'This is a synthetic monthly platform bill, not a bank invoice.',
+     land:'Risk and operations set resilience needs; FinOps makes the cost visible.',
+     gloss:[['LOGRET',[2,5]],['RIGHTSIZE',[3]],['GRAVITON',[3]],['SAVPLAN',[4]],['SPOT',[5]]],
+     callout:['Benchmark cost and performance of candidate changes.',
+              'Procurement, Risk and Operations validate terms and NFRs.'],
+     steps:[['Where it goes','Example categories; the real bank bill may differ.'],
+            ['Review for value','Review logs, non-prod and transfer for value.'],
+            ['Rightsize','Benchmark pods, nodes and Graviton.'],
+            ['Commit for the base','Procurement compares rates and commitment risk.'],
+            ['Switch off at night','Only where interruption and retention allow.'],
+            ['Cheap is not the goal','Protect approved headroom, resilience and evidence.']]},
+    {icon:'⛰️',kicker:'EP23 · 5/7 · THE MAINFRAME SIDE',title:'Test the Mainframe Savings',time:'06:10 – 07:50',draw:d5,
+     key:'Mainframe savings need measured use and contract proof.',next:'🔜 Next: budgets, anomalies, cost in CI',
+     open:'Now the other half of the bill: the mainframe.',
+     land:'Call savings realised only when the bill confirms them.',
+     gloss:[['R4HA',[1,2]],['MSU',[3]],['ZOMBIE',[5]],['TFP',[6]],['CONTRACT',[6]]],
+     callout:['Model capacity from sample data; measure real SMF by slice.',
+              'Finance and Procurement map usage to invoice terms.'],
+     steps:[['Peak may set bill','Four-hour measure is one contract example.'],
+            ['Night batch is below the peak','Only in this synthetic workload profile.'],
+            ['Example −12%','950 to 835 is a scenario calculation.'],
+            ['Verify contract basis','Measure SMF, seasonality and shared workloads.'],
+            ['Retire safely','Review jobs, licences and dependencies.'],
+            ['Contract timing','Cash effects follow actual terms and dates.']]},
+    {icon:'🚨',kicker:'EP23 · 6/7 · OPERATE',title:'Budgets, Anomalies, Cost in CI',time:'07:50 – 09:25',draw:d6,
+     key:'Test cost signals before and after change.',next:'🔜 Next: the FinOps rhythm',
+     open:'The cheapest problem is the one you catch before it ships.',
+     land:'AI suggests; an owner investigates, tests and approves.',
+     gloss:[['COSTCI',[1]],['ANOMALY',[3]],['BUDGETS',[4]],['FORECAST',[5]],['HITL',[6]]],
+     callout:['Test estimates, anomaly routing and owner response on sample data.',
+              'Budget owners approve thresholds and trade-offs.'],
+     steps:[['Cost before merge','The €900 change is an illustrative estimate.'],
+            ['A person approves','Budget owner reviews cost and resilience.'],
+            ['Anomaly scenario','Six-hour alert and same-day response are test values.'],
+            ['Budgets per squad','80% and 100% are sample thresholds.'],
+            ['Cost per payment alert','Investigate drivers before choosing a fix.'],
+            ['AI suggests, people verify','Evidence and tests come before approval.']]},
+    {icon:'🔁',kicker:'EP23 · 7/7 · THE RHYTHM',title:'From Numbers to Decisions',time:'09:25 – 10:40',draw:d7,
+     key:'Reconciled cost data supports the next decision.',next:'🔜 Next episode: EP24 — Continuous Modernisation',
+     open:'FinOps is not a project. It is a rhythm.',
+     land:'Because the work never really stops.',
+     gloss:[['COUNCIL',[2]],['COSTKPI',[3,5]],['VARIANCE',[3]],['CHARGEBACK',[6]],['CONTINUOUS',[6]]],
+     callout:['Specify one cost dataset and sample leadership view.',
+              'Finance reconciles invoices, volumes and allocations.'],
+     steps:[['Weekly','Proposed squad review of main cost changes.'],
+            ['Monthly review','Finance, engineering and product assess options.'],
+            ['Quarterly leaders','Compare unit cost, bill drivers and verified savings.'],
+            ['Contract dates','Use real renewal and commitment dates.'],
+            ['One page for the board','The five values shown are synthetic.'],
+            ['If verified, reinvest','Leaders may fund the next slice from confirmed savings.']]},
+  ],
+};
+startDeck(DECK);
+</script>
+</body>
+</html>

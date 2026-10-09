@@ -1,0 +1,159 @@
+# EP 05 · NFRs That Survive Payroll Day: Final Script
+
+**Series:** Enterprise modernization reference scenario (Stage 2: Requirements). **Speed:** 120–130 words per minute. **Voice:** clear English for technology and business leaders.
+
+**How to read it**
+- **Bold** = stress this word.
+- A full stop = a short pause.
+- A new **[tag]** = a longer pause. Draw your arrow with the pen here.
+- Numbers are written as words, so they are easy to read aloud.
+
+## Time plan
+
+<!-- TIMETABLE -->
+| Slide | Words | Length | Timestamp |
+|---|---|---|---|
+| 1 · From Vague to Measurable | 243 | 02:05 | 00:00 – 02:05 |
+| 2 · Sizing for Payroll Day | 223 | 01:55 | 02:05 – 04:00 |
+| 3 · The 10-Second Budget | 221 | 01:50 | 04:00 – 05:50 |
+| 4 · 24/7 Means No Maintenance Window | 253 | 02:05 | 05:50 – 07:55 |
+| 5 · Plan Every Failure | 255 | 02:10 | 07:55 – 10:05 |
+| 6 · Every NFR Becomes a Test | 205 | 01:45 | 10:05 – 11:50 |
+| 7 · Agree the Price, Sign the Targets | 187 | 01:35 | 11:50 – 13:25 |
+| **Total** | **1587** | **13:25** | at 125 words per minute, plus 6 s per slide for drawing |
+
+---
+
+<!-- slide:1 -->
+## Slide 1 · From Vague to Measurable
+
+**[tag ①]** Episode four showed how bank-approved behavior becomes stories. Now we define how **well** the system must perform. These are non-functional requirements, or NFRs. In large enterprise systems, words like "fast" and "highly available" are too vague to build or operate. We need to ask: fast at which boundary, under what load, and measured over what period?
+
+**[tag ②]** An NFR needs a number, unit, measurement point, and test. This reference design proposes p99 internal latency below half a second, availability of ninety-nine point nine nine percent, and peak capacity of five thousand payments per second. These are **example targets**, not bank requirements or benchmark results.
+
+**[tag ③]** A real bank would derive targets from its traffic logs, customer promise, scheme obligations as interpreted by its specialists, growth forecast, risk appetite, and incident history. Until those inputs exist, we label the numbers as assumptions.
+
+**[tag ④]** AI could help analyse approved logs and draft target proposals with citations. It cannot choose the bank's impact tolerance or invent a peak where data is missing.
+
+**[tag ⑤]** The architect and SRE lead test feasibility. The bank's business and Risk owners accept the service impact and cost.
+
+**[tag ⑥]** The output is an NFR catalog with an ID, source, owner, target, measurement method, and test. If a number is still unknown, we mark it open and assign the work to measure it.
+
+**[validation plan]** A versioned catalog can drive test plans and monitoring configuration. Those are engineering artifacts to verify, not evidence that a bank already meets the targets.
+<!-- /slide -->
+
+---
+
+<!-- slide:2 -->
+## Slide 2 · Sizing for Payroll Day
+
+**[tag ①]** Sizing from a daily average is unsafe for any bursty enterprise system. This reference scenario assumes one point eight million instant payments a day, roughly twenty-one per second on average. That number is an **illustrative calculation**, not a measured bank volume.
+
+**[tag ②]** The diagram uses eight hundred and thirty in the busiest second and two hundred and ten on a normal peak as **assumed inputs**. In a real engagement, I would measure several peak windows, validate data quality, and ask operations what events caused them.
+
+**[tag ③]** The sample applies a growth factor of **three**. A bank's product team must supply the real adoption forecast; a regulatory or pricing change alone does not prove this factor.
+
+**[tag ④]** The sample then doubles for headroom and a zone failure. This is a conservative planning assumption, not a universal formula. The actual factor depends on scaling speed, failover behavior, and the bank's tolerance.
+
+**[tag ⑤]** Eight hundred and thirty times three times two is roughly **five thousand** per second. This is the reference **design target**. It must be replaced or accepted after measured evidence and cost review.
+
+**[tag ⑥]** The proposed evidence is a burst test at five thousand per second, a twenty-four-hour soak test, and a rapid spike test. These are **test plans**, not results. We would report throughput, latency, errors, resource use, and recovery under production-like conditions before approving the capacity claim.
+<!-- /slide -->
+
+---
+
+<!-- slide:3 -->
+## Slide 3 · The 10-Second Budget
+
+**[tag ①]** The ten-second clock in this reference case comes from an EU instant-payment context; bank compliance and scheme experts must confirm its application and exact start and end points. The one-point-five-second flow shown is **illustrative**, not a measured payment. A timeout creates an unknown outcome, which needs the bank-approved inquiry process.
+
+**[tag ②]** We propose **half a second at p99** for the bank-controlled internal path. That is an architecture budget, not a result.
+
+**[tag ③]** We split five hundred milliseconds across gateway, orchestrator, rules, fraud, funds control, messaging, and scheme gateway, with spare capacity. The numbers on the diagram are **proposed allocations**. Each owner must measure the relevant percentile under realistic load; a unit test alone cannot prove end-to-end latency.
+
+**[tag ④]** Fraud has the largest proposed share: one hundred and fifty milliseconds. That makes it a design conversation with the bank's fraud team, not a reason to weaken the check.
+
+**[tag ⑤]** The sanctions path is a domain decision. Some screening duties may move to a customer-level cadence in a specific EU instant-credit-transfer context, but bank compliance must validate scope and other obligations. We cannot claim a one-hundred-and-twenty-millisecond saving without a measured baseline.
+
+**[tag ⑥]** The diagram places Verification of Payee and authentication before payment submission. The bank must confirm the legal clock and customer journey. Even outside that clock, these steps affect experience, so we measure them separately at p99.
+<!-- /slide -->
+
+---
+
+<!-- slide:4 -->
+## Slide 4 · 24/7 Means No Maintenance Window
+
+**[tag ①]** Availability is a business and risk choice. "Nines" help make the cost visible: ninety-nine point nine percent permits roughly nine hours of unavailability per year, depending on the measurement definition. Every extra nine requires an operating model, not just more infrastructure.
+
+**[tag ②]** This reference design proposes ninety-nine point nine nine percent for payment acceptance, about fifty-three minutes a year. It is a **candidate SLO** for bank review, with a precise boundary and exclusions.
+
+**[tag ③]** The service depends on the platform, fraud engine, and, in this scenario, a mainframe ledger. The percentages shown are **assumptions** for an illustrative dependency model. Combined availability cannot be inferred by simple multiplication if failures are correlated or paths can degrade.
+
+**[tag ④]** Under the simplified independent-failure calculation on the diagram, the result is about ninety-nine point eight four percent, below the proposed target. A real bank would model common failures and measure end-to-end availability.
+
+**[tag ⑤]** Three options go to decision review: improve mainframe availability, investigate a stand-in path, or design a bank-approved degraded fraud mode. I would not assume AWS can approve payments while the ledger is down. Payments, fraud, risk, and operations owners must define whether any fallback is lawful and safe.
+
+**[tag ⑥]** An **error budget** connects the candidate SLO to release decisions. The policy for slowing releases when the budget is consumed must be agreed with the bank and measured from real service data.
+
+**[tag ⑦]** A round-the-clock service cannot rely on a regular outage for deployment. We design rolling releases and rehearsed rollback, then test that they meet the bank's accepted interruption budget.
+<!-- /slide -->
+
+---
+
+<!-- slide:5 -->
+## Slide 5 · Plan Every Failure
+
+**[tag ①]** Failures are certain; impact is a design choice. We define a recovery target for each failure class. Kubernetes may restart a failed service quickly, but customers see no interruption only if capacity, state, and retries have been tested.
+
+**[tag ②]** For a zone failure, the diagram proposes **zero data loss** and recovery within one minute. Replication across zones is part of that design, but the claim needs evidence about the database, Kafka, in-flight requests, and external messages.
+
+**[tag ③]** For a region failure, the sample targets fifteen-minute recovery and less than one second of data loss. Those are ambitious **targets**, not guarantees. A drill must show what happens to unsettled and unknown payments.
+
+**[tag ④]** If the mainframe link fails, the response remains **open**. Bank owners must decide whether processing pauses, degrades, or uses an approved stand-in path. Engineering then tests that decision.
+
+**[tag ⑤]** A canary release can limit the impact of a bad change. Routing new traffic back may be fast, but in-flight payments and irreversible external effects need a separate recovery procedure. We would rehearse both paths.
+
+**[tag ⑥]** The proposed control objectives are no duplicate debit for one authorised request, no untracked accepted payment, a visible final or unknown status, and a durable audit trail. The thirty-second inquiry and one-minute trace times on the diagram are example targets for bank approval and testing.
+
+**[tag ⑦]** The drill schedule here is a **proposal**: zone failure tests and periodic region failover, with Risk involved. The bank's resilience and compliance teams decide the required scope and cadence. The value is measured recovery evidence and follow-up actions.
+<!-- /slide -->
+
+---
+
+<!-- slide:6 -->
+## Slide 6 · Every NFR Becomes a Test
+
+**[tag ①]** An NFR without a measurement plan is only a **wish**. Each catalog row needs a test, a schedule, and a named reviewer.
+
+**[tag ②]** The proposed volume target can be checked with k6 or another load tool. The diagram shows full and smaller runs at different cadences; the bank would set the schedule and representative environment.
+
+**[tag ③]** Lightweight latency checks can run on **every** pull request. Production-like performance gates need controlled load and repeatable baselines; a noisy local test should not become false proof.
+
+**[tag ④]** Availability must be measured at a customer-relevant boundary in production, with an agreed SLO and error-budget policy.
+
+**[tag ⑤]** Recovery drills should exercise zone and region failures, while retry tests and reconciliation check duplicate handling. Frequencies on this slide are sample governance choices. Test design must cover in-flight and uncertain payment states.
+
+**[tag ⑥]** AI can draft load and chaos test plans and summarise results. An SRE reviews the scripts, the environment, and the evidence. The model does not certify that a target was met.
+
+**[tag ⑦]** The dashboard numbers on the slide—ninety-nine point nine nine three percent availability, four-hundred-and-ten-millisecond p99, and zero duplicate debits—are **illustrative placeholders**. They are not results from a live system. A real release review would link each metric to its source, window, and incident record.
+<!-- /slide -->
+
+---
+
+<!-- slide:7 -->
+## Slide 7 · Agree the Price, Sign the Targets
+
+**[tag ①]** Every extra nine of availability has a **price**, but there is no fixed infrastructure recipe for each level. The rows on this slide are options to cost and test, not universal requirements. The right design depends on dependencies and the bank's operating model.
+
+**[tag ②]** Technology does not set the target alone. The bank's business owner accepts the customer impact and cost of the chosen SLO.
+
+**[tag ③]** Risk owners approve impact tolerance; architecture shows feasibility; SRE confirms the team can operate the design. The exact sign-off path is the bank's governance choice.
+
+**[tag ④]** AI may copy generic targets or miss dependencies. We require source data, cost, a dependency model, and a test plan. Where source data is absent, we show an assumption instead of a false fact.
+
+**[tag ⑤]** The slide's eighteen NFRs are a **sample catalog**, not completed bank work. One important decision remains open: behavior during mainframe unavailability. We do not approve a design around that gap.
+
+**[tag ⑥]** Episode six applies the same method to security. Later architecture, testing, and SRE work must trace back to bank-approved targets. This is how I translate an executive objective into measurable engineering and operating evidence.
+<!-- /slide -->
+
+---

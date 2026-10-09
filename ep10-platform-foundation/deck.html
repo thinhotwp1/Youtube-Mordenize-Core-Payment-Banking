@@ -1,0 +1,432 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EP10 Platform Foundation</title>
+<link rel="stylesheet" href="../shared/deck.css">
+</head>
+<body>
+<script src="../shared/deck.js"></script>
+<script>
+/* ============================================================
+   EP10 · Platform Foundation — diagrams (1280x800)
+   ============================================================ */
+
+/* 1 · Build the road once */
+function d1(){
+  const tools=[['Jenkins','manual firewall','keys in files'],['GitHub Actions','own VPC','shared admin'],['GitLab CI','copied network','no tags'],['shell scripts','open egress','old images']];
+  const out=[group({x:10,y:30,w:620,h:380,k:'bad',label:'❌ WITHOUT A PLATFORM'})];
+  tools.forEach((t,i)=>{
+    const x=26+i*150;
+    out.push(box({x,y:72,w:140,h:50,k:'neutral',i:'🧑‍💻',t:`Squad ${i+1}`}),
+      mini({x,y:136,w:140,h:34,k:'bad',t:t[0]}),mini({x,y:178,w:140,h:34,k:'bad',t:t[1]}),mini({x,y:220,w:140,h:34,k:'bad',t:t[2]}));
+  });
+  out.push(
+    box({x:26,y:278,w:590,h:110,k:'bad',i:'🐢',t:'Slow · different · hard to audit',s:'every squad rebuilds the same plumbing'}),
+    group({x:650,y:30,w:620,h:380,k:'good',label:'✅ WITH A PLATFORM'}),
+    ...[0,1,2,3].map(i=>box({x:668+i*147,y:72,w:138,h:50,k:'neutral',i:'🧑‍💻',t:`Squad ${i+1}`})),
+    box({x:668,y:170,w:582,h:110,k:'aws',i:'🛣️',t:'The paved road',s:'network · security · pipelines · runtime · observability'}),
+    box({x:668,y:298,w:582,h:90,k:'good',i:'🚀',t:'Fast · consistent · auditable',s:'squads build payments, not plumbing'}),
+    ...[0,1,2,3].map(i=>arrow([[737+i*147,122],[737+i*147,170]],{k:'aws',st:2})),
+
+    group({x:10,y:430,w:1260,h:350,k:'neutral',label:'📥 BUILT FROM EARLIER DECISIONS → 📦 FIVE BUILDING BLOCKS',lp:'b'}),
+    ...[['🎯','EP05 · NFRs','example: 3 zones · 5,000 TPS'],['🔐','EP06 · Security','encryption · least privilege'],
+        ['📐','EP07 · Architecture','candidate EKS · MSK · Aurora'],['📋','EP02–EP04','bank-confirmed service rules']]
+       .map((s,i)=>box({x:30,y:470+i*68,w:330,h:56,k:'neutral',i:s[0],t:s[1],s:s[2]})),
+    box({x:400,y:520,w:300,h:170,k:'human',i:'🛠️',t:'Platform team',s:'builds and runs the road\nsquads are its customers'}),
+    ...[['🏛️','1 · Landing zone'],['🌐','2 · Network'],['🚢','3 · Payment runtime'],['🚦','4 · Pipelines (as code)'],['💻','5 · Laptop stack']]
+       .map((s,i)=>box({x:740,y:466+i*58,w:510,h:48,k:'aws',i:s[0],t:s[1]})),
+    arrow([[360,605],[400,605]],{k:'human',st:3}),
+    arrow([[700,605],[740,605]],{k:'aws',st:4}),
+    tag(1,600,30,'Every squad rebuilds','r'),
+    tag(2,1250,30,'Build it once','r'),
+    tag(3,40,430,'Built from decisions'),
+    tag(4,410,520,'Platform team'),
+    tag(5,1250,430,'Five building blocks','r'),
+  );
+  return out.join('');
+}
+
+/* 2 · The landing zone */
+function d2(){return [
+  box({x:400,y:36,w:480,h:70,k:'neutral',i:'🏛️',t:'AWS Organizations · Control Tower',s:'one place to govern every account'}),
+  group({x:10,y:150,w:300,h:330,k:'risk',label:'🔒 SECURITY'}),
+  box({x:26,y:196,w:268,h:120,k:'risk',i:'📜',t:'Log archive',s:'protected retention\naccess tested'}),
+  box({x:26,y:332,w:268,h:130,k:'risk',i:'🛡️',t:'Security tooling',s:'GuardDuty · Security Hub\naudit access'}),
+  group({x:330,y:150,w:300,h:330,k:'neutral',label:'🧱 INFRASTRUCTURE'}),
+  box({x:346,y:196,w:268,h:120,k:'neutral',i:'🌐',t:'Network hub',s:'Transit Gateway · firewall\nDirect Connect'}),
+  box({x:346,y:332,w:268,h:130,k:'neutral',i:'🧰',t:'Shared services',s:'build runners\ncontainer registry · DNS'}),
+  group({x:650,y:150,w:420,h:330,k:'aws',label:'💳 WORKLOADS · PAYMENTS'}),
+  box({x:666,y:196,w:388,h:76,k:'aws',i:'🧪',t:'Payments · dev',s:'squads experiment here'}),
+  box({x:666,y:286,w:388,h:76,k:'aws',i:'🔬',t:'Payments · test',s:'contract + golden tests'}),
+  box({x:666,y:376,w:388,h:86,k:'good',i:'🏦',t:'Payments · prod',s:'two regions · most protected'}),
+  group({x:1090,y:150,w:180,h:330,k:'neutral',label:'🏖️ SANDBOX'}),
+  box({x:1104,y:196,w:152,h:266,k:'neutral',i:'🧪',t:'Sandboxes',s:'budget alarm\n\nexpiry policy\nto test'}),
+  arrow([[640,106],[640,128],[160,128],[160,150]],{k:'neutral',st:1}),
+  arrow([[640,128],[480,128],[480,150]],{k:'neutral',st:1}),
+  arrow([[640,128],[860,128],[860,150]],{k:'neutral',st:1}),
+  arrow([[640,128],[1180,128],[1180,150]],{k:'neutral',st:1}),
+
+  group({x:10,y:500,w:820,h:280,k:'risk',label:'🚧 PROPOSED GUARDRAILS · BANK TO APPROVE'}),
+  lines(36,556,['⛔ allowed regions: bank-defined','⛔ protect audit logging','🔒 require encryption for storage and backups','🔑 use short-lived access; avoid stored keys','🏷️ tag resources: owner · cost · data class'],'kl',46),
+  group({x:850,y:500,w:420,h:280,k:'human',label:'🧑‍💻 HOW PEOPLE GET IN'}),
+  box({x:866,y:544,w:388,h:66,k:'human',i:'🔑',t:'IAM Identity Center',s:'single sign-on with the bank’s identity'}),
+  box({x:866,y:622,w:388,h:66,k:'human',i:'🪪',t:'Least privilege',s:'read-only by default · prod access per task'}),
+  box({x:866,y:700,w:388,h:66,k:'risk',i:'🚨',t:'Break-glass',s:'emergency only · alarmed · reviewed'}),
+
+  tag(1,410,36,'One organisation'),
+  tag(2,300,150,'Protect the logs','r'),
+  tag(3,620,150,'Network in one place','r'),
+  tag(4,1060,150,'Prod is separate','r'),
+  tag(5,820,500,'Proposed guardrails','r'),
+  tag(6,1260,500,'Single sign-on','r'),
+].join('')}
+
+/* 3 · The network */
+function d3(){return [
+  group({x:10,y:30,w:240,h:470,k:'legacy',label:'🏛️ BANK DATA CENTRE'}),
+  box({x:26,y:80,w:208,h:96,k:'legacy',i:'🖥️',t:'Mainframe',s:'CICS · DB2 · MQ'}),
+  box({x:26,y:196,w:208,h:80,k:'legacy',i:'🪪',t:'Identity provider'}),
+  box({x:26,y:296,w:208,h:80,k:'legacy',i:'🏢',t:'Branches & offices'}),
+  box({x:270,y:110,w:180,h:96,k:'aws',i:'🔌',t:'Direct Connect × 2',s:'two locations'}),
+  box({x:270,y:260,w:180,h:80,k:'neutral',i:'🛡️',t:'Site-to-site VPN',s:'backup path'}),
+
+  group({x:470,y:30,w:340,h:470,k:'aws',label:'🌐 NETWORK HUB ACCOUNT'}),
+  box({x:486,y:80,w:308,h:84,k:'aws',i:'🔀',t:'Transit Gateway',s:'connects every network'}),
+  box({x:486,y:184,w:308,h:84,k:'risk',i:'🧱',t:'Inspection network',s:'routes to verify'}),
+  box({x:486,y:288,w:308,h:84,k:'neutral',i:'🚪',t:'Egress network',s:'one controlled exit · allow-list'}),
+  box({x:486,y:392,w:308,h:84,k:'neutral',i:'🧭',t:'Route 53 Resolver',s:'one DNS for cloud + data centre'}),
+
+  group({x:830,y:30,w:440,h:470,k:'aws',label:'💳 PAYMENTS PROD NETWORK · 3 ZONES'}),
+  ...['A','B','C'].map((z,i)=>{const x=846+i*140;
+    return group({x,y:76,w:128,h:200,k:'neutral',label:`ZONE ${z}`})+
+      mini({x:x+8,y:118,w:112,h:60,k:'aws',t:'app subnet'})+mini({x:x+8,y:196,w:112,h:60,k:'aws',t:'data subnet'});}),
+  txt(1050,300,'private workloads · edges reviewed','note','middle'),
+  box({x:846,y:326,w:408,h:150,k:'good',i:'🔒',t:'VPC endpoints',s:'S3 · KMS · Secrets Manager · ECR\nverify DNS and routing paths'}),
+
+  arrow([[234,128],[270,128]],{k:'aws',st:1}),
+  arrow([[234,150],[252,150],[252,300],[270,300]],{k:'neutral',st:1,dash:1}),
+  arrow([[450,140],[486,122]],{k:'aws',st:2}),
+  arrow([[450,300],[468,300],[468,140],[486,140]],{k:'neutral',st:2,dash:1}),
+  arrow([[640,164],[640,184]],{k:'risk',st:3}),
+  arrow([[794,330],[812,330],[812,268]],{k:'neutral',st:3}),
+  arrow([[794,122],[846,122]],{k:'aws',st:4}),
+  arrow([[1050,276],[1050,326]],{k:'good',st:5}),
+
+  group({x:10,y:520,w:1260,h:260,k:'neutral',label:'🌍 SECOND REGION · SAME DESIGN'}),
+  box({x:30,y:566,w:290,h:110,k:'aws',i:'🔌',t:'Direct Connect',s:'reaches both regions'}),
+  box({x:340,y:566,w:290,h:110,k:'aws',i:'🌐',t:'Network hub · region 2',s:'mirrors region 1'}),
+  box({x:650,y:566,w:290,h:110,k:'aws',i:'💳',t:'Payments prod · region 2',s:'same three-zone layout'}),
+  box({x:960,y:566,w:290,h:110,k:'good',i:'🔁',t:'Recovery replication',s:'Aurora Global DB · MSK\nfailover test required'}),
+  txt(30,722,'🔐 target: TLS between services   ·   🚫 verify public exposure at every edge','kl'),
+  arrow([[320,621],[340,621]],{k:'aws',st:6}),
+  arrow([[630,621],[650,621]],{k:'aws',st:6}),
+  arrow([[940,621],[960,621]],{k:'good',st:6}),
+
+  tag(1,280,110,'Two private links'),
+  tag(2,800,30,'Hub and spoke','r'),
+  tag(3,784,268,'Verify inspected routes','r'),
+  tag(4,1260,30,'Three zones','r'),
+  tag(5,856,476,'Private paths to AWS services'),
+  tag(6,1260,520,'Region 2, same design','r'),
+].join('')}
+
+/* 4 · The payment runtime */
+function d4(){return [
+  group({x:10,y:30,w:1260,h:470,k:'aws',label:'💳 PAYMENTS PROD ACCOUNT · REGION 1'}),
+  group({x:30,y:70,w:520,h:300,k:'aws',label:'🚢 AMAZON EKS · 3 ZONES'}),
+  ...[['📥','Initiation'],['🔄','Orchestrator'],['🛡️','Screening'],['📤','Scheme\ngateway'],['🏛️','Ledger\nadapter']]
+     .map((s,i)=>box({x:46+(i%3)*166,y:110+Math.floor(i/3)*96,w:154,h:80,k:'aws',i:s[0],t:s[1]})),
+  box({x:378,y:206,w:154,h:80,k:'neutral',i:'⚡',t:'Karpenter',s:'scale-up speed\nto benchmark'}),
+  txt(46,340,'Helm charts · rolling and canary releases','note'),
+  box({x:580,y:70,w:320,h:140,k:'aws',i:'🧵',t:'Amazon MSK',s:'3 brokers · 3 zones\nreplication target: 3'}),
+  box({x:580,y:230,w:320,h:140,k:'aws',i:'🐘',t:'Aurora PostgreSQL',s:'service-owned stores\nfailover to test'}),
+  box({x:930,y:70,w:320,h:90,k:'risk',i:'🔑',t:'AWS KMS',s:'one key per data class'}),
+  box({x:930,y:175,w:320,h:90,k:'risk',i:'🤫',t:'Secrets Manager',s:'rotation to configure and test'}),
+  box({x:930,y:280,w:320,h:90,k:'risk',i:'🚪',t:'API Gateway + WAF',s:'proposed public edge'}),
+  box({x:30,y:392,w:1220,h:90,k:'neutral',i:'🔭',t:'Observability · OpenTelemetry',s:'→ CloudWatch · X-Ray · Prometheus & Grafana · correlation IDs to validate'}),
+  arrow([[550,140],[580,140]],{k:'aws',st:2,both:1}),
+  arrow([[550,300],[580,300]],{k:'aws',st:3,both:1}),
+  arrow([[930,325],[910,325],[910,240],[550,240]],{k:'risk',st:4,dash:1}),
+  arrow([[640,370],[640,392]],{k:'neutral',st:5}),
+
+  group({x:10,y:520,w:1260,h:260,k:'good',label:'🎯 MAP EACH BUILDING BLOCK TO AN NFR · THEN TEST'}),
+  table({x:30,y:552,w:1220,hh:28,rh:38,
+    cols:[['BUILDING BLOCK',0],['NFR',360],['HOW',700]],
+    rows:[['EKS in 3 zones + Karpenter','5,000 TPS · example target','benchmark scale-out and saturation'],
+          ['Aurora + recovery region','recovery · bank target','measure failover and data loss'],
+          ['MSK: replicas + acks','durability target','test producer and zone failures'],
+          ['KMS + Secrets Manager','security controls','test encryption and rotation'],
+          ['OpenTelemetry','SLO evidence','check trace completeness']]}),
+
+  tag(1,540,70,'Kubernetes on EKS','r'),
+  tag(2,890,70,'Events: MSK','r'),
+  tag(3,890,230,'Data: Aurora','r'),
+  tag(4,1240,70,'Keys and secrets','r'),
+  tag(5,40,392,'See every payment'),
+  tag(6,1250,520,'NFR hypotheses to test','r'),
+].join('')}
+
+/* 5 · Everything as code */
+function d5(){
+  const mods=[['landing-zone','v2.1'],['network-hub','v1.8'],['workload-vpc','v1.5'],['eks-cluster','v3.2'],
+              ['msk-cluster','v1.3'],['aurora-postgres','v2.0'],['observability','v1.6'],['service-template','v1.1']];
+  const out=[group({x:10,y:30,w:560,h:350,k:'aws',label:'🧱 TERRAFORM MODULES · ONE PER BUILDING BLOCK'})];
+  mods.forEach((m,i)=>out.push(kpi({x:30+(i%2)*270,y:76+Math.floor(i/2)*72,w:250,h:56,k:'aws',i:'📦',t:m[0],v:m[1]})));
+  out.push(
+    group({x:590,y:30,w:680,h:350,k:'ai',label:'🤖 AI DRAFTS · POLICIES DECIDE'}),
+    box({x:610,y:76,w:200,h:84,k:'neutral',i:'📐',t:'ADRs (EP07)'}),
+    box({x:610,y:176,w:200,h:84,k:'ai',i:'📘',t:'AGENTS.md',s:'platform rules'}),
+    box({x:850,y:110,w:200,h:116,k:'ai',i:'🤖',t:'AI agent',s:'drafts modules\nand changes'}),
+    box({x:1080,y:118,w:170,h:100,k:'good',i:'📝',t:'Pull request'}),
+    arrow([[810,118],[830,118],[830,150],[850,150]],{k:'ai',st:2}),
+    arrow([[810,218],[830,218],[830,186],[850,186]],{k:'ai',st:2}),
+    arrow([[1050,168],[1080,168]],{k:'good',st:2}),
+    lines(610,300,['🚫 AI never applies anything to production','🚫 AI never switches off a guardrail','🚫 AI never puts secrets in code'],'kl',28),
+
+    group({x:10,y:400,w:1260,h:380,k:'neutral',label:'🚦 THE INFRASTRUCTURE PIPELINE',lp:'b'}),
+  );
+  const steps=[['📝','Pull request','','neutral'],['🧹','Basic checks','fmt · validate · tflint','aws'],['🛡️','Policy as code','Checkov / OPA rules','risk'],
+               ['📋','terraform plan','shows every change','aws'],['👥','Approval','platform + security\nfor production','human'],['🚀','terraform apply','by the pipeline only','good']];
+  steps.forEach((s,i)=>{
+    const x=30+i*208;
+    out.push(box({x,y:440,w:190,h:110,k:s[3],i:s[0],t:s[1],s:s[2]}));
+    if(i<5) out.push(arrow([[x+190,495],[x+208,495]],{k:'aws',st:Math.max(3,i+2)}));
+  });
+  out.push(
+    arrow([[510,550],[510,578],[125,578],[125,550]],{k:'bad',st:3,dash:1,label:'rule broken → fix',lx:318,ly:578}),
+    box({x:30,y:610,w:390,h:110,k:'neutral',i:'🗄️',t:'State in S3',s:'encrypted · versioned · locked'}),
+    box({x:445,y:610,w:390,h:110,k:'risk',i:'🔍',t:'Drift detection',s:'scheduled plan + response owner\ncoverage to verify'}),
+    box({x:860,y:610,w:390,h:110,k:'bad',i:'⛔',t:'No console clicks in prod',s:'break-glass only · alarmed'}),
+    tag(1,540,30,'Modules, versioned','r'),
+    tag(2,1260,30,'AI drafts, policies decide','r'),
+    tag(3,456,440,'Checked automatically'),
+    tag(4,664,440,'See before you change'),
+    tag(5,862,550,'Approve prod'),
+    tag(6,1250,550,'Pipeline applies','r'),
+    tag(7,455,610,'Detect drift'),
+  );
+  return out.join('');
+}
+
+/* 6 · Same stack on your laptop */
+function d6(){return [
+  group({x:10,y:30,w:1260,h:500,k:'neutral',label:'💻 LAPTOP ↔ AWS · SAME CONTRACTS, DIFFERENT ENDPOINTS'}),
+  table({x:30,y:66,w:1220,hh:30,rh:50,
+    cols:[['BUILDING BLOCK',0],['ON A LAPTOP (DOCKER)',230],['ON AWS (TERRAFORM)',540],['WHAT STAYS THE SAME',880]],
+    rows:[['Kubernetes','kind','Amazon EKS','Helm charts'],
+          ['Events','Kafka (KRaft) + Apicurio','Amazon MSK + Glue Schema Registry','topics · schemas'],
+          ['Databases','PostgreSQL','Aurora PostgreSQL','Flyway migrations'],
+          ['Change data capture','Debezium','Debezium on MSK Connect','connector config'],
+          ['Feature flags','Unleash','AWS AppConfig','flag names'],
+          ['Files · secrets','LocalStack','S3 · Secrets Manager','SDK calls'],
+          ['Schemes · mainframe','WireMock simulators','scheme test env · mainframe test system','ISO 20022 messages'],
+          ['Observability','OpenTelemetry + Grafana','CloudWatch · X-Ray · Grafana','trace IDs']],
+    hl:{6:'legacy'}}),
+
+  group({x:10,y:550,w:620,h:230,k:'good',label:'▶️ ONE-COMMAND GOAL · TEST HARNESS'}),
+  `<rect x="30" y="590" width="580" height="112" rx="10" fill="#222530"/>`,
+  `<text x="50" y="624" class="code-tx" style="fill:#E8B931">$ make up</text>`,
+  `<text x="50" y="652" class="code-tx">? kind cluster · Kafka · Postgres · Debezium</text>`,
+  `<text x="50" y="680" class="code-tx">? Unleash · LocalStack · WireMock · Grafana</text>`,
+  txt(30,740,'proposed synthetic test data and dashboards · setup to validate','note'),
+
+  group({x:650,y:550,w:620,h:230,k:'aws',label:'🧪 EPHEMERAL ENVIRONMENTS'}),
+  box({x:670,y:594,w:180,h:110,k:'aws',i:'🏗️',t:'apply',s:'per pull request'}),
+  box({x:870,y:594,w:180,h:110,k:'good',i:'🧪',t:'test',s:'contract · golden\nload (small)'}),
+  box({x:1070,y:594,w:180,h:110,k:'neutral',i:'🧹',t:'destroy',s:'24-hour example\nexpiry policy'}),
+  arrow([[850,649],[870,649]],{k:'aws',st:6}),
+  arrow([[1050,649],[1070,649]],{k:'aws',st:6}),
+  txt(670,740,'budget alarm on every environment','note'),
+
+  tag(1,1250,30,'Same contracts','r'),
+  tag(2,1244,174,'Kafka ↔ MSK','r'),
+  tag(3,1244,424,'Simulated','r'),
+  tag(4,1244,474,'Same traces','r'),
+  tag(5,600,550,'One-command goal','r'),
+  tag(6,1260,550,'Throw-away environments','r'),
+].join('')}
+
+/* 7 · The golden path */
+function d7(){
+  const flow=[['🧩','Service template','one-command goal\ncreates the repo','ai'],['📦','Repo template','CI · Dockerfile · Helm\nOpenTelemetry · outbox\nArchUnit · AGENTS.md','good'],
+              ['🚦','Pipeline','tests · scans · SBOM\npolicy checks','aws'],['🧪','Test environment','contract + golden tests\n(EP02 / EP04)','aws'],['🚀','Production','bank-approved release\nrollback if safe','good']];
+  const out=[group({x:10,y:30,w:1260,h:330,k:'good',label:'🛣️ PROPOSED GOLDEN PATH · SERVICE → RELEASE'})];
+  flow.forEach((f,i)=>{
+    const x=30+i*250;
+    out.push(box({x,y:80,w:220,h:140,k:f[3],i:f[0],t:f[1],s:f[2]}));
+    if(i<4) out.push(arrow([[x+220,150],[x+250,150]],{k:'good',st:i+2>4?4:i+2}));
+  });
+  out.push(
+    box({x:30,y:240,w:1220,h:96,k:'neutral',i:'⏱️',t:'Target: from idea to production in one day',s:'squads build payments, not plumbing (example target)'}),
+    group({x:10,y:380,w:620,h:400,k:'neutral',label:'📊 PLATFORM KPIs · EXAMPLE'}),
+    kpi({x:30,y:424,w:580,h:56,k:'good',i:'⏱️',t:'Time to first deploy',v:'1 day'}),
+    kpi({x:30,y:490,w:580,h:56,k:'good',i:'🧱',t:'Infrastructure in code',v:'100%'}),
+    kpi({x:30,y:556,w:580,h:56,k:'good',i:'🛡️',t:'Open policy violations',v:'0'}),
+    kpi({x:30,y:622,w:580,h:56,k:'aws',i:'💶',t:'Cost per environment',v:'tracked monthly'}),
+    kpi({x:30,y:688,w:580,h:56,k:'human',i:'🙂',t:'Squad satisfaction',v:'surveyed quarterly'}),
+    group({x:650,y:380,w:620,h:400,k:'human',label:'✍️ BANK REVIEW REQUIRED BEFORE USE'}),
+    box({x:670,y:424,w:580,h:60,k:'human',i:'🛡️',t:'CISO · security',s:'review security baseline'}),
+    box({x:670,y:494,w:580,h:60,k:'human',i:'📋',t:'Risk · DORA',s:'resilience tests · cloud exit plan'}),
+    box({x:670,y:564,w:580,h:60,k:'human',i:'🛠️',t:'Platform lead',s:'runbooks · 24/7 support'}),
+    box({x:670,y:646,w:186,h:110,k:'aws',i:'📥',t:'EP11',s:'payment\ninitiation'}),
+    box({x:867,y:646,w:186,h:110,k:'aws',i:'🔄',t:'EP12',s:'saga\norchestrator'}),
+    box({x:1064,y:646,w:186,h:110,k:'aws',i:'🔀',t:'EP13',s:'strangler\nrouter'}),
+    tag(1,40,80,'One command to start'),
+    tag(2,290,80,'Everything built in'),
+    tag(3,540,80,'Same pipeline for all'),
+    tag(4,1040,80,'Safety net in prod'),
+    tag(5,600,380,'Measure the platform','r'),
+    tag(6,1260,380,'Review before use','r'),
+    tag(7,1250,646,'Next: build services','r'),
+  );
+  return out.join('');
+}
+
+/* ============================================================
+   Episode config
+   ============================================================ */
+const DECK={
+  brand:'🏦 CORE BANKING PAYMENTS MODERNIZATION · AWS',
+  ep:'EP 10', epShort:'EP10', title:'Platform Foundation', subtitle:'Reference scenario',
+  seriesTitle:'Core Payments Modernization · Reference',
+  logo:'../shared/jo-logo.png', background:'../shared/background.png',
+  stages:[['🔍','Discover'],['📋','Requirements'],['📐','Design & Plan'],['🛠️','Build'],['🚀','Test & Deploy'],['🔧','Operate']],
+  stage:4,
+  glossary:{
+    PAVED:['Paved road','value','A proposed default way to build and run a service, with security and monitoring controls for bank review.'],
+    PLATFORM:['Platform team','cost','One team that builds and runs the shared foundation for every squad. The squads are its customers.'],
+    IAC:['Infrastructure as code','risk','Networks, servers and databases described in files, not clicked by hand. Every change is reviewed, repeatable and auditable.'],
+    NFR:['NFR','value','A non-functional requirement from EP05, like “survive the loss of one zone”. The platform is built to meet them.'],
+    ADR:['ADR','risk','Architecture Decision Record from EP07: one page per big decision. The platform follows them.'],
+    LZ:['Landing zone','risk','The ready-made, secure starting point in AWS: accounts, guardrails, logging and access, set up once for the whole bank.'],
+    ACCOUNT:['AWS account','risk','A useful isolation boundary. Permissions and shared services still need review to limit cross-account impact.'],
+    SCP:['Guardrail (SCP)','risk','A rule set at the top of the organisation that no account can break, like “never switch off audit logs”.'],
+    LOGARCH:['Log archive','risk','A proposed separate account for protected log retention. Access and deletion controls must be tested.'],
+    SSO:['Single sign-on','risk','People log in with the bank’s normal identity and get short-lived access. No passwords or keys stored in files.'],
+    DX:['Direct Connect','value','A private link option. Two locations reduce risk, but failover routing and time need tests.'],
+    TGW:['Transit Gateway','value','The central hub that connects every network. One place to control and inspect who talks to whom.'],
+    FIREWALL:['Network firewall','risk','Inspects the traffic routed through it. Engineers must verify actual paths and rule coverage.'],
+    PRIVSUB:['Private subnet','risk','A network area without direct internet access. Exact placement depends on bank network and risk design.'],
+    PRIVLINK:['VPC endpoint','risk','A private path to selected AWS services. DNS and routing must verify traffic uses it.'],
+    EKS:['Amazon EKS','value','AWS-managed Kubernetes: it runs our services in containers across three zones, and adds capacity when traffic grows.'],
+    MSK:['Amazon MSK','value','AWS-managed Kafka. Replication is configured, then durability must be tested under producer and zone failures.'],
+    AURORA:['Aurora PostgreSQL','value','An AWS-managed database. Backup, replication and failover require tests against recovery targets.'],
+    KMS:['AWS KMS','risk','The service that holds encryption keys. Every database, file and backup is encrypted with keys the bank controls.'],
+    OTEL:['OpenTelemetry','value','An open standard for traces, metrics and logs. One format, so we can follow a payment through every service.'],
+    TERRAFORM:['Terraform','value','A tool that builds infrastructure from code files. The same files build dev, test and production.'],
+    MODULE:['Terraform module','value','A reusable building block, like “an EKS cluster, the bank’s way”. Versioned, tested and shared by every squad.'],
+    POLICY:['Policy as code','risk','Security rules written as automatic checks, like “databases must be encrypted”. A failing change cannot be merged.'],
+    PLAN:['terraform plan','risk','A preview of exactly what will change, before anything changes. Reviewers approve the plan, not a promise.'],
+    DRIFT:['Drift','risk','When infrastructure differs from code. Scheduled plans can detect some changes if alerts and owners are in place.'],
+    PARITY:['Dev–prod parity','value','Share contracts and test cases across environments, while validating differences in managed services and capacity.'],
+    HELM:['Helm chart','value','A package that describes how to run a service on Kubernetes. The same chart works on a laptop and on EKS.'],
+    LOCALSTACK:['LocalStack','cost','A tool that imitates AWS services like S3 on a laptop. Developers test without cloud costs.'],
+    WIREMOCK:['WireMock','cost','A simulator for outside systems — here, payment schemes and the mainframe. It can answer, reject or time out on demand.'],
+    EPHEMERAL:['Ephemeral environment','cost','A short-lived test environment. Cost and reliable teardown must be measured, with an expiry policy.'],
+    TEMPLATE:['Service template','value','One command creates a new service with its pipeline, security, monitoring and tests already set up.'],
+    SBOM:['SBOM','risk','Software bill of materials: a list of every library inside a service. When a new vulnerability appears, we find it in minutes.'],
+    CANARY:['Canary release','risk','A controlled traffic increase where rollback is safe. Some payment changes need another release mode.'],
+    TTFD:['Time to first deploy','value','How long a new team needs to put a service into production. The best single measure of a platform.'],
+    EXIT:['Exit strategy','risk','DORA asks banks to plan how they could leave a critical cloud provider or vendor. Code, open standards and data exports make it realistic.'],
+  },
+  slides:[
+    {icon:'🛣️',kicker:'EP10 · 1/7 · WHY A PLATFORM',title:'Build the Road Once',time:'00:00 – 01:45',draw:d1,
+     key:'Build the road once, so every squad can drive fast and safely.',next:'🔜 Next: the landing zone',
+     open:'Welcome to the build stage. We don’t start with payments.',
+     land:'Let’s go through them, one by one.',
+     gloss:[['PAVED',[2]],['PLATFORM',[4]],['IAC',[5]],['NFR',[3]],['ADR',[3]]],
+     demo:['proposed evidence: versioned modules plus a local test harness',
+           'Terraform plans and policy checks would review the sandbox design'],
+     steps:[['Every squad rebuilds','Own networks, pipelines and security: slow, different, hard to audit.'],
+            ['Build it once','One paved road under every squad.'],
+            ['Built from decisions','EP05 NFRs, EP06 security, EP07 architecture.'],
+            ['Platform team','Builds and runs the road; squads are its customers.'],
+            ['Five building blocks','Landing zone, network, runtime, pipelines, laptop stack.']]},
+    {icon:'🏛️',kicker:'EP10 · 2/7 · BLOCK 1 · LANDING ZONE',title:'The Landing Zone',time:'01:45 – 03:35',draw:d2,
+     key:'Separate accounts, shared guardrails.',next:'🔜 Next: the network',
+     open:'The first building block is the landing zone.',
+     land:'Break-glass access needs an alert and regular drills.',
+     gloss:[['LZ',[1]],['ACCOUNT',[1,4]],['LOGARCH',[2]],['SCP',[5]],['SSO',[6]]],
+     demo:['proof plan: test account layout and guardrails as code',
+           'bank security validates Control Tower, SCPs and identity integration'],
+     steps:[['One organisation','AWS Organizations and Control Tower govern every account.'],
+            ['Protect the logs','Separate retention and security tooling, with access tests.'],
+            ['Network in one place','Network hub and shared services.'],
+            ['Prod is separate','Dev, test and prod are separate accounts.'],
+            ['Proposed guardrails','Bank-defined regions, protected audit, encryption, tags.'],
+            ['Single sign-on','No stored keys; prod access approved per task.']]},
+    {icon:'🌐',kicker:'EP10 · 3/7 · BLOCK 2 · NETWORK',title:'Private by Default',time:'03:35 – 05:10',draw:d3,
+     key:'Private paths need routing and exposure tests.',next:'🔜 Next: the payment runtime',
+     open:'Now the network: how the mainframe and AWS talk privately.',
+     land:'Recovery replication needs a failover test.',
+     gloss:[['DX',[1]],['TGW',[2]],['FIREWALL',[3]],['PRIVSUB',[4]],['PRIVLINK',[5]]],
+     demo:['test plan: inspect network routes, DNS and public exposure',
+           'a local VPN cannot prove Direct Connect failover behavior'],
+     steps:[['Two private links','Direct Connect at two locations; VPN as backup.'],
+            ['Hub and spoke','Transit Gateway connects every network.'],
+            ['Verify inspected routes','Firewall and controlled egress need path tests.'],
+            ['Three zones','Private subnets for apps and data in each zone.'],
+            ['Private paths to AWS services','VPC endpoints; verify DNS and routes.'],
+            ['Region 2, same design','Recovery region and replication to test.']]},
+    {icon:'🚢',kicker:'EP10 · 4/7 · BLOCK 3 · RUNTIME',title:'The Payment Runtime',time:'05:10 – 07:00',draw:d4,
+     key:'Trace each building block to an NFR, then test it.',next:'🔜 Next: everything as code',
+     open:'This is where the payment services will run.',
+     land:'Telemetry must be checked for coverage and data protection.',
+     gloss:[['EKS',[1]],['MSK',[2]],['AURORA',[3]],['KMS',[4]],['OTEL',[5]]],
+     demo:['proposed test harness: Helm, Kafka, PostgreSQL and traces',
+           'managed-service behavior needs AWS load and failure tests'],
+     steps:[['Kubernetes on EKS','Five services in three zones; Karpenter adds capacity.'],
+            ['Events: MSK','Three-zone design; durability needs failure tests.'],
+            ['Data: Aurora','Service-owned stores; failover to validate.'],
+            ['Keys and secrets','KMS per data class, rotating secrets, WAF on the API.'],
+            ['See every payment','Trace correlation is a test objective.'],
+            ['NFR hypotheses to test','Load, recovery and durability need evidence.']]},
+    {icon:'🧱',kicker:'EP10 · 5/7 · BLOCK 4 · PIPELINES',title:'Everything as Code',time:'07:00 – 08:40',draw:d5,
+     key:'If it isn’t in code, it doesn’t exist.',next:'🔜 Next: the laptop stack',
+     open:'Nobody builds this by clicking in the console.',
+     land:'A drift check needs coverage, alerts and an owner.',
+     gloss:[['TERRAFORM',[1]],['MODULE',[1]],['POLICY',[3]],['PLAN',[4,5]],['DRIFT',[7]]],
+     demo:['proof plan: run <b>tflint</b> and <b>Checkov</b> on candidate modules',
+           'review plan output, state controls and drift-alert coverage'],
+     steps:[['Modules, versioned','One Terraform module per building block.'],
+            ['AI drafts, policies decide','AI writes changes from ADRs and AGENTS.md; it never applies.'],
+            ['Checked automatically','Format, lint and policy as code on every pull request.'],
+            ['See before you change','terraform plan shows every change.'],
+            ['People approve prod','Platform and security approve production plans.'],
+            ['Only the pipeline applies','No personal admin access in production.'],
+            ['Detect drift','Scheduled plan plus triage owner.']]},
+    {icon:'💻',kicker:'EP10 · 6/7 · REFERENCE TEST STACK',title:'Reference Test Stack',time:'08:40 – 10:15',draw:d6,
+     key:'Same contracts, different endpoints.',next:'🔜 Next: the golden path',
+     open:'The local stack is a test harness with shared contracts.',
+     land:'Temporary environments need measured cost and teardown.',
+     gloss:[['PARITY',[1]],['HELM',[1]],['LOCALSTACK',[2]],['WIREMOCK',[3]],['EPHEMERAL',[6]]],
+     demo:['design goal: <b>make up</b> starts a synthetic local test stack',
+           'ephemeral environments need budget, expiry and teardown tests'],
+     steps:[['Same contracts','Charts, topics, schemas and migrations are shared.'],
+            ['Kafka ↔ MSK','Local stand-ins do not prove AWS behavior.'],
+            ['Mainframe simulated','WireMock plays the schemes and the mainframe.'],
+            ['Same traces','Test correlation across local and AWS paths.'],
+            ['One-command goal','make up is a target, not a live demo.'],
+            ['Throw-away environments','Per pull request: apply, test, destroy.']]},
+    {icon:'🏁',kicker:'EP10 · 7/7 · THE GOLDEN PATH',title:'The Golden Path for Squads',time:'10:15 – 12:05',draw:d7,
+     key:'Measure the platform by how fast squads ship — safely.',next:'🔜 Next episode: EP11 — Payment Initiation Service',
+     open:'Now the reward: the golden path for squads.',
+     land:'The road needs tests and bank review before use.',
+     gloss:[['TEMPLATE',[1]],['SBOM',[3]],['CANARY',[4]],['TTFD',[5]],['EXIT',[6]]],
+     demo:['proposed proof: create a service from the template and test its CI',
+           'release method requires bank approval and recovery rehearsal'],
+     steps:[['One command to start','The service template creates the repo.'],
+            ['Everything built in','CI, Helm, OpenTelemetry, outbox, ArchUnit, AGENTS.md.'],
+            ['Same pipeline for all','Tests, scans, SBOM and policy checks.'],
+            ['Safety net in prod','Golden tests and a release mode suited to risk.'],
+            ['Measure the platform','Time to first deploy, 100% in code, zero violations.'],
+            ['Review before use','Security, resilience, exit plan and support.'],
+            ['Next: build services','EP11 initiation · EP12 saga · EP13 router.']]},
+  ],
+};
+startDeck(DECK);
+</script>
+</body>
+</html>

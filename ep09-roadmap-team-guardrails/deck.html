@@ -1,0 +1,433 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EP09 Roadmap, Team & AI Guardrails</title>
+<link rel="stylesheet" href="../shared/deck.css">
+</head>
+<body>
+<script src="../shared/deck.js"></script>
+<script>
+/* ============================================================
+   EP09 · Roadmap, Team & AI Guardrails — diagrams (1280x800)
+   ============================================================ */
+const poly=(pts,col,w=2.6,extra='')=>`<polyline points="${pts.map(p=>p.join(',')).join(' ')}" fill="none" stroke="${col}" stroke-width="${w}" stroke-linejoin="round" stroke-linecap="round" ${extra}/>`;
+const diamond=(x,y)=>`<rect x="${x-8}" y="${y-8}" width="16" height="16" transform="rotate(45 ${x} ${y})" fill="#E8B931" stroke="#222530" stroke-width="1.6"/>`;
+
+/* 1 · From design to a plan */
+function d1(){
+  const inputs=[['📖','EP02 · Rules catalog','rules to validate · test cases'],['🗺️','EP03 · Estate map','candidate slice · value vs risk'],['🗂️','EP04 · Backlog','22 example stories'],
+                ['🎯','EP05 · NFR catalog','18 example targets'],['🔐','EP06 · Security','threat model · controls'],['📐','EP07 · Architecture','candidate design · ADRs'],['📨','EP08 · Contracts','draft APIs · events']];
+  return [
+    group({x:10,y:30,w:330,h:620,k:'neutral',label:'📥 FROM EARLIER EPISODES'}),
+    ...inputs.map((s,i)=>box({x:24,y:70+i*84,w:302,h:72,k:'neutral',i:s[0],t:s[1],s:s[2]})),
+    box({x:380,y:120,w:280,h:170,k:'ai',i:'🤖',t:'AI drafts the plan',s:'dependency map · first estimates\nrisk list · draft budget'}),
+    box({x:380,y:330,w:280,h:170,k:'human',i:'👥',t:'Leaders decide',s:'CTO · Head of Payments\nCFO · CRO · Architects'}),
+    group({x:700,y:30,w:570,h:620,k:'good',label:'📦 THE PLAN · FIVE QUESTIONS'}),
+    box({x:720,y:76,w:530,h:96,k:'good',i:'🗓️',t:'What, and when?',s:'roadmap · slices · phases'}),
+    box({x:720,y:188,w:530,h:96,k:'good',i:'👥',t:'Who builds it?',s:'team topology · decision owners'}),
+    box({x:720,y:300,w:530,h:96,k:'good',i:'💶',t:'How much?',s:'budget · dual-run · funding gates'}),
+    box({x:720,y:412,w:530,h:96,k:'good',i:'🛡️',t:'How do we stay safe with AI?',s:'programme guardrails · AGENTS.md'}),
+    box({x:720,y:524,w:530,h:96,k:'good',i:'🚦',t:'How do we know it’s working?',s:'gates · Definition of Done · metrics'}),
+    arrow([[340,200],[380,200]],{k:'ai',st:2}),
+    arrow([[520,290],[520,330]],{k:'human',st:3}),
+    arrow([[660,415],[700,415]],{k:'good',st:4}),
+    group({x:10,y:670,w:1260,h:110,k:'risk',label:'⚠️ WHY PLANS FAIL'}),
+    box({x:30,y:700,w:390,h:64,k:'bad',i:'📅',t:'A big-bang date',s:'set before anyone knows the work'}),
+    box({x:445,y:700,w:390,h:64,k:'bad',i:'⏳',t:'Teams wait on each other',s:'dependencies found too late'}),
+    box({x:860,y:700,w:390,h:64,k:'bad',i:'🤖',t:'AI with no rules',s:'every team does it differently'}),
+    tag(1,330,30,'Seven inputs','r'),
+    tag(2,390,120,'AI drafts'),
+    tag(3,390,330,'Leaders decide'),
+    tag(4,1250,30,'Five questions','r'),
+    tag(5,1250,670,'Why plans fail','r'),
+  ].join('');
+}
+
+/* 2 · The roadmap: slice by slice */
+function d2(){
+  const X=q=>252+q*124, RY=r=>92+r*58;
+  const rows=[
+    ['🛠️ Phase 0 · Foundation',[[0,1,'aws','set-up']]],
+    ['🧪 Slice 0 · Status API',[[0.5,1.5,'neutral','read-only']]],
+    ['⚡ Slice 1 · Instant out',[[1,2,'aws','build + pilot'],[2,3,'good','expand if approved']]],
+    ['📥 Slice 2 · Instant in',[[2.5,4,'aws','inbound + recalls']]],
+    ['🏢 Slice 3 · Bulk payroll',[[4,5.5,'risk','payroll files']]],
+    ['📒 Phase 2 · Shadow ledger',[[3,6,'neutral','parallel run · daily reconciliation']]],
+    ['🔀 Phase 3 · The flip',[[6,8,'good','segment by segment']]],
+    ['🌍 Cross-border',[[7,8,'neutral','planning starts',1]]],
+  ];
+  const out=[group({x:10,y:30,w:1260,h:560,k:'neutral',label:'🗓️ ROADMAP · EXAMPLE · 24 MONTHS',lp:'b'})];
+  out.push(txt((X(0)+X(4))/2,52,'YEAR 1','hd','middle'),txt((X(4)+X(8))/2,52,'YEAR 2','hd','middle'),txt(1246,52,'◆ = go / no-go gate','note','end'));
+  for(let q=0;q<8;q++) out.push(txt(X(q)+63,76,'Q'+(q+1),'cl','middle'));
+  for(let q=0;q<=8;q++) out.push(`<line x1="${X(q)}" y1="82" x2="${X(q)}" y2="546" stroke="rgba(34,37,48,${q%4===0?.28:.10})" stroke-width="${q%4===0?2:1}"/>`);
+  rows.forEach((r,i)=>{
+    const y=RY(i);
+    out.push(txt(20,y+26,r[0],'kl'));
+    r[1].forEach(([a,b,k,t,dash])=>{
+      const c=K[k];
+      out.push(`<rect x="${X(a)}" y="${y}" width="${X(b)-X(a)}" height="40" rx="8" fill="${c.f}" stroke="${c.s}" stroke-width="2" ${dash?'stroke-dasharray="7 5"':''}/>`,
+        `<text x="${(X(a)+X(b))/2}" y="${y+25}" text-anchor="middle" font-size="13" font-weight="700" fill="${c.t}">${esc(t)}</text>`);
+    });
+    const end=r[1][r[1].length-1][1];
+    if(i<7) out.push(diamond(X(end),y+20));
+  });
+  out.push(
+    group({x:10,y:610,w:1260,h:170,k:'good',label:'📏 WHAT THE BOARD SEES EVERY QUARTER'}),
+    box({x:30,y:650,w:290,h:110,k:'good',i:'✅',t:'Slices released',s:'future programme metric'}),
+    box({x:340,y:650,w:290,h:110,k:'good',i:'📊',t:'Payments on new platform',s:'share of daily volume'}),
+    box({x:650,y:650,w:290,h:110,k:'good',i:'🔻',t:'Mainframe MIPS removed',s:'per slice, measured'}),
+    box({x:960,y:650,w:290,h:110,k:'risk',i:'🚨',t:'Incidents & rollbacks',s:'honest, every quarter'}),
+    tag(1,X(0)+6,RY(0),'Foundation first'),
+    tag(2,X(1.5)+14,RY(1)+20,'Warm-up'),
+    tag(3,X(1)+6,RY(2),'Pilot, then review'),
+    tag(4,X(4)+14,RY(3)+20,'One slice at a time'),
+    tag(5,X(3)+6,RY(5),'Ledger in parallel'),
+    tag(6,X(6)+6,RY(6),'Flip last'),
+    tag(7,1250,610,'Board view','r'),
+  );
+  return out.join('');
+}
+
+/* 3 · The team: who builds what */
+function d3(){return [
+  group({x:10,y:30,w:1260,h:440,k:'neutral',label:'👥 TEAM TOPOLOGY · SLICE 1 · EXAMPLE'}),
+  box({x:30,y:76,w:390,h:100,k:'aws',i:'🧑‍💻',t:'Squad 1 · Initiation & Orchestration',s:'7 people · payment-initiation · orchestrator'}),
+  box({x:445,y:76,w:390,h:100,k:'aws',i:'🛡️',t:'Squad 2 · Screening & Limits',s:'6 people · fraud · limits · rules'}),
+  box({x:860,y:76,w:390,h:100,k:'aws',i:'📒',t:'Squad 3 · Ledger & Scheme',s:'7 people · ledger adapter · scheme gateway'}),
+  box({x:30,y:236,w:805,h:90,k:'neutral',i:'🛠️',t:'Platform team',s:'landing zone · Kubernetes · Kafka · CI/CD · observability — as a service'}),
+  box({x:860,y:236,w:390,h:90,k:'legacy',i:'🧓',t:'Mainframe SMEs',s:'enabling team · knowledge transfer'}),
+  box({x:30,y:350,w:805,h:90,k:'human',i:'🔐',t:'Embedded in every squad',s:'security champion · compliance partner · SRE'}),
+  box({x:860,y:350,w:390,h:90,k:'ai',i:'🤖',t:'AI enablement',s:'AGENTS.md · prompt library · coaching'}),
+  arrow([[225,236],[225,176]],{k:'neutral',st:2,label:'supports',ly:206}),
+  arrow([[640,236],[640,176]],{k:'neutral',st:2}),
+  arrow([[835,281],[848,281],[848,196],[1055,196],[1055,176]],{k:'neutral',st:2}),
+  arrow([[1055,236],[1055,206]],{k:'legacy',st:3,label:'enables',lx:1135,ly:216}),
+  arrow([[1250,395],[1262,395],[1262,126],[1250,126]],{k:'ai',st:4,dash:1,label:'coaching',lx:1262,ly:300}),
+
+  group({x:10,y:490,w:620,h:290,k:'human',label:'📋 WHO DECIDES WHAT'}),
+  table({x:30,y:526,w:580,hh:28,rh:42,cols:[['DECISION',0],['OWNER',260]],
+    rows:[['Backlog order','Product owner'],['Architecture (ADRs)','Architecture board'],['What the law means','Compliance'],
+          ['Go-live of a slice','Head of Payments + CRO'],['AI rules (AGENTS.md)','AI enablement + Security']]}),
+  group({x:650,y:490,w:620,h:290,k:'aws',label:'📈 HOW THE TEAM GROWS · EXAMPLE'}),
+  kpi({x:670,y:534,w:580,h:50,k:'neutral',i:'🛠️',t:'Phase 0',v:'platform + 1 squad'}),
+  kpi({x:670,y:594,w:580,h:50,k:'aws',i:'⚡',t:'Slice 1',v:'platform + 3 squads'}),
+  kpi({x:670,y:654,w:580,h:50,k:'good',i:'🔀',t:'Phases 2–3',v:'platform + 5 squads'}),
+  txt(960,746,'You build it, you run it.','kl','middle'),
+
+  tag(1,40,76,'Squads own services'),
+  tag(2,40,236,'Platform as a service'),
+  tag(3,870,236,'Experts enable'),
+  tag(4,870,440,'AI enablement team'),
+  tag(5,40,350,'Embedded, not outside'),
+  tag(6,600,490,'Clear decision owners','r'),
+  tag(7,1250,490,'Grow step by step','r'),
+].join('')}
+
+/* 4 · The money: build, run and dual-run */
+function d4(){
+  const X=q=>80+q*50, Y=v=>420-v*2.2;
+  const mf=[85,85,85,84,82,78,74,68,58,46,36,30,28];
+  const aws=[0,4,8,12,16,20,24,28,32,35,37,38,38];
+  const prog=[15,35,40,40,40,38,35,32,28,22,18,15,15];
+  const tot=mf.map((v,i)=>v+aws[i]+prog[i]);
+  const P=a=>a.map((v,i)=>[X(i),Y(v)]);
+  const hump=[...tot.slice(0,10).map((v,i)=>[X(i),Y(v)]),[X(9.25),Y(100)],[X(0),Y(100)]];
+  const save=[[X(9.25),Y(100)],...tot.slice(10).map((v,i)=>[X(i+10),Y(v)]),[X(12),Y(100)]];
+  const out=[group({x:10,y:30,w:780,h:470,k:'neutral',label:'💶 COST INDEX · 100 = TODAY · EXAMPLE',lp:'b'})];
+  [0,50,100,150].forEach(v=>out.push(`<line x1="80" y1="${Y(v)}" x2="${X(12)}" y2="${Y(v)}" stroke="rgba(34,37,48,.10)"/>`,txt(72,Y(v)+4,String(v),'cl','end')));
+  [['today',0],['year 1',4],['year 2',8],['year 3',12]].forEach(([t,q])=>out.push(txt(X(q),442,t,'cl','middle')));
+  out.push(
+    `<polygon points="${hump.map(p=>p.join(',')).join(' ')}" fill="rgba(201,102,30,.16)"/>`,
+    `<polygon points="${save.map(p=>p.join(',')).join(' ')}" fill="rgba(46,139,87,.20)"/>`,
+    `<path d="M80 420 L${X(12)+8} 420" stroke="#222530" stroke-width="2"/>`,`<path d="M80 420 L80 72" stroke="#222530" stroke-width="2"/>`,
+    `<line x1="80" y1="${Y(100)}" x2="${X(12)}" y2="${Y(100)}" stroke="#222530" stroke-width="1.6" stroke-dasharray="6 5"/>`,
+    `<line x1="${X(8)}" y1="80" x2="${X(8)}" y2="420" stroke="#2E8B57" stroke-width="2" stroke-dasharray="8 6"/>`,
+    poly(P(mf),'#7B8190',2.6), poly(P(aws),'#0F7F77',2.6), poly(P(prog),'#6D4FD1',2.4,'stroke-dasharray="7 5"'),
+    poly(P(tot),'#222530',3.6),
+    txt(X(12)+8,Y(tot[12])+5,'total','kl'), txt(X(12)+8,Y(38)-2,'AWS','kl','start','#0F7F77'),
+    txt(X(12)+8,Y(28)+12,'mainframe','kl','start','#4F5D75'), txt(X(12)+8,Y(15)+16,'programme','kl','start','#6D4FD1'),
+    txt(X(8),74,'flip assumed','cl','middle','#2E8B57'),
+    group({x:810,y:30,w:460,h:470,k:'aws',label:'🧮 WHAT DRIVES THE COST'}),
+    kpi({x:830,y:76,w:420,h:64,k:'legacy',i:'🏛️',t:'Mainframe MIPS',v:'model ↓'}),
+    kpi({x:830,y:152,w:420,h:64,k:'aws',i:'☁️',t:'AWS run cost',v:'rises, flattens'}),
+    kpi({x:830,y:228,w:420,h:64,k:'ai',i:'👥',t:'Programme team',v:'peaks in build'}),
+    kpi({x:830,y:304,w:420,h:64,k:'risk',i:'🔁',t:'Dual-run',v:'measure overlap'}),
+    txt(1040,410,'Run cost about 20% lower by year 3 (example).','kl','middle'),
+    txt(1040,440,'Model it with your own numbers.','note','middle'),
+
+    group({x:10,y:520,w:1260,h:260,k:'good',label:'🚦 FUND IT ONE STAGE AT A TIME'}),
+    box({x:30,y:566,w:280,h:120,k:'aws',i:'💶',t:'Fund one stage',s:'foundation + warm-up'}),
+    box({x:340,y:566,w:220,h:120,k:'human',i:'🚦',t:'Gate',s:'KPIs met?\nrisks OK?'}),
+    box({x:590,y:566,w:280,h:120,k:'aws',i:'💶',t:'Fund the next slice',s:'based on evidence'}),
+    box({x:900,y:566,w:350,h:120,k:'good',i:'🛑',t:'Stop or change early',s:'if KPIs are missed —\nbefore the money is gone'}),
+    arrow([[310,626],[340,626]],{k:'aws',st:6}),
+    arrow([[560,626],[590,626]],{k:'good',st:6,label:'yes',ly:610}),
+    arrow([[450,686],[450,716],[1075,716],[1075,686]],{k:'bad',st:6,dash:1,label:'no',lx:760,ly:716}),
+    txt(640,762,'Money follows evidence — one slice at a time.','kl','middle'),
+
+    tag(1,90,Y(100)+14,'Today = 100'),
+    tag(2,X(4),94,'Dual-run hump','c'),
+    tag(3,X(8)+10,130,'Savings to verify'),
+    tag(4,X(10.5),262,'Lower run cost','c'),
+    tag(5,1250,30,'Cost drivers','r'),
+    tag(6,1250,520,'Fund by evidence','r'),
+  );
+  return out.join('');
+}
+
+/* 5 · AI guardrails for the whole programme */
+function d5(){return [
+  group({x:10,y:30,w:620,h:500,k:'ai',label:'🛡️ GUARDRAILS IN LAYERS'}),
+  box({x:140,y:76,w:360,h:84,k:'human',i:'🏦',t:'Bank AI policy',s:'approved tools · model risk · data rules'}),
+  box({x:100,y:176,w:440,h:84,k:'ai',i:'📘',t:'Programme AGENTS.md',s:'architecture rules for every repository'}),
+  box({x:60,y:276,w:520,h:84,k:'ai',i:'📗',t:'Service AGENTS.md',s:'extra rules for one service'}),
+  box({x:30,y:376,w:580,h:84,k:'good',i:'🚦',t:'CI checks + human review',s:'architecture tests · secrets · licences · security scans'}),
+  arrow([[320,160],[320,176]],{k:'ai',st:2}),
+  arrow([[320,260],[320,276]],{k:'ai',st:3}),
+  arrow([[320,360],[320,376]],{k:'good',st:4}),
+  txt(320,500,'Each layer adds detail — none can break the layer above.','note','middle'),
+
+  group({x:650,y:30,w:620,h:500,k:'neutral',label:'📘 PROGRAMME AGENTS.md · EXCERPT'}),
+  code({x:666,y:66,w:588,h:450,title:'AGENTS.md  (programme)',lh:25,lines:[
+    ['1','# Rules for AI assistants — all payment repos'],
+    ['2',''],
+    ['3','## Architecture'],
+    ['4','- Publish events only through the outbox.','y'],
+    ['5','- Every command is idempotent (Idempotency-Key).','y'],
+    ['6','- Money = BigDecimal + ISO 4217 currency.'],
+    ['7','- Respect your step’s latency budget (EP05).'],
+    ['8',''],
+    ['9','## Data'],
+    ['10','- Never put real customer data in a prompt.','o'],
+    ['11','- Use masked test data only.'],
+    ['12',''],
+    ['13','## Process'],
+    ['14','- Cite the BR-ID or REG-ID in every change.'],
+    ['15','- You may draft. You may never approve or merge.','o'],
+  ]}),
+
+  group({x:10,y:550,w:1260,h:230,k:'neutral',label:'⚖️ WHAT AI MAY DO · WHAT AI MAY NEVER DO'}),
+  box({x:30,y:592,w:600,h:168,k:'good',i:'✅',t:'AI may',s:'draft code, tests, stories and documents\nexplain old COBOL\nsuggest fixes in code review\nanalyse logs and test results'}),
+  box({x:650,y:592,w:600,h:168,k:'bad',i:'⛔',t:'AI may never',s:'approve or merge a pull request\ndeploy to production\nsee real customer data\ndecide what the law means'}),
+
+  tag(1,150,76,'Bank policy first'),
+  tag(2,110,176,'One programme file'),
+  tag(3,70,276,'Service details'),
+  tag(4,40,376,'Enforced in CI'),
+  tag(5,1250,30,'Rules in plain words','r'),
+  tag(6,40,592,'AI may draft'),
+  tag(7,660,592,'Never approve, never real data'),
+].join('')}
+
+/* 6 · How we work: gates, done and metrics */
+function d6(){return [
+  group({x:10,y:30,w:1260,h:250,k:'neutral',label:'🔁 THE DELIVERY RHYTHM'}),
+  box({x:30,y:76,w:280,h:170,k:'aws',i:'🏃',t:'2-week sprints',s:'plan · build · demo · improve'}),
+  box({x:343,y:76,w:280,h:170,k:'aws',i:'🗓️',t:'Quarterly planning',s:'all squads plan\nthe next slice together'}),
+  box({x:656,y:76,w:280,h:170,k:'human',i:'🚦',t:'Go / no-go per slice',s:'architecture · Risk\nHead of Payments'}),
+  box({x:969,y:76,w:280,h:170,k:'good',i:'🚀',t:'Release by risk',s:'canary where suitable\nrecovery tested'}),
+  arrow([[310,161],[343,161]],{k:'aws',st:2}),
+  arrow([[623,161],[656,161]],{k:'human',st:3}),
+  arrow([[936,161],[969,161]],{k:'good',st:4}),
+
+  group({x:10,y:300,w:620,h:480,k:'good',label:'✅ DEFINITION OF DONE · EVERY STORY'}),
+  lines(36,358,['✅ acceptance tests pass (EP04)','✅ golden tests pass (EP02)','✅ NFR budgets green (EP05)','✅ security scans clean (EP06)','✅ contract tests pass (EP08)','✅ ADRs and rule cards updated','✅ runbook updated','✅ reviewed by a person — not only by AI'],'kl',50),
+
+  group({x:650,y:300,w:620,h:480,k:'aws',label:'📊 MONTHLY METRICS · EXAMPLE'}),
+  txt(670,346,'DORA METRICS · DELIVERY','hd'),
+  kpi({x:670,y:358,w:580,h:46,k:'good',i:'🚀',t:'Deployment frequency',v:'daily'}),
+  kpi({x:670,y:412,w:580,h:46,k:'good',i:'⏱️',t:'Lead time for a change',v:'2 days'}),
+  kpi({x:670,y:466,w:580,h:46,k:'good',i:'🧯',t:'Change failure rate',v:'4%'}),
+  kpi({x:670,y:520,w:580,h:46,k:'good',i:'🔧',t:'Time to restore service',v:'35 min'}),
+  txt(670,606,'AI METRICS · SAMPLE VALUES','hd'),
+  kpi({x:670,y:618,w:580,h:46,k:'ai',i:'🤖',t:'AI drafts accepted after review',v:'61%'}),
+  kpi({x:670,y:672,w:580,h:46,k:'risk',i:'🐞',t:'Escaped defects from AI code',v:'2'}),
+  txt(960,752,'DORA metrics (DevOps) ≠ DORA (EU law)','note','middle'),
+
+  tag(1,40,76,'Sprints'),
+  tag(2,353,76,'Plan together'),
+  tag(3,666,76,'Gate per slice'),
+  tag(4,979,76,'Release by risk'),
+  tag(5,600,300,'Done means done','r'),
+  tag(6,1250,300,'Delivery metrics','r'),
+  tag(7,1240,618,'Measure AI honestly','r'),
+].join('')}
+
+/* 7 · Risks and the first 90 days */
+function d7(){return [
+  group({x:10,y:30,w:1260,h:370,k:'risk',label:'⚠️ PROGRAMME RISK REGISTER · TOP 6 · EXAMPLE'}),
+  table({x:30,y:66,w:1220,hh:30,rh:48,cols:[['RISK',0],['IMPACT',300],['OWNER',420],['MITIGATION',650]],
+    rows:[['Mainframe experts leave','🔴 high','Head of Payments','paid knowledge transfer · EP02 catalog'],
+          ['Mainframe not 24/7','🔴 high','Lead architect','EP07 decision · tested before slice 1'],
+          ['Scope creep','🟠 medium','Product owner','one slice at a time · clear out-of-scope'],
+          ['Over-trust in AI','🔴 high','AI enablement','AGENTS.md · CI gates · human approval'],
+          ['Dual-run cost overrun','🔴 high','CFO','fund by evidence · MIPS tracked per slice'],
+          ['Regulation changes','🟠 medium','Compliance','REG-IDs · traceability (EP04)']]}),
+
+  group({x:10,y:420,w:1260,h:250,k:'aws',label:'🚀 THE FIRST 90 DAYS · EXAMPLE'}),
+  box({x:30,y:466,w:390,h:180,k:'aws',i:'🛠️',t:'Weeks 1–4 · Foundation',s:'landing zone · CI/CD · AGENTS.md\nteams formed · first golden tests'}),
+  box({x:445,y:466,w:390,h:180,k:'aws',i:'🧪',t:'Weeks 5–8 · Warm-up target',s:'possible status API release\ntest the delivery path'}),
+  box({x:860,y:466,w:390,h:180,k:'good',i:'⚡',t:'Weeks 9–13 · Slice 1 plan',s:'first stories and dependencies\nproposed pilot review'}),
+  arrow([[420,556],[445,556]],{k:'aws',st:4}),
+  arrow([[835,556],[860,556]],{k:'good',st:5}),
+
+  box({x:10,y:690,w:1260,h:90,k:'good',i:'🔜',t:'Next stage: Build · EP10 Platform Foundation',s:'Candidate AWS foundation with a local engineering test stack'}),
+
+  tag(1,1250,30,'Top risks','r'),
+  tag(2,700,30,'An owner for each','c'),
+  tag(3,40,466,'Foundation first'),
+  tag(4,455,466,'Test the pipeline'),
+  tag(5,870,466,'Slice 1 planned'),
+  tag(6,30,690,'Build stage next'),
+].join('')}
+
+/* ============================================================
+   Episode config
+   ============================================================ */
+const DECK={
+  brand:'🏦 CORE BANKING PAYMENTS MODERNIZATION · AWS',
+  ep:'EP 09', epShort:'EP09', title:'Roadmap, Team & AI Guardrails', subtitle:'Reference scenario',
+  seriesTitle:'Core Payments Modernization · Reference',
+  logo:'../shared/jo-logo.png', background:'../shared/background.png',
+  stages:[['🔍','Discover'],['📋','Requirements'],['📐','Design & Plan'],['🛠️','Build'],['🚀','Test & Deploy'],['🔧','Operate']],
+  stage:3,
+  glossary:{
+    ROADMAP:['Roadmap','value','The order and timing of slices and phases. A plan, not a promise — it changes with evidence.'],
+    DEPMAP:['Dependency map','risk','Which work must finish before other work can start. It shows where teams could end up waiting.'],
+    ESTIMATE:['Estimate','risk','A range, not a date: “six to nine months”. AI drafts first estimates from history; teams own the final ones.'],
+    STEERCO:['Steering committee','value','The leaders who approve scope, money and go-lives: CTO, Head of Payments, CFO and CRO.'],
+    BIGBANG:['Big-bang date','risk','One date for everything, set before anyone knows the work. A common reason big plans fail.'],
+    WARMUP:['Warm-up slice','risk','A smaller first release, such as a read-only status API. It tests the delivery path but still needs bank approval.'],
+    PILOT:['Pilot','risk','The first real customers, with limits. Usually staff first, then a small group.'],
+    GA:['General availability','value','A wider release after pilot evidence and the bank’s go decision. Meeting KPIs alone is not automatic approval.'],
+    GATE:['Go / no-go gate','risk','A short meeting with evidence: KPIs, risks, a tested rollback. The answer is yes, no, or not yet.'],
+    PARALLEL:['Parallel run','cost','Old and new run at the same time while we build trust. Safe, but you pay for both.'],
+    STREAM:['Stream-aligned team','value','A small team that owns one part of the customer journey end to end, from code to production.'],
+    PLATFORM:['Platform team','cost','Builds the shared foundation once, as a service for all squads, so nobody rebuilds the plumbing.'],
+    ENABLING:['Enabling team','value','Experts who help other teams learn, like mainframe SMEs or AI coaches. They teach, then step back.'],
+    RACI:['Decision owner','risk','The one named person or group who decides. Clear owners stop decisions from bouncing between teams.'],
+    YBIRU:['You build it, you run it','risk','The team that builds a service also supports it in production. They feel the pain, so they fix it.'],
+    COSTINDEX:['Cost index','cost','Illustrative costs relative to a baseline of 100. A bank must model its actual contracts and usage.'],
+    DUALRUN:['Dual-run','cost','Paying for the mainframe and AWS at the same time during migration — the hump in the middle of the curve.'],
+    MIPS:['MIPS','cost','A mainframe capacity measure. Usage and bills can differ because of fixed commitments and contract terms.'],
+    RUNRATE:['Run-rate cost','cost','What it costs to keep everything running each quarter, after the build is finished.'],
+    STAGEGATE:['Stage-gate funding','cost','Money is released one stage at a time, when the previous stage shows results. Mistakes stay small.'],
+    AIPOLICY:['Bank AI policy','risk','The bank-wide rules for AI: which tools are approved, which data may be used, and who is accountable.'],
+    AGENTS:['AGENTS.md','risk','A plain-text file of rules that AI coding assistants must follow in a repository. One for the programme, one per service.'],
+    MRM:['Model risk management','risk','The bank’s review of models that affect decisions. AI tools usually need its approval before use.'],
+    DATACLASS:['Data classification','risk','Labels like public, internal, confidential and customer data. The label decides what may go into an AI prompt.'],
+    HITL:['Human-in-the-loop','risk','AI suggests; a named person decides. AI never approves, merges or deploys.'],
+    SPRINT:['Sprint','value','A fixed two-week cycle: plan, build, show the result, improve.'],
+    QPLAN:['Quarterly planning','value','Every quarter, all squads plan the next slice together, so dependencies are found early.'],
+    DOD:['Definition of Done','risk','The checklist every story must pass. Here it includes golden tests, NFR budgets and security scans.'],
+    DORAM:['DORA metrics','value','Four delivery measures from DevOps research: deploy frequency, lead time, change failure rate, time to restore. Not the EU law with the same name!'],
+    AIMETRIC:['AI metrics','value','Honest numbers on AI use: how many drafts are accepted, and how many defects came from AI code.'],
+    RISKREG:['Risk register','risk','A list of the biggest programme risks, each with an impact, an owner and a mitigation. Reviewed every month.'],
+    RISKOWNER:['Risk owner','risk','The named person who must act if a risk grows. Never “the team”.'],
+    KEYPERSON:['Key-person risk','risk','When important knowledge lives in one or two people. If they leave, the programme stalls.'],
+    LZ:['Landing zone','value','A ready, secure AWS setup with accounts, network and controls. Every team builds on it.'],
+    WALKSKEL:['Walking skeleton','value','A small feature that tests the delivery path end to end; it does not prove the wider programme.'],
+  },
+  slides:[
+    {icon:'🧭',kicker:'EP09 · 1/7 · THE GOAL',title:'From Design to a Plan',time:'00:00 – 01:35',draw:d1,
+     key:'A good plan answers five questions — with evidence.',next:'🔜 Next: the roadmap',
+     open:'Welcome to the last episode of the design and planning stage.',
+     land:'This plan makes those execution risks visible.',
+     gloss:[['DEPMAP',[2]],['ESTIMATE',[2]],['STEERCO',[3]],['ROADMAP',[4]],['BIGBANG',[5]]],
+     demo:['proposed evidence: versioned inputs and a dependency map from backlog and ADRs',
+           'bank leaders would review owners, dates and assumptions'],
+     steps:[['Seven inputs','Rules, estate map, backlog, NFRs, security, architecture, contracts.'],
+            ['AI drafts','Dependency map, first estimates, risks, draft budget.'],
+            ['Leaders decide','CTO, Head of Payments, CFO, CRO and architects.'],
+            ['Five questions','What and when, who, how much, AI safety, progress.'],
+            ['Why plans fail','Big-bang dates, teams waiting, AI with no rules.']]},
+    {icon:'🗓️',kicker:'EP09 · 2/7 · WHAT & WHEN',title:'The Roadmap: Slice by Slice',time:'01:35 – 03:40',draw:d2,
+     key:'A roadmap is a plan, not a promise. It changes with evidence.',next:'🔜 Next: the team',
+     open:'Here is the roadmap for our example bank.',
+     land:'The roadmap is a plan, not a promise.',
+     gloss:[['WARMUP',[2]],['PILOT',[3]],['GA',[3]],['GATE',[4]],['PARALLEL',[5]]],
+     demo:['illustrative roadmap could be generated from a versioned plan',
+           'feature flags need bank-approved gates and tested routing'],
+     steps:[['Foundation first','Landing zone, pipeline and AI guardrails.'],
+            ['Warm-up','A read-only API tests the delivery path.'],
+            ['Pilot, then review','Staff pilot; bank decides any wider release.'],
+            ['One slice at a time','Inbound and recalls, then bulk payroll — each with a gate.'],
+            ['Ledger in parallel','Shadow ledger timing is an example.'],
+            ['Flip last','Late, by segment, if bank evidence supports it.'],
+            ['Board view','Track released slices, platform share, MIPS and incidents.']]},
+    {icon:'👥',kicker:'EP09 · 3/7 · WHO',title:'The Team: Who Builds What',time:'03:40 – 05:20',draw:d3,
+     key:'Small teams, clear owners — you build it, you run it.',next:'🔜 Next: the money',
+     open:'Now the people.',
+     land:'And the rule is: you build it, you run it.',
+     gloss:[['STREAM',[1]],['PLATFORM',[2]],['ENABLING',[3,4]],['RACI',[6]],['YBIRU',[7]]],
+     demo:['proposed control: <b>CODEOWNERS</b> maps services to teams',
+           'account layout depends on the bank’s platform and security design'],
+     steps:[['Squads own services','Three squads of 6–7 people, code to production.'],
+            ['Platform as a service','Landing zone, Kubernetes, Kafka, CI/CD, observability.'],
+            ['Experts enable','Ledger SMEs validate behavior and guide integration.'],
+            ['AI enablement team','Owns AGENTS.md and prompts; coaches every squad.'],
+            ['Embedded, not outside','Security, compliance and SRE inside each squad.'],
+            ['Clear decision owners','Backlog, ADRs, the law, go-live, AI rules.'],
+            ['Grow step by step','1 squad → 3 squads → about 5.']]},
+    {icon:'💶',kicker:'EP09 · 4/7 · HOW MUCH',title:'The Money: Build, Run and Dual-Run',time:'05:20 – 06:55',draw:d4,
+     key:'Money follows evidence — one slice at a time.',next:'🔜 Next: AI guardrails',
+     open:'Now the money, as the CFO sees it.',
+     land:'Money follows evidence.',
+     gloss:[['COSTINDEX',[1]],['DUALRUN',[2]],['MIPS',[3]],['RUNRATE',[4]],['STAGEGATE',[6]]],
+     demo:['proposed evidence: a cost model with bank-specific prices and traffic',
+           '<b>AWS Pricing Calculator</b> estimates need contract and operations review'],
+     steps:[['Today = 100','Today’s run and change cost for payments.'],
+            ['Dual-run hump','Mainframe + AWS + programme team: cost goes up first.'],
+            ['Savings to verify','Legacy usage and contract cost must be measured.'],
+            ['Lower run cost','About 20% lower by year 3 in this example.'],
+            ['Cost drivers','MIPS, AWS, programme team, dual-run.'],
+            ['Fund by evidence','One stage at a time; stop or change early.']]},
+    {icon:'🛡️',kicker:'EP09 · 5/7 · AI SAFETY',title:'AI Guardrails for the Whole Programme',time:'06:55 – 08:20',draw:d5,
+     key:'AI may draft. Only people approve.',next:'🔜 Next: how we work',
+     open:'In episode two, we used AI with guardrails for one task. Now: the whole programme.',
+     land:'Those decisions stay with named people.',
+     gloss:[['AIPOLICY',[1]],['MRM',[1]],['AGENTS',[2,3,5]],['DATACLASS',[7]],['HITL',[6,7]]],
+     demo:['proposed controls: AGENTS.md, ArchUnit, secret scans and human review',
+           'bank policy would define approved model access and logging'],
+     steps:[['Bank policy first','Approved tools, model risk approval, data rules.'],
+            ['One programme file','Architecture rules for every repository.'],
+            ['Service details','Each service adds its own rules — never breaks the layer above.'],
+            ['Enforced in CI','Architecture tests, scans and a human review.'],
+            ['Rules in plain words','Outbox, idempotency, BigDecimal, budgets, sources.'],
+            ['AI may draft','Code, tests, stories, docs; explain COBOL; suggest fixes.'],
+            ['Never approve, never real data','No merges, no deploys, no customer data, no legal calls.']]},
+    {icon:'🔁',kicker:'EP09 · 6/7 · HOW WE WORK',title:'Gates, Done and Metrics',time:'08:20 – 09:50',draw:d6,
+     key:'If we don’t measure it, we’re only guessing.',next:'🔜 Next: risks & the first 90 days',
+     open:'Now the rhythm.',
+     land:'If we don’t measure it, we are only guessing.',
+     gloss:[['SPRINT',[1]],['QPLAN',[2]],['DOD',[5]],['DORAM',[6]],['AIMETRIC',[7]]],
+     demo:['proposed proof: a pull-request checklist plus CI results and runbooks',
+           'delivery metrics need real pipeline data; rollback must be rehearsed'],
+     steps:[['Sprints','Two weeks: plan, build, show, improve.'],
+            ['Plan together','Every quarter, all squads plan the next slice.'],
+            ['Gate per slice','Architecture, Risk and Payments decide with evidence.'],
+            ['Release by risk','Canary where suitable; recovery tested.'],
+            ['Done means done','Tests, budgets, scans, contracts, docs, human review.'],
+            ['Delivery metrics','Deploy frequency, lead time, failure rate, restore time.'],
+            ['Measure AI honestly','Drafts accepted, defects from AI code.']]},
+    {icon:'🚀',kicker:'EP09 · 7/7 · RISKS & START',title:'Risks and the First 90 Days',time:'09:50 – 11:20',draw:d7,
+     key:'The reference plan identifies decisions and evidence needed to build.',next:'🔜 Next episode: EP10 — Platform Foundation',
+     open:'Every plan has risks.',
+     land:'From now on, we build.',
+     gloss:[['RISKREG',[1]],['KEYPERSON',[1]],['RISKOWNER',[2]],['LZ',[3]],['WALKSKEL',[4]]],
+     demo:['proposed evidence: a versioned risk register with named owners',
+           'EP10 tests the candidate landing-zone design'],
+     steps:[['Top risks','Experts, mainframe 24/7, scope, AI trust, cost, regulation.'],
+            ['An owner for each','A named owner and a mitigation, reviewed monthly.'],
+            ['Foundation first','Weeks 1–4: landing zone, pipeline, AGENTS.md, teams.'],
+            ['Test the pipeline','Weeks 5–8: possible status API release.'],
+            ['Slice 1 planned','Weeks 9–13: stories and pilot review plan.'],
+            ['Build stage next','EP10: candidate AWS platform and local test stack.']]},
+  ],
+};
+startDeck(DECK);
+</script>
+</body>
+</html>

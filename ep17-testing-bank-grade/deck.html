@@ -1,0 +1,410 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EP17 Testing a Bank-Grade Platform</title>
+<link rel="stylesheet" href="../shared/deck.css">
+</head>
+<body>
+<script src="../shared/deck.js"></script>
+<script>
+/* ============================================================
+   EP17 · Testing a Bank-Grade Platform — diagrams (1280x800)
+   ============================================================ */
+const NB='     ';
+function trap(cx,yTop,h,wB,wT,k,t,s){
+  const c=K[k];
+  const pts=[[cx-wT/2,yTop],[cx+wT/2,yTop],[cx+wB/2,yTop+h],[cx-wB/2,yTop+h]].map(p=>p.join(',')).join(' ');
+  return `<g><polygon points="${pts}" fill="${c.f}" stroke="${c.s}" stroke-width="2" stroke-linejoin="round"/>`+
+    `<text class="bt" x="${cx}" y="${yTop+h/2+2}" fill="${c.t}">${esc(t)}</text>`+
+    `<text class="bs" x="${cx}" y="${yTop+h/2+20}">${esc(s)}</text></g>`;
+}
+
+/* 1 · Many layers, one goal */
+function d1(){
+  const layers=[['🧩 Unit','example: 3,000 · ~2 min','good'],['📦 Component','example: 400 · containers','aws'],['📨 Contract','APIs + bank-owned ISO rules','aws'],
+                ['🔗 End-to-end','flows · simulators','neutral'],['🪙 Golden','sample size bank-approved','legacy'],['⚡ NFR','load · chaos · security','risk']];
+  const yTop=i=>566-(i+1)*76;
+  const out=[group({x:10,y:30,w:640,h:560,k:'neutral',label:'🧪 THE TEST PYRAMID · SLICE 1 · EXAMPLE'}),
+    txt(330,82,'top: slower · fewer · more costly','note','middle')];
+  layers.forEach((l,i)=>out.push(trap(330,yTop(i),76,560-i*88,560-(i+1)*88,l[2],l[0],l[1])));
+  out.push(txt(330,584,'bottom: faster · more · cheaper','note','middle'),
+    group({x:670,y:30,w:600,h:560,k:'neutral',label:'⏱️ WHEN EACH LAYER RUNS'}),
+    table({x:690,y:70,w:560,hh:30,rh:62,cols:[['LAYER',0],['WHEN',170],['HOW LONG',420]],
+      rows:[['Unit','proposed: every PR','target: ~2 min'],['Component','proposed: every PR','target: ~6 min'],['Contract','proposed: every PR','target: ~1 min'],
+            ['End-to-end','proposed: every merge','target: ~15 min'],['Golden parity','proposed: nightly','sample agreed'],['Load & chaos','risk-based schedule','hours'],
+            ['Security','scans on every pull request','+ pen tests']]}),
+    group({x:10,y:610,w:1260,h:170,k:'risk',label:'💸 THE SAME BUG — FOUND WHEN?'}),
+    box({x:30,y:650,w:290,h:110,k:'good',i:'✅',t:'In a pull request',s:'minutes · one developer'}),
+    box({x:340,y:650,w:290,h:110,k:'aws',i:'🧪',t:'In integration',s:'hours · one team'}),
+    box({x:650,y:650,w:290,h:110,k:'risk',i:'👥',t:'In UAT',s:'days · many people'}),
+    box({x:960,y:650,w:290,h:110,k:'bad',i:'🔥',t:'In production',s:'customers · money · regulator'}),
+    arrow([[320,705],[340,705]],{k:'risk',st:7}),arrow([[630,705],[650,705]],{k:'risk',st:7}),arrow([[940,705],[960,705]],{k:'bad',st:7}),
+    tag(1,630,30,'One goal','r'),
+    tag(2,330,yTop(0),'Fast feedback target','c'),
+    tag(3,330,yTop(1),'Real Kafka in Docker','c'),
+    tag(4,330,yTop(2),'Check contracts','c'),
+    tag(5,330,yTop(3),'Whole flows + golden','c'),
+    tag(6,330,yTop(5),'Load, chaos, security','c'),
+    tag(7,1250,610,'Find bugs early','r'),
+  );
+  return out.join('');
+}
+
+/* 2 · From laptop to production */
+function d2(){
+  const envs=[['💻 Local','Docker','neutral','simulators','synthetic data'],['🔀 CI','per PR','aws','proposed per pull request','destroyed after'],
+              ['🔗 Integration','services','aws','services together','simulated partners'],['📈 Performance','representative','risk','load + chaos tests','approved data scale'],
+              ['🎭 Staging','production-like','human','scheme test service, if available','mainframe test system'],['🚀 Production','gated canary','good','after bank approval','real customers']];
+  const out=[group({x:10,y:30,w:1260,h:300,k:'neutral',label:'🏗️ ENVIRONMENTS · FROM LAPTOP TO PRODUCTION'})];
+  envs.forEach((e,i)=>{
+    const x=20+i*206;
+    out.push(chevron({x,y:80,w:200,h:84,k:e[2],t:e[0],s:e[1],first:i===0}),txt(x+104,204,e[3],'mt','middle'),txt(x+104,226,e[4],'mt','middle'));
+  });
+  out.push(
+    `<defs><linearGradient id="simreal" x1="0" x2="1"><stop offset="0" stop-color="#4F5D75" stop-opacity=".25"/><stop offset="1" stop-color="#2E8B57" stop-opacity=".55"/></linearGradient></defs>`,
+    `<rect x="30" y="262" width="1220" height="14" rx="7" fill="url(#simreal)"/>`,
+    txt(30,302,'◀ simulated','cl'), txt(1250,302,'real ▶','cl','end'),
+
+    group({x:10,y:350,w:760,h:430,k:'aws',label:'🎭 SIMULATE WHAT WE DON’T CONTROL'}),
+    box({x:270,y:500,w:220,h:130,k:'aws',i:'⚙️',t:'Payment platform',s:'under test'}),
+    box({x:30,y:396,w:220,h:120,k:'neutral',i:'🌐',t:'Scheme simulator',s:'accept · reject · timeout\npacs.028 · camt.056'}),
+    box({x:30,y:640,w:220,h:120,k:'legacy',i:'🏛️',t:'Mainframe simulator',s:'funds hold · slow\ndown for maintenance'}),
+    box({x:530,y:396,w:220,h:120,k:'risk',i:'🛡️',t:'Fraud API stub',s:'score · slow · down'}),
+    box({x:530,y:640,w:220,h:120,k:'human',i:'🔎',t:'VoP simulator',s:'match · close · no match\nno answer'}),
+    arrow([[270,530],[260,530],[260,456],[250,456]],{k:'neutral',st:4,both:1}),
+    arrow([[270,600],[260,600],[260,700],[250,700]],{k:'legacy',st:4,both:1}),
+    arrow([[490,530],[510,530],[510,456],[530,456]],{k:'risk',st:4,both:1}),
+    arrow([[490,600],[510,600],[510,700],[530,700]],{k:'human',st:4,both:1}),
+
+    group({x:790,y:350,w:480,h:430,k:'good',label:'♻️ ONE ENVIRONMENT PER PULL REQUEST'}),
+    ...['🔀 1 · Pull request opened','🛠️ 2 · Terraform creates it','🧪 3 · Tests run against simulators','🗄️ 4 · Results saved as evidence','🧹 5 · Environment destroyed']
+      .map((t,i)=>box({x:810,y:392+i*74,w:440,h:58,k:i===4?'good':'aws',t})),
+    ...[0,1,2,3].map(i=>arrow([[1030,450+i*74],[1030,466+i*74]],{k:'good',st:6})),
+
+    tag(1,1250,30,'Laptop to production','r'),
+    tag(2,232,80,'One per pull request'),
+    tag(3,850,80,'Partner test gate'),
+    tag(4,740,350,'Simulate what you don’t control','r'),
+    tag(5,40,396,'Every failure, on demand'),
+    tag(6,1250,350,'Create, test, destroy','r'),
+  );
+  return out.join('');
+}
+
+/* 3 · Realistic data, zero real customers */
+function d3(){return [
+  group({x:10,y:30,w:1260,h:280,k:'neutral',label:'🗄️ THREE KINDS OF TEST DATA'}),
+  box({x:30,y:76,w:390,h:200,k:'good',i:'🧪',t:'Synthetic',s:'preferred default\ngenerated · representative\nprivacy-checked'}),
+  box({x:445,y:76,w:390,h:200,k:'risk',i:'🎭',t:'Masked',s:'only if policy allows\nre-identification risk reviewed\ncontrolled environment'}),
+  box({x:860,y:76,w:390,h:200,k:'bad',i:'⛔',t:'Real production data',s:'restricted by bank policy\nand legal requirements\nnever assumed safe for tests'}),
+
+  group({x:10,y:330,w:760,h:450,k:'ai',label:'🤖 THE SYNTHETIC DATA GENERATOR'}),
+  ...[['📈','EP05 payroll pattern','volumes over the day'],['🧩','EP02 edge cases','frozen · dormant · limits'],['🏦','Valid IBANs','correct check digits'],['👥','Customer profiles','students · families · SMEs']]
+     .map((s,i)=>box({x:30,y:376+i*92,w:220,h:76,k:'neutral',i:s[0],t:s[1],s:s[2]})),
+  ...[0,1,2,3].map(i=>arrow([[250,414+i*92],[270,414+i*92],[270,535],[290,535]],{k:'ai',st:4})),
+  box({x:290,y:440,w:220,h:190,k:'ai',i:'🤖',t:'Generator',s:'AI-assisted\nrealistic distributions\nfixed seed = repeatable'}),
+  box({x:550,y:392,w:200,h:170,k:'good',i:'📦',t:'Scenario dataset',s:'scale to agree\nseeded payments\nselected edge cases'}),
+  box({x:550,y:590,w:200,h:170,k:'human',i:'🔍',t:'Privacy gate',s:'no real identities\ndata policy review\nbank sign-off'}),
+  arrow([[510,500],[530,500],[530,477],[550,477]],{k:'good',st:5}),
+  arrow([[510,580],[530,580],[530,675],[550,675]],{k:'human',st:6}),
+
+  group({x:790,y:330,w:480,h:450,k:'good',label:'🔁 A KNOWN STATE FOR EVERY RUN'}),
+  lines(816,388,['□ seed each run from a known state','□ measure reset time','□ isolate tests from each other','□ version data across environments'],'kl',46),
+  box({x:810,y:600,w:440,h:150,k:'risk',i:'⚖️',t:'Privacy & bank secrecy',s:'bank Legal and Privacy set use rules\nclassify incidents under applicable law'}),
+
+  tag(1,40,76,'Synthetic by default'),
+  tag(2,455,76,'Masked: policy gate'),
+  tag(3,870,76,'Protect real data'),
+  tag(4,258,376,'Edge cases & patterns'),
+  tag(5,300,440,'AI helps generate'),
+  tag(6,560,760,'Privacy checked'),
+  tag(7,1250,330,'Reset every run','r'),
+].join('')}
+
+/* 4 · AI writes tests, people decide */
+function d4(){return [
+  group({x:10,y:30,w:1260,h:300,k:'ai',label:'🤖 HOW TESTS ARE WRITTEN'}),
+  ...['📋 EP04 acceptance criteria','📖 EP02 rule cards','📨 EP08 contracts','🎯 EP05 NFRs'].map((t,i)=>box({x:30,y:76+i*60,w:240,h:50,k:'neutral',t})),
+  box({x:300,y:96,w:240,h:190,k:'ai',i:'🤖',t:'AI drafts tests',s:'unit · edge cases\ncontract tests · k6 scripts\nfrom the requirement,\nnot from the code'}),
+  box({x:580,y:96,w:220,h:190,k:'human',i:'👀',t:'Engineer review',s:'is it correct?\ndoes it test\nthe requirement?'}),
+  box({x:840,y:96,w:200,h:190,k:'neutral',i:'🧬',t:'Mutation check',s:'can the test\nreally fail?'}),
+  box({x:1080,y:96,w:170,h:190,k:'good',i:'✅',t:'Merged',s:'cites its\nAC or BR-ID'}),
+  arrow([[270,191],[300,191]],{k:'ai',st:2}),
+  arrow([[540,191],[580,191]],{k:'human',st:3}),
+  arrow([[800,191],[840,191]],{k:'neutral',st:4}),
+  arrow([[1040,191],[1080,191]],{k:'good',st:6}),
+
+  group({x:10,y:350,w:700,h:430,k:'neutral',label:'🧬 MUTATION TESTING · DOES THE TEST CATCH BUGS?'}),
+  box({x:30,y:396,w:320,h:84,k:'neutral',i:'📄',t:'Original code',s:'amount > limit → reject'}),
+  box({x:370,y:396,w:320,h:84,k:'risk',i:'🧬',t:'Mutant (a small change)',s:'amount ≥ limit → reject'}),
+  box({x:30,y:510,w:320,h:120,k:'good',i:'✅',t:'Killed',s:'a test failed —\nthe tests catch this bug'}),
+  box({x:370,y:510,w:320,h:120,k:'bad',i:'❌',t:'Survived',s:'no test noticed —\nadd a test at the limit'}),
+  arrow([[350,438],[370,438]],{k:'risk',st:4}),
+  arrow([[530,480],[530,495],[190,495],[190,510]],{k:'good',st:5}),
+  arrow([[530,480],[530,510]],{k:'bad',st:5}),
+  kpi({x:30,y:656,w:660,h:58,k:'good',i:'📏',t:'Mutation score · proposed gate',v:'target to agree'}),
+  txt(360,748,'Tool: PIT for Java · runs every night','note','middle'),
+
+  group({x:730,y:350,w:540,h:430,k:'risk',label:'⚠️ AI TEST TRAPS · AND GUARDRAILS'}),
+  lines(756,408,['🤖 tests that check nothing',NB+'→ mutation score + review checklist','🤖 copies bugs from the code into the test',NB+'→ tests from bank-owned requirements','🤖 flaky tests from random data',NB+'→ fixed seeds, reset data','📊 track AI-drafted test acceptance',NB+'→ report measured results only'],'kl',44),
+
+  tag(1,40,76,'From requirements'),
+  tag(2,310,96,'AI drafts'),
+  tag(3,590,96,'Engineer reviews'),
+  tag(4,850,96,'Can it fail?'),
+  tag(5,680,350,'Killed or survived','r'),
+  tag(6,40,656,'Mutation score'),
+  tag(7,1260,350,'Known traps','r'),
+].join('')}
+
+/* 5 · Money must never be lost */
+function d5(){
+  const cards=[['🔁','Duplicates','same key × 50\nconcurrently\n→ assert one debit','good'],
+               ['⏳','Timeouts','scheme response unknown\n→ inquiry if bank rules require','risk'],
+               ['❌','Rejects','rejection case\n→ release per bank policy\nand ledger state','bad'],
+               ['↩️','Recalls','scheme-supported path\n→ bank-approved response','neutral'],
+               ['💥','Crash mid-payment','kill between steps\n→ verify outbox recovery','bad'],
+               ['🔀','Out-of-order events','late or repeated events\n→ assert valid state','aws'],
+               ['🏛️','Mainframe down','ledger unavailable\n→ test approved fallback','legacy'],
+               ['📅','Calendar edges','midnight · month-end\nclock change · leap day\n→ test bank cut-offs','human']];
+  const out=[group({x:10,y:30,w:1260,h:440,k:'neutral',label:'🧨 HARD CASES · PROPOSED TEST PLAN'})];
+  cards.forEach((c,i)=>out.push(box({x:30+(i%4)*305,y:i<4?76:266,w:295,h:176,k:c[3],i:c[0],t:c[1],s:c[2]})));
+  out.push(
+    group({x:10,y:490,w:760,h:290,k:'good',label:'⚖️ INVARIANTS · TO VERIFY'}),
+    lines(36,548,['□ balanced postings under bank ledger rules','□ each payment reaches a valid state','□ no duplicate debit for one request','□ identifiers and traces as required','□ payment and event recover together'],'kl',44),
+    group({x:790,y:490,w:480,h:290,k:'ai',label:'🎲 PROPERTY-BASED TESTS'}),
+    box({x:810,y:536,w:440,h:130,k:'ai',i:'🎲',t:'Generated edge cases',s:'amounts, timings and orders\nassert bank-approved invariants'}),
+    txt(1030,712,'Tool: jqwik (Java)','kl','middle'),
+    txt(1030,742,'AI suggests properties · engineers approve','note','middle'),
+    tag(1,40,76,'Same payment × 50'),
+    tag(2,345,76,'Ask, don’t guess'),
+    tag(3,40,266,'Crash in the middle'),
+    tag(4,650,266,'Fallback & late events'),
+    tag(5,955,266,'Calendar edges'),
+    tag(6,740,490,'Invariants','r'),
+    tag(7,1260,490,'Random, thousands','r'),
+  );
+  return out.join('');
+}
+
+/* 6 · No green, no go */
+function d6(){
+  const gates=[['🔀','Gate 1 · Pull request','target: fast feedback','aws',['□ unit + component','□ contract tests','□ latency budgets','□ architecture rules','□ security scans','□ mutation target']],
+               ['🔗','Gate 2 · Merge','proposed on merge','aws',['□ end-to-end flows','□ golden sample','□ container image scan']],
+               ['🌙','Gate 3 · Nightly','proposed nightly','neutral',['□ agreed golden set','□ soak test, as needed','□ dynamic security scan']],
+               ['🚀','Gate 4 · Release','bank go/no-go','good',['□ capacity target','□ chaos exercise','□ DR evidence','□ pen test by risk','□ UAT sign-off']]];
+  const out=[group({x:10,y:30,w:1260,h:380,k:'neutral',label:'🚦 FOUR QUALITY GATES'})];
+  gates.forEach((g,i)=>{
+    const x=30+i*310;
+    out.push(box({x,y:70,w:290,h:72,k:g[3],i:g[0],t:g[1],s:g[2]}));
+    g[4].forEach((l,j)=>out.push(txt(x+16,180+j*36,l,'kl')));
+    if(i<3) out.push(arrow([[x+290,106],[x+310,106]],{k:'aws',st:i+2}));
+  });
+  out.push(
+    group({x:10,y:430,w:620,h:350,k:'good',label:'🗄️ EVIDENCE · FOR AUDITORS'}),
+    box({x:30,y:474,w:580,h:70,k:'neutral',i:'🧪',t:'Every test result',s:'what · when · which build · result'}),
+    box({x:30,y:564,w:580,h:70,k:'neutral',i:'🔗',t:'Linked to its source',s:'REG-ID · BR-ID · NFR-ID (EP04 traceability)'}),
+    box({x:30,y:654,w:580,h:100,k:'good',i:'🔒',t:'Protected release report',s:'retention and access per bank policy'}),
+    arrow([[320,544],[320,564]],{k:'good',st:5}),
+    arrow([[320,634],[320,654]],{k:'good',st:5}),
+
+    group({x:650,y:430,w:620,h:350,k:'risk',label:'🧪 FLAKY TESTS · ZERO TOLERANCE'}),
+    txt(676,486,'A flaky test passes or fails with no code change.','kl'),
+    txt(676,514,'It teaches people to ignore red.','kl'),
+    kpi({x:670,y:540,w:580,h:50,k:'risk',i:'⏱️',t:'Quarantine',v:'timebox to agree'}),
+    kpi({x:670,y:600,w:580,h:50,k:'good',i:'🔧',t:'Fix',v:'owner + deadline'}),
+    kpi({x:670,y:660,w:580,h:50,k:'bad',i:'⛔',t:'“Re-run until green”',v:'never'}),
+    txt(960,746,'Track flaky tests and report measured closure','note','middle'),
+
+    tag(1,40,70,'Every change'),
+    tag(2,350,70,'Every merge'),
+    tag(3,660,70,'Every night'),
+    tag(4,970,70,'Every release'),
+    tag(5,600,430,'Evidence for auditors','r'),
+    tag(6,1260,430,'No re-run until green','r'),
+  );
+  return out.join('');
+}
+
+/* 7 · Ready for the pilot */
+function d7(){return [
+  group({x:10,y:30,w:620,h:370,k:'human',label:'👥 PEOPLE TEST TOO · UAT'}),
+  box({x:30,y:76,w:580,h:90,k:'human',i:'🧑‍💼',t:'Payments operations',s:'real scenarios · runbooks · repair queue'}),
+  box({x:30,y:180,w:580,h:90,k:'human',i:'👩‍⚖️',t:'Compliance',s:'VoP wording · reason codes · limits'}),
+  box({x:30,y:284,w:580,h:90,k:'human',i:'🎧',t:'Customer support',s:'what customers see — and will ask'}),
+
+  group({x:650,y:30,w:620,h:370,k:'good',label:'📋 PILOT GATE · REQUIRED EVIDENCE'}),
+  kpi({x:670,y:76,w:580,h:50,k:'good',i:'🔗',t:'Requirements traced to tests',v:'bank reviews'}),
+  kpi({x:670,y:136,w:580,h:50,k:'good',i:'🐞',t:'Open critical defects',v:'within policy'}),
+  kpi({x:670,y:196,w:580,h:50,k:'risk',i:'🪙',t:'Golden differences',v:'explained + owned'}),
+  kpi({x:670,y:256,w:580,h:50,k:'good',i:'⚡',t:'Capacity and p99',v:'measured vs target'}),
+  kpi({x:670,y:316,w:580,h:50,k:'good',i:'🌍',t:'DR exercise',v:'evidence reviewed'}),
+
+  group({x:10,y:420,w:620,h:360,k:'risk',label:'⚠️ AI IN TESTING · RISKS & GUARDRAILS'}),
+  lines(36,474,['🤖 writes tests that check nothing',NB+'→ mutation score + review','🤖 copies bugs into the tests',NB+'→ tests come from requirements','🤖 asks for real customer data',NB+'→ synthetic data only','✅ “all green” breeds over-trust',NB+'→ people review a sample + UAT'],'kl',38),
+
+  group({x:650,y:420,w:620,h:360,k:'aws',label:'🔜 NEXT · TEST & DEPLOY STAGE'}),
+  box({x:670,y:466,w:580,h:84,k:'aws',i:'🚀',t:'EP18 · CI/CD with bank controls',s:'risk-based approval · canary plan'}),
+  box({x:670,y:566,w:580,h:84,k:'aws',i:'📒',t:'EP19 · Shadow ledger',s:'parallel run · daily reconciliation'}),
+  box({x:670,y:666,w:580,h:84,k:'good',i:'🔀',t:'EP20 · The flip',s:'segment by segment'}),
+
+  tag(1,40,76,'Operations test it'),
+  tag(2,40,180,'Compliance checks'),
+  tag(3,40,284,'Support sees it'),
+  tag(4,1250,30,'One page for the gate','r'),
+  tag(5,1240,196,'Differences need owners','r'),
+  tag(6,600,420,'AI risks, guarded','r'),
+  tag(7,1250,420,'Next episodes','r'),
+].join('')}
+
+/* ============================================================
+   Episode config
+   ============================================================ */
+const DECK={
+  brand:'🏦 CORE BANKING PAYMENTS MODERNIZATION · AWS',
+  ep:'EP 17', epShort:'EP17', title:'Testing a Bank-Grade Platform', subtitle:'Execution Architecture',
+  seriesTitle:'Execution Architecture · Reference Scenario',
+  logo:'../shared/jo-logo.png', background:'../shared/background.png',
+  stages:[['🔍','Discover'],['📋','Requirements'],['📐','Design & Plan'],['🛠️','Build'],['🚀','Test & Deploy'],['🔧','Operate']],
+  stage:5,
+  glossary:{
+    PYRAMID:['Test pyramid','value','Many fast, cheap tests at the bottom; a few slow, costly ones at the top. Feedback stays fast and the bill stays low.'],
+    UNIT:['Unit test','value','A tiny test of one piece of code. A fast pull-request suite is a proposed design target.'],
+    TESTCONT:['Testcontainers','value','Starts real Kafka and Postgres in Docker for a test, then removes them. Real behaviour, no shared servers.'],
+    CONTRACTT:['Contract test','risk','Checks that an API or message still matches what other teams expect. One team’s change can’t silently break another.'],
+    SHIFTLEFT:['Shift left','cost','Test earlier. A bug found in a pull request costs minutes; in production it costs customers and money.'],
+    ENVS:['Test environment','value','A proposed range of controlled environments, from local simulation to bank-approved staging.'],
+    EPHEMERAL:['Ephemeral environment','cost','A proposed short-lived pull-request environment. Creation time and cost need measurement.'],
+    STAGING:['Staging','risk','A production-like environment. Scheme and mainframe test access depends on partner and bank arrangements.'],
+    SIMULATOR:['Simulator','value','A fake version of a partner system, like the payment scheme. It can accept, reject or time out whenever we ask.'],
+    IAC:['Infrastructure as code','value','Environments described in files (Terraform), so they are created the same way, every time, in minutes.'],
+    SYNTH:['Synthetic data','risk','Generated data without real customer identities. Privacy and quality still require review.'],
+    MASK:['Data masking','risk','Production-derived data transformed for test use. Bank Privacy and Legal must approve any use and control re-identification risk.'],
+    GDPR:['Privacy and bank secrecy','risk','Applicable law and bank policy govern test data. Legal determines whether an event is reportable.'],
+    IBANCHK:['IBAN check digits','value','Two digits that make an account number self-checking. Test IBANs need correct ones, or tests fail for the wrong reason.'],
+    RESET:['Known state','risk','Every test run starts from the same data. Tests can be repeated, and they never depend on each other.'],
+    TESTFROMREQ:['Test from the requirement','risk','A test written from the acceptance criteria, not from the code. Otherwise it simply copies the code’s bugs.'],
+    AIDRAFT:['AI-drafted test','value','A test written by AI and reviewed by an engineer before it is merged. Fast to write, never trusted blindly.'],
+    MUTATION:['Mutation testing','risk','A tool makes small changes to the code, like > to ≥. Good tests fail. If they still pass, the tests are weak.'],
+    MUTSCORE:['Mutation score','value','The share of small code changes the tests catch. It measures test quality, not just how much code runs.'],
+    FLAKY:['Flaky test','risk','A test that sometimes passes and sometimes fails, with no change. It teaches people to ignore red, so we fix it fast.'],
+    IDEMP:['Idempotency','risk','A repeated request should follow the bank-approved duplicate policy. A concurrency test can challenge this invariant.'],
+    P028:['pacs.028','risk','An ISO 20022 status inquiry message. Its use and timing depend on scheme and bank rules.'],
+    OUTBOX:['Transactional outbox','risk','A design for coordinating a state change and its event. Crash testing must verify recovery and reconciliation.'],
+    INVARIANT:['Invariant','risk','A property that must hold under the bank’s ledger and payment-state rules, then be tested.'],
+    PROPERTY:['Property-based test','value','The tool generates thousands of random cases and checks that the invariants hold for all of them.'],
+    QGATE:['Quality gate','risk','A set of checks a change must pass before it moves on. Red means stop — for everyone.'],
+    SAST:['Security scans','risk','Automatic checks of our code, libraries and containers for known weaknesses and leaked secrets.'],
+    PENTEST:['Penetration test','risk','Security specialists assess exploitable weaknesses. Scope and timing follow bank policy and risk.'],
+    EVIDENCE:['Test evidence','risk','Proof of what was tested, when, and with what result — linked to the law and the rules, and locked for auditors.'],
+    UAT:['UAT','value','User acceptance testing: business people test real scenarios before customers see them.'],
+    OPSREADY:['Operational readiness','risk','Can operations run it at 3 a.m.? Runbooks, alerts and the repair queue are tested too.'],
+    TSR:['Test summary report','value','One page for the go / no-go gate: what was tested, what passed, what is still open, and the risks.'],
+    SEV:['Severity','risk','How serious a defect is. The bank defines severity and release-blocking policy.'],
+    PARITY:['Golden parity','risk','How often the new system gives the same result as the old one. Every difference must be explained and signed.'],
+  },
+  slides:[
+    {icon:'🧪',kicker:'EP17 · 1/7 · THE STRATEGY',title:'Many Layers, One Goal',time:'00:00 – 01:55',draw:d1,
+     key:'Build fast feedback, then prove bank-owned rules and resilience.',next:'🔜 Next: environments & simulators',
+     open:'Welcome to the test and deploy stage.',
+     land:'The earlier we find a bug, the cheaper it is.',
+     gloss:[['PYRAMID',[1]],['UNIT',[2]],['TESTCONT',[3]],['CONTRACTT',[4]],['SHIFTLEFT',[7]]],
+     demo:['Proposed proof: run Java unit, component and contract suites with <b>mvn verify</b> and Testcontainers',
+           'Record measured time and failures in <b>CodeBuild</b>; do not infer results from this diagram'],
+     steps:[['One goal','Test technical invariants and bank-owned rules before release.'],
+            ['Unit tests','Fast feedback is a design target; measure the suite.'],
+            ['Component tests','Use Kafka and Postgres test containers where appropriate.'],
+            ['Contract tests','Validate APIs and ISO messages against approved contracts.'],
+            ['End-to-end + golden','Compare representative flows; bank approves sample size.'],
+            ['Non-functional','Schedule load, chaos and security tests by risk.'],
+            ['Find bugs early','Minutes in a pull request; customers and money in production.']]},
+    {icon:'🏗️',kicker:'EP17 · 2/7 · ENVIRONMENTS',title:'Evidence Across Test Environments',time:'01:55 – 03:35',draw:d2,
+     key:'Simulate external behaviour; validate with bank and partner test services.',next:'🔜 Next: test data',
+     open:'Where do all these tests run?',
+     land:'Create, test, destroy — every time.',
+     gloss:[['ENVS',[1]],['EPHEMERAL',[2,6]],['STAGING',[3]],['SIMULATOR',[4,5]],['IAC',[6]]],
+     demo:['Proposed proof: <b>WireMock</b> stubs exercise accept, reject and timeout cases',
+           'If adopted, <b>Terraform</b> can create temporary <b>EKS</b> environments; measure reset and cost'],
+     steps:[['Laptop to production','Six environments, from simulated to real.'],
+            ['One per pull request','Created by Terraform, destroyed after.'],
+            ['Partner test gate','Use scheme and mainframe test services if available and approved.'],
+            ['Simulate what you don’t control','Scheme, mainframe, fraud and VoP simulators.'],
+            ['Every failure, on demand','Accept, reject, time out, pacs.028, camt.056.'],
+            ['Create, test, destroy','Prove isolation, evidence capture and cleanup.']]},
+    {icon:'🗄️',kicker:'EP17 · 3/7 · TEST DATA',title:'Realistic Data, Zero Real Customers',time:'03:35 – 05:20',draw:d3,
+     key:'Use synthetic data by default; bank policy governs any production-derived data.',next:'🔜 Next: AI writes tests',
+     open:'Tests need representative data under bank Privacy and Legal rules.',
+     land:'Every test run starts from the same, known data.',
+     gloss:[['SYNTH',[1,5]],['MASK',[2]],['GDPR',[3]],['IBANCHK',[4]],['RESET',[7]]],
+     demo:['Proposed proof: generate seeded synthetic accounts and payments with valid check digits',
+           'Test privacy checks and reset time before selecting <b>S3</b> or <b>Aurora</b> clone strategy'],
+     steps:[['Synthetic by default','Generated data still needs privacy and quality review.'],
+            ['Masked: policy gate','Any production-derived data needs bank approval.'],
+            ['Protect real data','Apply bank data controls and applicable law.'],
+            ['Edge cases & patterns','EP02 edge cases, EP05 payroll pattern, valid IBANs.'],
+            ['AI helps generate','Agree dataset scale and distribution with domain SMEs.'],
+            ['Privacy checked','Bank Privacy and Legal review the approach.'],
+            ['Reset every run','Measure reset time and isolate each run.']]},
+    {icon:'🤖',kicker:'EP17 · 4/7 · AI IN TESTING',title:'AI Writes Tests. People Decide.',time:'05:20 – 07:15',draw:d4,
+     key:'A test that cannot fail is worse than no test.',next:'🔜 Next: the hard cases',
+     open:'AI is very good at writing tests. That is also the danger.',
+     land:'A test that cannot fail is worse than no test.',
+     gloss:[['TESTFROMREQ',[1,3]],['AIDRAFT',[2]],['MUTATION',[4,5]],['MUTSCORE',[6]],['FLAKY',[7]]],
+     demo:['Proposed proof: use <b>PIT</b> to test whether Java tests detect mutations',
+           'If AI drafts tests, engineers review them against bank-owned requirements and record acceptance'],
+     steps:[['From requirements','Acceptance criteria, rule cards, contracts, NFRs.'],
+            ['AI drafts','Unit, edge-case and contract tests, and k6 scripts.'],
+            ['Engineer reviews','Does it really test the requirement?'],
+            ['Can it fail?','Mutation testing changes the code on purpose.'],
+            ['Killed or survived','A good test fails when the code is wrong.'],
+            ['Mutation score','Set a target with the team; publish measured results.'],
+            ['Known traps','Tests that check nothing, copied bugs, flaky data.']]},
+    {icon:'🧨',kicker:'EP17 · 5/7 · THE HARD CASES',title:'Money Must Never Be Lost',time:'07:15 – 09:20',draw:d5,
+     key:'Test the invariants, not just the examples.',next:'🔜 Next: quality gates & evidence',
+     open:'Now the hard cases that can put funds and trust at risk.',
+     land:'Test the invariants, not just the examples.',
+     gloss:[['IDEMP',[1]],['P028',[2]],['OUTBOX',[3]],['INVARIANT',[6]],['PROPERTY',[7]]],
+     demo:['Proposed proof: duplicate storm, <b>Toxiproxy</b> delays and <b>WireMock</b> timeouts',
+           'Inject crashes and compare recovery against bank-approved ledger and state invariants'],
+     steps:[['Duplicates','Challenge idempotency with concurrent copies.'],
+            ['Timeouts, rejects, recalls','Use scheme messages and release policy only where applicable.'],
+            ['Crash in the middle','Verify outbox recovery and reconciliation.'],
+            ['Fallback & late events','Test approved fallback and valid late-event states.'],
+            ['Calendar edges','Test bank cut-offs and calendar rules.'],
+            ['Invariants','Bank domain SMEs define ledger and payment invariants.'],
+            ['Random, thousands','Property-based tests challenge those invariants.']]},
+    {icon:'🚦',kicker:'EP17 · 6/7 · GATES & EVIDENCE',title:'No Green, No Go',time:'09:20 – 10:55',draw:d6,
+     key:'No green, no go — and no “re-run until green”.',next:'🔜 Next: UAT & the pilot gate',
+     open:'Every change must pass four gates.',
+     land:'No green, no go.',
+     gloss:[['QGATE',[1,2,3,4]],['SAST',[1]],['PENTEST',[4]],['EVIDENCE',[5]],['FLAKY',[6]]],
+     demo:['Proposed proof: encode four gates in a pipeline and verify failure blocks promotion',
+           'If adopted, retain reports under bank evidence and retention policy'],
+     steps:[['Every change','Unit, contract, budgets, architecture, scans, mutation.'],
+            ['Every merge','End-to-end flows, golden sample, image scan.'],
+            ['Every night','Agreed golden set and risk-based soak and scan.'],
+            ['Every release','Capacity, resilience, security and UAT evidence per policy.'],
+            ['Evidence for auditors','Link results to approved requirements and controls.'],
+            ['No re-run until green','Give flaky tests owners and agreed deadlines.']]},
+    {icon:'✅',kicker:'EP17 · 7/7 · UAT & HAND OVER',title:'Pilot Gate Evidence',time:'10:55 – 12:40',draw:d7,
+     key:'The bank pilot gate needs measured evidence and named acceptance.',next:'🔜 Next episode: EP18 — CI/CD with Bank Controls',
+     open:'Machines test a lot. But people must test too.',
+     land:'A pilot decision belongs to the bank after evidence review.',
+     gloss:[['UAT',[1]],['OPSREADY',[1]],['TSR',[4]],['SEV',[4]],['PARITY',[5]]],
+     demo:['Proposed proof: UAT in bank-approved staging with representative data',
+           'Generate a test summary for the bank’s go/no-go review'],
+     steps:[['Operations test it','Real scenarios, runbooks and the repair queue.'],
+            ['Compliance checks','VoP wording, reason codes, limits.'],
+            ['Support sees it','What customers see — and will ask.'],
+            ['One page for the gate','The test summary report.'],
+            ['Differences need owners','Explain and disposition every golden difference.'],
+            ['AI risks, guarded','Mutation, requirements, synthetic data, human review.'],
+            ['Next episodes','EP18 CI/CD · EP19 shadow ledger · EP20 the flip.']]},
+  ],
+};
+startDeck(DECK);
+</script>
+</body>
+</html>

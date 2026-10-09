@@ -1,0 +1,413 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EP06 Security and Compliance by Design</title>
+<link rel="stylesheet" href="../shared/deck.css">
+</head>
+<body>
+<script src="../shared/deck.js"></script>
+<script>
+/* ============================================================
+   EP06 · Security & Compliance by Design — diagrams (1280x800)
+   ============================================================ */
+const IND='      ';
+const badge=(x,y,l)=>`<g><circle cx="${x}" cy="${y}" r="13" fill="#C0392B" stroke="#FFFBF4" stroke-width="2"/><text x="${x}" y="${y+5}" text-anchor="middle" font-size="13.5" font-weight="800" fill="#FFF">${l}</text></g>`;
+const chip=(x,y,w,h,k,i,name,sub)=>box({x,y,w,h,k,t:i,s:sub?name+'\n'+sub:name});
+
+/* 1 · Built in, not bolted on */
+function d1(){
+  const bad=[['📋','requirements'],['📐','design'],['🛠️','build'],['🧪','test'],['🔒','security review']];
+  const good=[['📋','requirements','security stories'],['📐','design','threat model'],['🛠️','build','code scans'],['🧪','test','attack tests'],['🚀','run','monitoring']];
+  const out=[group({x:10,y:30,w:620,h:360,k:'bad',label:'❌ BOLTED ON · SECURITY AT THE END'})];
+  bad.forEach((b,i)=>{out.push(chip(24+i*120,74,108,64,i===4?'bad':'neutral',b[0],b[1]));if(i<4)out.push(arrow([[132+i*120,106],[144+i*120,106]],{k:'neutral',st:1}))});
+  out.push(
+    box({x:30,y:166,w:580,h:56,k:'bad',i:'⏰',t:'Late findings can disrupt release'}),
+    box({x:30,y:234,w:580,h:56,k:'bad',i:'🔁',t:'Redesign — or accept the risk'}),
+    box({x:30,y:302,w:580,h:56,k:'bad',i:'📅',t:'Release plan needs review'}),
+    group({x:650,y:30,w:620,h:360,k:'good',label:'✅ BUILT IN · SECURITY IN EVERY STAGE'}));
+  good.forEach((g,i)=>{out.push(chip(664+i*120,74,108,84,'good',g[0],g[1],g[2]));if(i<4)out.push(arrow([[772+i*120,116],[784+i*120,116]],{k:'good',st:2}))});
+  out.push(box({x:670,y:186,w:580,h:176,k:'good',i:'✅',t:'Review controls early',s:'security owners define the policy\nengineering makes checks repeatable\nrelease evidence is reviewed'}));
+
+  out.push(group({x:10,y:410,w:620,h:370,k:'neutral',label:'💸 COST OF A SECURITY FIX · GROWS EVERY STAGE'}));
+  const bars=[['requirements','minutes',30,'good'],['design','hours',60,'good'],['build','days',100,'risk'],['test','weeks',160,'risk'],['production','an incident',250,'bad']];
+  bars.forEach((b,i)=>{const x=50+i*114,c=K[b[3]];
+    out.push(`<rect x="${x}" y="${720-b[2]}" width="80" height="${b[2]}" rx="6" fill="${c.f}" stroke="${c.s}" stroke-width="2"/>`,
+      txt(x+40,712-b[2],b[1],'kl','middle',c.t), txt(x+40,742,b[0],'cl','middle'));});
+  out.push(txt(320,770,'illustrative — the later we find it, the more it costs','note','middle'),
+    group({x:650,y:410,w:620,h:370,k:'aws',label:'☁️ SHARED RESPONSIBILITY ON AWS'}),
+    box({x:670,y:456,w:580,h:120,k:'aws',i:'☁️',t:'AWS secures the cloud',s:'data centres · hardware · the services it runs'}),
+    box({x:670,y:596,w:580,h:120,k:'human',i:'🏦',t:'The bank secures what it puts in',s:'data · identities · settings · code'}),
+    arrow([[960,576],[960,596]],{k:'human',st:5}),
+    txt(960,758,'Bank risk and legal teams confirm the applicable duties.','kl','middle'),
+    tag(1,590,30,'Bolted on','r'),
+    tag(2,1250,30,'Built in','r'),
+    tag(3,590,410,'Late fixes cost more','r'),
+    tag(4,1240,456,'AWS: the cloud itself','r'),
+    tag(5,1240,596,'Bank: what it puts in','r'),
+    tag(6,680,716,'Bank stays accountable'),
+  );
+  return out.join('');
+}
+
+/* 2 · Threat model for slice 1 */
+function d2(){return [
+  group({x:10,y:30,w:1260,h:440,k:'neutral',label:'🗺️ REFERENCE FLOW · TRUST BOUNDARIES · SLICE 1'}),
+  group({x:24,y:72,w:180,h:348,k:'bad',label:'🌐 INTERNET',lp:'b'}),
+  group({x:224,y:72,w:620,h:348,k:'aws',label:'☁️ BANK ON AWS · EU REGION',lp:'b'}),
+  group({x:864,y:72,w:396,h:160,k:'legacy',label:'🏢 BANK DATA CENTRE'}),
+  group({x:864,y:252,w:396,h:168,k:'neutral',label:'🌍 OUTSIDE THE BANK'}),
+  box({x:38,y:200,w:152,h:90,k:'neutral',i:'📱',t:'Mobile app',s:'customer'}),
+  box({x:240,y:200,w:150,h:90,k:'aws',i:'🛡️',t:'WAF + API',s:'the bank’s front door'}),
+  box({x:420,y:200,w:170,h:90,k:'aws',i:'🔄',t:'Payment services',s:'on EKS'}),
+  box({x:620,y:100,w:150,h:70,k:'aws',i:'🧵',t:'Kafka',s:'events'}),
+  box({x:620,y:210,w:150,h:70,k:'neutral',i:'🔑',t:'KMS',s:'keys'}),
+  box({x:620,y:320,w:150,h:70,k:'neutral',i:'🗄️',t:'Aurora',s:'payment data'}),
+  box({x:880,y:104,w:170,h:86,k:'legacy',i:'🏛️',t:'Mainframe',s:'ledger (phase 1)'}),
+  box({x:1070,y:104,w:176,h:86,k:'risk',i:'🕵️',t:'AML monitoring',s:'proposed event feed'}),
+  box({x:880,y:290,w:170,h:86,k:'neutral',i:'🌐',t:'SEPA Inst',s:'scheme'}),
+  box({x:1070,y:290,w:176,h:86,k:'neutral',i:'🔎',t:'VoP service',s:'payee banks'}),
+  arrow([[190,245],[240,245]],{k:'neutral',st:2}),
+  arrow([[390,245],[420,245]],{k:'aws',st:2}),
+  arrow([[505,200],[505,135],[620,135]],{k:'aws',st:3}),
+  arrow([[590,245],[620,245]],{k:'neutral',st:3,dash:1}),
+  arrow([[505,290],[505,355],[620,355]],{k:'neutral',st:3}),
+  arrow([[590,215],[600,215],[600,84],[860,84],[860,147],[880,147]],{k:'legacy',st:3,label:'private link',lx:730,ly:84}),
+  arrow([[770,150],[800,150],[800,212],[1158,212],[1158,190]],{k:'risk',st:4,label:'events',lx:980,ly:212}),
+  arrow([[590,275],[606,275],[606,404],[860,404],[860,333],[880,333]],{k:'neutral',st:3,label:'signed messages',lx:730,ly:404}),
+  arrow([[860,404],[1158,404],[1158,376]],{k:'neutral',st:3}),
+  badge(215,224,'S'), badge(114,306,'R'), badge(315,190,'D'), badge(580,192,'E'), badge(770,322,'I'), badge(606,330,'T'),
+  txt(640,454,'🤖 AI may draft a threat list · security engineers validate against bank flows','note','middle'),
+
+  group({x:10,y:486,w:1260,h:294,k:'risk',label:'⚠️ STRIDE · TOP THREATS FOR SLICE 1 → CONTROLS'}),
+  table({x:30,y:520,w:1220,hh:28,rh:37,cols:[['STRIDE',0],['THREAT',110],['EXAMPLE',340],['CONTROL',720]],
+    rows:[['S','Spoofing','a stolen login is used to pay','SCA + device binding'],
+          ['T','Tampering','the amount is changed on the way','mTLS + signed messages'],
+          ['R','Repudiation','“I never sent that payment”','SCA proof + locked audit log'],
+          ['I','Information disclosure','customer data leaks','encryption · least access · masking'],
+          ['D','Denial of service','a bot flood on payroll day','WAF · rate limits · auto-scaling'],
+          ['E','Elevation of privilege','an admin moves money','no standing access · four-eyes']]}),
+  tag(1,1250,30,'Trust boundaries','r'),
+  tag(2,40,72,'Internet edge'),
+  tag(3,1250,72,'Private link','r'),
+  tag(4,1250,232,'Proposed AML feed','r'),
+  tag(5,1250,486,'STRIDE','r'),
+  tag(6,900,486,'Every threat → a control'),
+  tag(7,20,454,'AI draft needs review'),
+].join('')}
+
+/* 3 · Identity: who can do what */
+function d3(){
+  const cols=[
+    ['👤 CUSTOMERS','human',[['🔐','Authentication','bank defines factors\nfor each flow'],['🔗','Transaction binding','test amount + payee\napproval'],['📱','Device controls','bank-approved\nregistration rules'],['📈','Step-up when risky','fraud owner defines\ntriggers']]],
+    ['⚙️ SERVICES','aws',[['🤝','Mutual TLS','proposed service\nauthentication'],['🎫','Narrow roles','access by service\nneed'],['⏳','Short-lived credentials','test rotation and\nrevocation'],['🚫','Secret controls','vault + scanning\nwith review']]],
+    ['🧑‍💻 PEOPLE','neutral',[['🪪','SSO + MFA','reference access\nmodel'],['📏','Least privilege','review on bank-\napproved schedule'],['🚪','No standing prod access','proposed default\npolicy'],['🆘','Break-glass','approved, time-limited,\naudited']]],
+    ['🤖 AI AGENTS & PIPELINES','ai',[['🤖','Development boundary','proposed agent\naccess limit'],['🧰','Limited tools','permissions checked\nby owners'],['🔑','Prompt safeguards','scan and monitor\nfor leakage'],['🚀','Separate deploy role','pipeline role needs\napproval']]],
+  ];
+  const out=[];
+  cols.forEach((c,ci)=>{
+    const gx=10+ci*320;
+    out.push(group({x:gx,y:30,w:300,h:520,k:c[1],label:c[0],lp:'b'}));
+    c[2].forEach((b,i)=>out.push(box({x:gx+15,y:76+i*112,w:270,h:96,k:c[1],i:b[0],t:b[1],s:b[2]})));
+  });
+  out.push(
+    group({x:10,y:570,w:1260,h:210,k:'neutral',label:'🔍 PROVE IT'}),
+    box({x:30,y:612,w:390,h:144,k:'human',i:'👀',t:'Four-eyes · proposed',s:'bank owners decide which changes\nneed dual approval'}),
+    box({x:445,y:612,w:390,h:144,k:'aws',i:'📜',t:'Access evidence',s:'send events to security monitoring\nverify retention and integrity'}),
+    box({x:860,y:612,w:390,h:144,k:'good',i:'🗓️',t:'Access reviews',s:'bank sets cadence and owners\nconfirm retained access'}),
+    tag(1,300,30,'Customers: SCA','r'),
+    tag(2,620,30,'Services: mTLS + roles','r'),
+    tag(3,940,30,'No standing access','r'),
+    tag(4,1260,30,'AI never in prod','r'),
+    tag(5,40,612,'Four-eyes'),
+    tag(6,455,612,'Evidence to review'),
+  );
+  return out.join('');
+}
+
+/* 4 · Protect the data */
+function d4(){
+  const cls=[['🔴','RESTRICTED · IBAN + name, login data, keys','bank-held keys · masked outside production · never in logs','bad'],
+             ['🟠','CONFIDENTIAL · amounts, payment history','encrypted · need-to-know access','risk'],
+             ['🔵','INTERNAL · metrics, settings','inside the bank only','human'],
+             ['⚪','PUBLIC · fee table, scheme rules','anyone may see it','neutral']];
+  return [
+    group({x:10,y:30,w:620,h:400,k:'neutral',label:'🏷️ SAMPLE DATA CLASSIFICATION · SLICE 1'}),
+    ...cls.map((c,i)=>box({x:24,y:70+i*82,w:592,h:72,k:c[3],i:c[0],t:c[1],s:c[2]})),
+    group({x:650,y:30,w:620,h:400,k:'aws',label:'🔐 ENCRYPTION · EVERYWHERE'}),
+    box({x:670,y:72,w:580,h:90,k:'aws',i:'🚚',t:'In transit',s:'TLS 1.2+ to the customer · mTLS between services'}),
+    box({x:670,y:176,w:580,h:90,k:'aws',i:'🗄️',t:'At rest',s:'Aurora · Kafka · S3 — encrypted with keys the bank controls (KMS)'}),
+    box({x:670,y:280,w:580,h:90,k:'good',i:'✍️',t:'Signing keys',s:'HSM option if scheme and bank security require it'}),
+    txt(960,404,'bank security defines key custody, rotation and audit','note','middle'),
+    group({x:10,y:450,w:620,h:330,k:'good',label:'🌍 RESIDENCY · RETENTION · PRIVACY'}),
+    lines(36,506,['🌍 EU region is a sample location control','🗄️ retention period: bank legal to confirm','🧹 deletion: privacy owner to define','⚖️ reconcile applicable legal duties','🧪 mask test data; verify the boundary'],'kl',50),
+    group({x:650,y:450,w:620,h:330,k:'ai',label:'🤖 AI + DATA RULES'}),
+    lines(676,506,['🤖 model boundary needs bank approval','🤖 data access and masking need policy','🤖 define safe prompt logging','👩‍⚖️ privacy owner reviews each use case','📵 test logs for sensitive data'],'kl',50),
+    tag(1,600,30,'Classify first','r'),
+    tag(2,600,70,'Restricted = strictest','r'),
+    tag(3,1250,30,'Encrypt everywhere','r'),
+    tag(4,1240,176,'Bank holds the keys','r'),
+    tag(5,600,450,'Location to validate','r'),
+    tag(6,1250,450,'AI data boundary','r'),
+  ].join('');
+}
+
+/* 5 · Compliance as code */
+function d5(){
+  const gates=[['💻','Commit','code + Terraform','neutral'],['🔑','Secrets scan','flag exposures','aws'],['🔍','Code scan','SAST','aws'],['📦','Dependencies','scan + SBOM','aws'],
+               ['🏗️','Infra scan','Terraform rules','aws'],['🐳','Image scan','scan + sign','aws'],['🚀','Deploy','signed artifacts','good']];
+  const out=[group({x:10,y:30,w:1260,h:250,k:'neutral',label:'🚦 PROPOSED SECURITY GATES IN THE PIPELINE'})];
+  gates.forEach((g,i)=>{out.push(box({x:30+i*175,y:76,w:160,h:100,k:g[3],i:g[0],t:g[1],s:g[2]}));if(i<6)out.push(arrow([[190+i*175,126],[205+i*175,126]],{k:'aws',st:1}))});
+  out.push(
+    txt(640,226,'Bank-approved gate: critical findings need remediation or owned, expiring exception.','kl','middle'),
+    txt(640,256,'The same gates apply to AI-written code.','note','middle'),
+    group({x:10,y:300,w:1260,h:270,k:'aws',label:'📋 APPROVED DUTY → CONTROL → CHECK · EXAMPLES'}),
+    table({x:30,y:336,w:1220,hh:28,rh:38,cols:[['SOURCE',0],['CONTROL',260],['AUTOMATED CHECK',620],['EVIDENCE',920]],
+      rows:[['ICT risk · bank review','encrypt selected stores','configuration check','control record'],
+            ['SCA · bank review','bind required details','contract test','test result'],
+            ['Privacy · bank review','limit personal data in logs','log test','review record'],
+            ['Bank policy','restrict public storage','policy check','pipeline log'],
+            ['Bank policy','admin MFA as approved','identity check','review output']]}),
+    group({x:10,y:590,w:620,h:190,k:'good',label:'🗄️ EVIDENCE · COLLECTION PLAN'}),
+    lines(36,646,['📥 collect at bank-approved cadence','📤 link evidence to control version','🔒 protect records from alteration'],'kl',42),
+    group({x:650,y:590,w:620,h:190,k:'ai',label:'🤖 AI IN THIS STAGE'}),
+    lines(676,646,['🤖 drafts policy as code from the control text','🤖 explains scan findings in plain English','👀 security engineers approve every rule'],'kl',42),
+    tag(1,1250,30,'Gates + reviews','r'),
+    tag(2,212,176,'No keys in code'),
+    tag(3,562,176,'Know every library'),
+    tag(4,1087,176,'Sign release artifacts'),
+    tag(5,1250,300,'Duty → control → check','r'),
+    tag(6,600,590,'Evidence plan','r'),
+    tag(7,1250,590,'AI drafts the rules','r'),
+  );
+  return out.join('');
+}
+
+/* 6 · Stop fraud in 10 seconds */
+function d6(){
+  const cols=[['⏮️ BEFORE · CUSTOMER CONFIRMS','human',[['🔎','Payee check · proposed','bank defines when used'],['🔐','Authentication','bank-approved flow'],['🧾','Customer limits','product owner defines']]],
+              ['⚡ DURING · EXAMPLE BUDGET','risk',[['🛡️','Fraud score · 150 ms','budget to test'],['🧑‍🤝‍🧑','Mule signals','fraud owner defines'],['✋','Step-up or hold','bank-approved actions']]],
+              ['⏭️ AFTER · SUBMISSION','aws',[['🕵️','AML monitoring','bank-defined data + timing'],['↩️','Recall option','no recovery guarantee'],['📞','Customer support','bank-owned policy']]]];
+  const out=[group({x:10,y:30,w:1260,h:340,k:'neutral',label:'🧅 REFERENCE DEFENCE LAYERS · INSTANT PAYMENT'})];
+  cols.forEach((c,ci)=>{
+    const gx=24+ci*416;
+    out.push(group({x:gx,y:70,w:400,h:286,k:c[1],label:c[0],lp:'b'}));
+    c[2].forEach((b,i)=>out.push(box({x:gx+14,y:106+i*78,w:372,h:64,k:c[1],i:b[0],t:b[1],s:b[2]})));
+  });
+  out.push(
+    arrow([[424,213],[440,213]],{k:'risk',st:2}),
+    arrow([[840,213],[856,213]],{k:'aws',st:3}),
+    group({x:10,y:390,w:620,h:390,k:'bad',label:'🎭 APP FRAUD · ONE IMPORTANT THREAT'}),
+    box({x:30,y:436,w:580,h:90,k:'bad',i:'🎣',t:'Authorised push payment fraud',s:'a criminal tricks the customer into paying them'}),
+    box({x:30,y:540,w:580,h:90,k:'risk',i:'🔐',t:'SCA may not reveal deception',s:'the real customer may approve the payment'}),
+    lines(36,668,['🛡️ warning wording needs fraud review','🛡️ step-up rules need product review','⚖️ liability varies; bank legal confirms'],'kl',36),
+    group({x:650,y:390,w:620,h:390,k:'aws',label:'🔗 PROPOSED CHANGE TO EP03 HIDDEN WIRE'}),
+    txt(670,452,'OLD','hd','start','#C0392B'),
+    box({x:670,y:466,w:180,h:76,k:'legacy',i:'🗄️',t:'DB2',s:'mainframe'}),
+    box({x:1070,y:466,w:180,h:76,k:'risk',i:'🕵️',t:'AML',s:'old link'}),
+    `<line x1="850" y1="504" x2="1070" y2="504" stroke="#C0392B" stroke-width="2.6" stroke-dasharray="1 7" stroke-linecap="round"/>`,
+    `<text x="960" y="513" text-anchor="middle" font-size="26" font-weight="800" fill="#C0392B">✖</text>`,
+    txt(960,560,'remove only after reconciliation + AML approval','note','middle'),
+    txt(670,602,'NEW','hd','start','#2E8B57'),
+    box({x:670,y:616,w:170,h:80,k:'aws',i:'🔄',t:'Payment services'}),
+    box({x:870,y:616,w:170,h:80,k:'aws',i:'🧵',t:'Kafka',s:'payment events'}),
+    box({x:1070,y:616,w:180,h:80,k:'good',i:'🕵️',t:'AML monitoring',s:'reads events'}),
+    arrow([[840,656],[870,656]],{k:'aws',st:6}),
+    arrow([[1040,656],[1070,656]],{k:'good',st:6}),
+    txt(960,752,'🚫 sanctions cadence: bank compliance decision (EP04)','kl','middle'),
+    tag(1,414,70,'Before: check & approve','r'),
+    tag(2,830,70,'During: 0.5 s target','r'),
+    tag(3,1246,70,'After: monitor & recall','r'),
+    tag(4,600,390,'APP fraud','r'),
+    tag(5,40,630,'SCA can miss deception'),
+    tag(6,1250,390,'AML gets events','r'),
+    tag(7,1080,542,'Remove after proof'),
+  );
+  return out.join('');
+}
+
+/* 7 · Run securely & sign off */
+function d7(){return [
+  group({x:10,y:30,w:620,h:370,k:'risk',label:'🚨 INCIDENT REPORTING · BANK LEGAL TO VALIDATE'}),
+  kpi({x:30,y:76,w:580,h:52,k:'neutral',i:'🔔',t:'Detect and record',v:'start'}),
+  kpi({x:30,y:138,w:580,h:52,k:'risk',i:'🏷️',t:'Classify under bank policy',v:'review'}),
+  kpi({x:30,y:200,w:580,h:52,k:'bad',i:'📨',t:'Initial · 24 h? from detection',v:'4 h?'}),
+  kpi({x:30,y:262,w:580,h:52,k:'risk',i:'📝',t:'Intermediate · example marker',v:'72 h?'}),
+  kpi({x:30,y:324,w:580,h:52,k:'neutral',i:'📕',t:'Final · example marker',v:'1 mo?'}),
+
+  group({x:650,y:30,w:620,h:370,k:'neutral',label:'🤝 SUPPLIER RISK · BANK CLASSIFIES PROVIDERS'}),
+  box({x:670,y:72,w:580,h:66,k:'neutral',i:'📒',t:'Supplier inventory',s:'bank confirms scope and criticality'}),
+  box({x:670,y:150,w:580,h:66,k:'neutral',i:'📄',t:'Contract review',s:'audit · location · exit terms'}),
+  box({x:670,y:228,w:580,h:66,k:'risk',i:'🚪',t:'Exit assumptions',s:'write, then test key recovery paths'}),
+  box({x:670,y:306,w:580,h:66,k:'risk',i:'🎯',t:'Threat-led testing',s:'cadence set by applicable duties'}),
+
+  group({x:10,y:420,w:620,h:360,k:'ai',label:'⚠️ AI-SPECIFIC SECURITY RISKS'}),
+  lines(36,474,['🤖 AI-written code can contain flaws',IND+'→ same scans and human review','🤖 prompt injection can trick an agent',IND+'→ limit tools and monitor access','🤖 secrets can enter prompts',IND+'→ scan, restrict and review','🤖 model provider needs bank assessment',IND+'→ inventory scope set by governance'],'kl',36),
+
+  group({x:650,y:420,w:620,h:360,k:'good',label:'✍️ SIGN-OFF & HAND OVER · EXAMPLE'}),
+  box({x:670,y:462,w:186,h:80,k:'human',i:'🛡️',t:'CISO',s:'security'}),
+  box({x:867,y:462,w:186,h:80,k:'human',i:'🔒',t:'DPO',s:'privacy'}),
+  box({x:1064,y:462,w:186,h:80,k:'human',i:'⚖️',t:'Compliance',s:'regulation'}),
+  kpi({x:670,y:558,w:580,h:46,k:'good',i:'📝',t:'Requirements · sample count',v:'34?'}),
+  kpi({x:670,y:612,w:580,h:46,k:'good',i:'🛡️',t:'Control coverage · target',v:'100%?'}),
+  kpi({x:670,y:666,w:580,h:46,k:'risk',i:'✍️',t:'Accepted risks · sample',v:'2?'}),
+  txt(670,754,'🔜 EP07 · EP18 · EP22','kl'),
+
+  tag(1,600,30,'Clock to validate','r'),
+  tag(2,1240,72,'Provider inventory','r'),
+  tag(3,1240,228,'Plan the exit','r'),
+  tag(4,600,420,'AI risks, guarded','r'),
+  tag(5,1250,420,'Owner reviews','r'),
+  tag(6,1250,750,'Next episodes','r'),
+].join('')}
+
+/* ============================================================
+   Episode config
+   ============================================================ */
+const DECK={
+  brand:'🏦 CORE BANKING PAYMENTS MODERNIZATION · AWS',
+  ep:'EP 06', epShort:'EP06', title:'Security & Compliance by Design', subtitle:'Execution Architect · reference scenario',
+  seriesTitle:'Enterprise Modernization · Reference Series',
+  logo:'../shared/jo-logo.png', background:'../shared/background.png',
+  stages:[['🔍','Discover'],['📋','Requirements'],['📐','Design & Plan'],['🛠️','Build'],['🚀','Test & Deploy'],['🔧','Operate']],
+  stage:2,
+  glossary:{
+    SHIFTLEFT:['Shift left','value','Moving security checks to the start of the project. Problems found early are cheaper and faster to fix.'],
+    SECBD:['Security by design','risk','Security is part of every requirement, design and build step — not a review at the end.'],
+    SHARED:['Shared responsibility','risk','AWS secures the cloud itself; the bank secures what it puts in it: data, identities, settings and code.'],
+    ACCOUNT:['Accountability','risk','Cloud use does not replace bank accountability. Bank risk and legal owners determine the applicable duties.'],
+    DORA:['DORA','risk','EU Digital Operational Resilience Act. Bank legal and risk teams interpret its duties for this scenario; engineering implements approved controls.'],
+    THREATMODEL:['Threat model','risk','A structured list of how attackers could harm a system, and what stops them. Done before we build.'],
+    STRIDE:['STRIDE','value','A checklist of six threat types: Spoofing, Tampering, Repudiation, Information disclosure, Denial of service, Elevation of privilege.'],
+    TRUSTB:['Trust boundary','risk','A line where data moves between zones with different trust, like internet to bank. Attacks happen at these lines.'],
+    WAF:['WAF','value','Web application firewall: can filter some harmful traffic before it reaches an application. Its rules and limits need testing.'],
+    REPUD:['Repudiation','risk','When someone denies an action, such as a payment approval. Authentication and audit evidence support investigation; bank owners decide what proof is required.'],
+    SCA:['SCA','risk','Strong customer authentication. Bank product and legal owners determine which factors and transaction binding rules apply to each flow.'],
+    MTLS:['mTLS','value','Mutual TLS: both sides present certificates. It supports service identity but still needs sound certificate management and authorization.'],
+    LEASTPRIV:['Least privilege','risk','Everyone — people and systems — gets only the access they need for their job, and nothing more.'],
+    BREAKGLASS:['Break-glass access','risk','Emergency access to production: approved, time-limited and fully recorded. Like breaking the glass on a fire alarm.'],
+    FOUREYES:['Four-eyes principle','risk','Dual approval for selected actions. Bank risk and security owners decide its scope and emergency path.'],
+    CLASSIF:['Data classification','risk','Labelling data by how sensitive it is — public, internal, confidential, restricted — so each level gets the right protection.'],
+    KMS:['KMS (key management)','risk','Service for creating and managing encryption keys. Access policy, rotation and recovery still need bank security review.'],
+    HSM:['HSM','risk','Hardware security module: protects sensitive signing operations. Bank and scheme specialists define key custody and controls.'],
+    RESIDENCY:['Data residency','risk','Where data and backups are stored. EU region is a reference option; bank legal and data owners confirm the required locations.'],
+    RETENTION:['Retention vs privacy','risk','Bank legal, privacy and AML owners determine the applicable retention and deletion schedule, then engineering enforces it.'],
+    SAST:['Code scan (SAST)','value','Static analysis can flag classes of code mistakes. The proposed gate runs it on changes, with findings reviewed by engineers.'],
+    SBOM:['SBOM','risk','Software bill of materials: inventory of components in an artifact. It helps investigate vulnerabilities; response time is measured, not guaranteed.'],
+    POLICYCODE:['Policy as code','value','Security rules written as code and checked automatically, like “no public storage”. Same answer every time.'],
+    SIGN:['Signed images','risk','Signed release artifacts let a deployment gate check provenance. Bank security owners decide and test the policy.'],
+    EVIDENCE:['Control evidence','value','Evidence linked to an approved control and its version, collected at an agreed cadence and protected from alteration.'],
+    APP:['APP fraud','risk','Authorised push payment fraud: criminals trick customers into sending money themselves. Instant payments make it faster.'],
+    MULE:['Money mule','risk','An account used to receive and move stolen money. Spotting mules protects our customers and other banks’ customers.'],
+    VOP:['Verification of Payee','risk','Payee-name check. Bank scheme, fraud and product owners define when it applies and what customers see.'],
+    AML:['AML monitoring','risk','Monitoring patterns under bank AML policy. An event feed is a proposed interface, subject to data and timing validation.'],
+    STEPUP:['Step-up check','value','An added check for selected risk cases. Fraud and product owners define triggers and customer impact.'],
+    INCIDENT:['Major ICT incident','risk','An incident classification whose reporting duties and timeline must be confirmed by bank compliance.'],
+    TPRM:['Third-party risk','risk','Supplier risk. Bank governance determines provider scope and criticality; engineering supplies dependencies and exit assumptions.'],
+    EXIT:['Exit strategy','risk','Plan for leaving a provider. Credibility depends on testing recovery assumptions with bank risk owners.'],
+    PROMPTINJ:['Prompt injection','risk','Hidden instructions in text that trick an AI agent into doing something it shouldn’t. Limited permissions keep the damage small.'],
+    CISO:['CISO · DPO','risk','Security and privacy owners who review their assigned controls. The bank defines release authorities and approvals.'],
+  },
+  callout:{title:'🧪 EVIDENCE PLAN',first:'Engineering check:',second:'Bank check:'},
+  slides:[
+    {icon:'🧱',kicker:'EP06 · 1/7 · THE APPROACH',title:'Built In, Not Bolted On',time:'00:00 – 01:35',draw:d1,
+     key:'Security is a requirement, not a final exam.',next:'🔜 Next: the threat model',
+     open:'Late security reviews can force costly rework.',
+     land:'Bank security, risk and legal teams define duties; engineering builds controls and proof.',
+     gloss:[['SHIFTLEFT',[1,2]],['SECBD',[2]],['SHARED',[4,5]],['ACCOUNT',[6]],['DORA',[6]]],
+     callout:['Design a pipeline gate for one approved security control.',
+              'Confirm cloud responsibilities and control ownership.'],
+     steps:[['Bolted on','One review at the end finds problems too late.'],
+            ['Built in','Stories, threat model, scans, tests, monitoring.'],
+            ['Late fixes cost more','Illustrative cost pattern, not measured ratios.'],
+            ['AWS: the cloud itself','Data centres, hardware, the services it runs.'],
+            ['Bank: what it puts in','Data, identities, settings and code.'],
+            ['Bank stays accountable','Risk and legal teams confirm duties; engineers implement controls.']]},
+    {icon:'🗺️',kicker:'EP06 · 2/7 · THREAT MODEL',title:'How Could Someone Attack This?',time:'01:35 – 03:30',draw:d2,
+     key:'Map relevant threats to controls and tests.',next:'🔜 Next: identity',
+     open:'Before we design the details, we ask one question.',
+     land:'Bank security owners validate threats, controls and evidence.',
+     gloss:[['THREATMODEL',[1,7]],['TRUSTB',[1]],['WAF',[2]],['STRIDE',[5,6]],['REPUD',[5]]],
+     callout:['Draft a threat model and test cases from approved flows.',
+              'Validate assets, attackers and controls with bank security.'],
+     steps:[['Trust boundaries','Internet, AWS, the bank’s data centre, outside parties.'],
+            ['Internet edge','WAF and API gateway face the internet.'],
+            ['Private link','The mainframe is reached only over a private connection.'],
+            ['Proposed AML feed','Remove direct reads only after AML reconciliation and approval.'],
+            ['STRIDE','Six kinds of threat, checked one by one.'],
+            ['Every threat → a control','Candidate controls require security owner review.'],
+            ['AI draft needs review','Validate against the bank’s real assets and flows.']]},
+    {icon:'🪪',kicker:'EP06 · 3/7 · IDENTITY',title:'Who Can Do What',time:'03:30 – 05:10',draw:d3,
+     key:'Trust no one by default — prove every identity.',next:'🔜 Next: protect the data',
+     open:'Most attacks start with a stolen identity.',
+     land:'Access logs and owner reviews provide evidence on the bank’s schedule.',
+     gloss:[['SCA',[1]],['MTLS',[2]],['LEASTPRIV',[3]],['BREAKGLASS',[3]],['FOUREYES',[5]]],
+     callout:['Test roles, revocation and transaction binding.',
+              'Confirm authentication, approval and review policy.'],
+     steps:[['Customers: SCA','Bank defines factors and transaction binding per flow.'],
+            ['Services: mTLS + roles','Proposed controls; test rotation and least privilege.'],
+            ['No standing access','Proposed default with approved emergency path.'],
+            ['AI never in prod','Proposed boundary with limited tools and monitoring.'],
+            ['Four-eyes','Bank decides which actions need dual approval.'],
+            ['Evidence to review','Verify real logs and bank-scheduled access reviews.']]},
+    {icon:'🔐',kicker:'EP06 · 4/7 · DATA',title:'Protect the Data',time:'05:10 – 06:55',draw:d4,
+     key:'Know your data, lock it, and keep it where it belongs.',next:'🔜 Next: compliance as code',
+     open:'You can’t protect data if you don’t know what it is.',
+     land:'Bank data owners set the AI boundary; engineering enforces and tests it.',
+     gloss:[['CLASSIF',[1,2]],['KMS',[3,4]],['HSM',[4]],['RESIDENCY',[5]],['RETENTION',[5]]],
+     callout:['Test encryption, masking and log leakage on sample data.',
+              'Confirm classification, retention, location and AI use policy.'],
+     steps:[['Classify first','Restricted, confidential, internal, public.'],
+            ['Restricted = strictest','Bank owners set keys, masking and logging rules.'],
+            ['Encrypt everywhere','Reference TLS, mTLS and at-rest encryption controls.'],
+            ['Bank holds the keys','Signing custody needs scheme and security review.'],
+            ['Location to validate','Region, retention and deletion are bank legal decisions.'],
+            ['AI data boundary','Privacy owners approve access, masking and logging.']]},
+    {icon:'🚦',kicker:'EP06 · 5/7 · COMPLIANCE AS CODE',title:'Checked Every Time, by Machines',time:'06:55 – 08:45',draw:d5,
+     key:'If a machine can check a rule, check it every time.',next:'🔜 Next: stop fraud in 10 seconds',
+     open:'Legal interpretation needs accountable bank owners; repeatable checks help them.',
+     land:'Evidence should be linked to approved controls and ready for review.',
+     gloss:[['SAST',[1]],['SBOM',[3]],['SIGN',[4]],['POLICYCODE',[5]],['EVIDENCE',[6]]],
+     callout:['Specify scans, signing and exceptions for one approved control.',
+              'Confirm interpretation, owners and evidence cadence.'],
+     steps:[['Gates + reviews','Proposed checks on each change, with human review.'],
+            ['No keys in code','A secrets scan flags possible exposures.'],
+            ['Know every library','Dependency scan and a software bill of materials.'],
+            ['Sign release artifacts','Deployment can verify artifact provenance.'],
+            ['Duty → control → check','Approved duties may yield testable controls.'],
+            ['Evidence plan','Collect at agreed cadence with context and integrity.'],
+            ['AI drafts the rules','Security engineers validate draft policy checks.']]},
+    {icon:'🕵️',kicker:'EP06 · 6/7 · FRAUD & FINANCIAL CRIME',title:'Stop Fraud in 10 Seconds',time:'08:45 – 10:45',draw:d6,
+     key:'Fraud defence in layers: before, during and after the payment.',next:'🔜 Next: run securely & sign off',
+     open:'Fast payments leave limited time for a bank-approved intervention.',
+     land:'The AML event feed remains a proposed design until bank owners validate it.',
+     gloss:[['VOP',[1]],['STEPUP',[2]],['MULE',[2]],['APP',[4,5]],['AML',[6,7]]],
+     callout:['Benchmark scorer budget and reconcile a proposed AML event feed.',
+              'Confirm fraud actions, scheme rules and AML data needs.'],
+     steps:[['Before','Proposed payee check, authentication and bank-set limits.'],
+            ['During','150 ms scoring budget to test; bank defines actions.'],
+            ['After','AML investigation, possible recall and bank support policy.'],
+            ['APP fraud','Criminals trick customers into paying them.'],
+            ['SCA can miss deception','Bank-approved warnings and friction may help.'],
+            ['AML gets events','Proposed Kafka feed needs AML validation.'],
+            ['Remove after proof','Retire DB2 read only after reconciliation and approval.']]},
+    {icon:'✍️',kicker:'EP06 · 7/7 · RUN SECURELY & SIGN OFF',title:'Operate Securely, Then Sign Off',time:'10:45 – 12:50',draw:d7,
+     key:'Bank owners decide what is ready for architecture.',next:'🔜 Next episode: EP07 — Target Architecture & ADRs',
+     open:'Security continues after launch, with bank-owned incident duties.',
+     land:'Close requirements only when open domain, risk and legal questions are resolved or tracked.',
+     gloss:[['INCIDENT',[1]],['TPRM',[2]],['EXIT',[3]],['PROMPTINJ',[4]],['CISO',[5]]],
+     callout:['Design escalation workflow using a validated timetable.',
+              'Confirm incident duties, supplier scope and release authorities.'],
+     steps:[['Clock to validate','Bank compliance confirms reporting timeline.'],
+            ['Provider inventory','Bank governance sets supplier scope and criticality.'],
+            ['Plan the exit','Test key recovery assumptions with risk owners.'],
+            ['AI risks, guarded','Scans, limited agents, prompt scanning, provider register.'],
+            ['Owner reviews','Security, privacy and compliance review assigned controls.'],
+            ['Next episodes','EP07 architecture · EP18 CI/CD · EP22 incidents & DR.']]},
+  ],
+};
+startDeck(DECK);
+</script>
+</body>
+</html>
