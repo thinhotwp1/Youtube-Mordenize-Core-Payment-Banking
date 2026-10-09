@@ -1,12 +1,11 @@
-﻿===== Slide 1 · Overnight Engine. Real-Time World.  (00:00 – 02:55) =====
+﻿===== Slide 1 · Overnight Engine. Real-Time World.  (00:00 – 02:50) =====
 
 [tag ①]
-This series uses an illustrative bank to examine a real engineering question: how do you change a critical system while it keeps running?
-I have built and operated large enterprise systems, but I have not directly modernized a core banking system.
-The bank owns its payment rules and obligations.
-My role here is to show how those rules become architecture, code, tests, release controls, and operating decisions.
-In our reference scenario, COBOL and CICS process payments, DB2 holds balances, and a nightly batch completes some work.
-A real bank would first confirm this picture against its own estate.
+This series uses a payments sandbox to examine a challenge I know from large enterprise systems: how do you change a critical platform while it keeps running?
+The methods apply beyond banking.
+I will show how confirmed business needs become architecture, code, tests, release controls, and operating decisions.
+In this reference scenario, COBOL and CICS process payments, DB2 holds balances, and a nightly batch completes some work.
+Bank specialists own the payment rules and obligations; an actual programme would confirm its estate and requirements before design.
 
 [tag ②]
 First, business opportunity.
@@ -42,7 +41,7 @@ Throughout the series, I will show the decisions and the evidence I would put in
 Versioned code, contracts, and tests would provide engineering evidence for the reference design.
 The proposed checks here are not evidence that this design is running in a bank.
 
-===== Slide 2 · What "Done" Looks Like  (02:55 – 05:45) =====
+===== Slide 2 · What "Done" Looks Like  (02:50 – 05:40) =====
 
 [tag ①]
 Before design, the bank and engineering team must agree what "done" means.
@@ -88,7 +87,7 @@ Their time must be funded for discovery, review, and tests, alongside keeping th
 A load test and retry test can validate the engineering approach in a reference environment.
 Production targets still require bank data and production-like testing.
 
-===== Slide 3 · Strangle, Don't Rewrite  (05:45 – 08:45) =====
+===== Slide 3 · Strangle, Don't Rewrite  (05:40 – 08:40) =====
 
 [tag ①]
 Here is a possible current-state design, not a description of a specific bank.
@@ -136,7 +135,7 @@ Recovery claims must come from drills and reconciliation, not a diagram.
 A reference build using Spring, Kafka, Postgres, Debezium, and simulated interfaces can test these contracts.
 It does not prove the bank's production integration.
 
-===== Slide 4 · Phase 2: Prove It Before We Trust It  (08:45 – 11:05) =====
+===== Slide 4 · Phase 2: Prove It Before We Trust It  (08:40 – 11:00) =====
 
 [tag ①]
 Phase two is about earning trust in the new path while the current ledger remains authoritative.
@@ -176,7 +175,7 @@ The exact gate belongs to that bank.
 A Postgres and Debezium reference test can show how a CDC gap is detected.
 A real DB2 integration needs separate validation with the bank's specialists.
 
-===== Slide 5 · Phase 3: Flip Safely. Fail Gracefully.  (11:05 – 14:05) =====
+===== Slide 5 · Phase 3: Flip Safely. Fail Gracefully.  (11:00 – 14:00) =====
 
 [tag ①]
 Phase three is a possible cutover, when the bank may approve a new system of record.
@@ -224,7 +223,7 @@ Operations owns the procedure and the human decision points.
 A scheme simulator can exercise acceptance, rejection, timeout, and inquiry paths.
 It is proof of state handling, not proof of scheme certification.
 
-===== Slide 6 · Consistency Without Two-Phase Commit  (14:05 – 16:40) =====
+===== Slide 6 · Consistency Without Two-Phase Commit  (14:00 – 16:35) =====
 
 [tag ①]
 Now we look at the execution detail.
@@ -269,7 +268,7 @@ We test this under crashes and replay; saying "exactly once" without the busines
 [validation plan]
 A proposed timeout test would inspect the event trail and check that no unsafe release occurs while status is unknown.
 
-===== Slide 7 · AI Drafts. Experts Approve. Tests Enforce.  (16:40 – 18:45) =====
+===== Slide 7 · AI Drafts. Experts Approve. Tests Enforce.  (16:35 – 18:40) =====
 
 [tag ①]
 Where can AI help?
@@ -305,7 +304,7 @@ The proposed proof is specific: send the same request twice in a reference envir
 If the result matches the contract under retries and crashes, we have evidence for that boundary.
 A bank would still need load, failure, integration, and scheme tests.
 
-===== Slide 8 · Trade-offs & Takeaways  (18:45 – 20:45) =====
+===== Slide 8 · Trade-offs & Takeaways  (18:40 – 20:40) =====
 
 [tag ①]
 Every architecture has trade-offs.

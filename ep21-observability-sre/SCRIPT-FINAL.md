@@ -1,6 +1,6 @@
 # EP 21 · Observability & SRE: Final Script
 
-**Series:** Core Banking Payments Modernization (reference scenario · Stage 6: Operate). **Speed:** 120–130 words per minute. **Language:** clear international English for banking and technology leaders.
+**Series:** Core Banking Payments Modernization (payments sandbox · Stage 6: Operate). **Speed:** 120–130 words per minute. **Language:** clear international English for banking and technology leaders.
 
 **How to read it**
 - **Bold** = stress this word.
@@ -13,21 +13,21 @@
 <!-- TIMETABLE -->
 | Slide | Words | Length | Timestamp |
 |---|---|---|---|
-| 1 · The 3 a.m. Question | 245 | 02:05 | 00:00 – 02:05 |
+| 1 · The 3 a.m. Question | 244 | 02:05 | 00:00 – 02:05 |
 | 2 · Four Signals, One Key | 218 | 01:50 | 02:05 – 03:55 |
 | 3 · Follow One Payment | 220 | 01:50 | 03:55 – 05:45 |
 | 4 · SLOs and Error Budgets | 224 | 01:55 | 05:45 – 07:40 |
 | 5 · Alerts That Wake the Right Person | 181 | 01:35 | 07:40 – 09:15 |
 | 6 · Runbooks and On-Call, with AI | 192 | 01:40 | 09:15 – 10:55 |
 | 7 · Dashboards for Every Audience | 125 | 01:05 | 10:55 – 12:00 |
-| **Total** | **1405** | **12:00** | at 125 words per minute, plus 6 s per slide for drawing |
+| **Total** | **1404** | **12:00** | at 125 words per minute, plus 6 s per slide for drawing |
 
 ---
 
 <!-- slide:1 -->
 ## Slide 1 · The 3 a.m. Question
 
-**[tag ①]** The reference roadmap has reached **operations**. This is not a bank platform I have run; it is a way to examine the execution problem. Imagine a customer asking at three in the morning: "I sent five hundred euros an hour ago. Where is it?" The bank defines the correct status and communication; engineering must make the evidence findable.
+**[tag ①]** The payments sandbox has reached **operations**. The enterprise execution problem is clear: can the team explain a customer's journey when a service fails? Imagine a customer asking at three in the morning: "I sent five hundred euros an hour ago. Where is it?" The bank defines the correct status and communication; engineering must make the evidence findable.
 
 **[tag ②]** Without joined telemetry, an operator may search the app, gateway, Kafka, mainframe and external connection separately. The eight teams and three-hour delay on the diagram are illustrative. The engineering question is how to shorten that search while protecting customer data.
 

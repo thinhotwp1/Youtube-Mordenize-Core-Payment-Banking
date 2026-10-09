@@ -1,10 +1,10 @@
 ﻿===== Slide 1 · Two Bridges, Two Directions  (00:00 – 01:55) =====
 
 [tag ①]
-This episode asks how a new platform could coexist with a legacy ledger.
-The diagram uses a DB2 mainframe as a reference scenario.
-A real bank would confirm its system of record and migration boundary first.
-If the ledger stays authoritative during the first slice, the new services need a controlled bridge in two directions.
+This episode asks how a new platform can coexist with a legacy system of record.
+That is a familiar enterprise integration problem.
+The payment sandbox uses a DB2 mainframe ledger: while it stays authoritative, new services need a controlled bridge in two directions.
+A bank would confirm its own system of record and migration boundary.
 
 [tag ②]
 Commands go out.
@@ -134,7 +134,7 @@ In this design, ordinary money decisions still query the authoritative ledger.
 The one-third reduction shown here is a hypothesis, not an observed saving.
 We would compare before and after query volume, CDC overhead and total MIPS, then decide whether read offload is worthwhile.
 
-===== Slide 5 · One Truth, Two Worlds  (07:30 – 09:15) =====
+===== Slide 5 · One Truth, Two Worlds  (07:30 – 09:10) =====
 
 [tag ①]
 With two worlds, who is authoritative?
@@ -164,15 +164,15 @@ A daily balance reconciliation is one candidate control, down to the cent where 
 The bank sets coverage, timing and treatment of known differences.
 
 [tag ⑥]
-The diagram's two-point-one-million accounts and three differences are illustrative test data, not a production report.
+The diagram's two-point-one-million accounts and three differences are synthetic test data.
 The execution principle is real: every unexplained difference gets an owner, evidence and a resolution path.
 
-===== Slide 6 · Simulating the Mainframe Boundary  (09:15 – 10:55) =====
+===== Slide 6 · Simulating the Mainframe Boundary  (09:10 – 10:50) =====
 
 [tag ①]
 How would I de-risk a mainframe bridge before integration?
 Start with the same ledger-adapter code intended for deployment, surrounded by controlled test doubles.
-A local harness proves engineering behaviour; it cannot prove the bank's mainframe contract by itself.
+The local harness tests engineering behaviour; the bank's interface and environment provide the contract and capacity gates.
 
 [tag ②]
 Toxiproxy could inject delays and broken connections between the adapter and simulator.
@@ -180,7 +180,7 @@ A recorded fault test would show whether timeout and circuit-breaker behaviour m
 
 [tag ③]
 A REST shim can mimic z/OS Connect, and GnuCOBOL can execute a representative PAYHOLD routine.
-It is not the bank's real COBOL program unless the bank supplies and approves it.
+The bank's approved copybooks and program behaviour become the contract for integration tests.
 
 [tag ④]
 Postgres plays DB2, and Debezium plays the CDC tool, so the data-in direction works too.
@@ -197,7 +197,7 @@ The local harness supplies early feedback; bank integration tests supply accepta
 Before any release, the bank would need tests on its authorised mainframe environment to measure true latency, return codes and MIPS.
 The frequency belongs in the agreed release plan.
 
-===== Slide 7 · Operations and Handover  (10:55 – 12:30) =====
+===== Slide 7 · Operations and Handover  (10:50 – 12:25) =====
 
 [tag ①]
 To operate this bridge, I would ask for a dashboard covering hold latency, return codes, circuit state, CDC lag, reconciliation breaks and MIPS.

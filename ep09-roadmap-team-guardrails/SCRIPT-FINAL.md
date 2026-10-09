@@ -9,25 +9,25 @@
 <!-- TIMETABLE -->
 | Slide | Words | Length | Timestamp |
 |---|---|---|---|
-| 1 · From Design to a Plan | 181 | 01:35 | 00:00 – 01:35 |
-| 2 · The Roadmap: Slice by Slice | 247 | 02:05 | 01:35 – 03:40 |
-| 3 · The Team: Who Builds What | 198 | 01:40 | 03:40 – 05:20 |
-| 4 · The Money: Build, Run and Dual-Run | 188 | 01:35 | 05:20 – 06:55 |
-| 5 · AI Guardrails for the Whole Programme | 165 | 01:25 | 06:55 – 08:20 |
-| 6 · Gates, Done and Metrics | 170 | 01:30 | 08:20 – 09:50 |
-| 7 · Risks and the First 90 Days | 177 | 01:30 | 09:50 – 11:20 |
-| **Total** | **1326** | **11:20** | at 125 words per minute, plus 6 s per slide for drawing |
+| 1 · From Design to a Plan | 192 | 01:40 | 00:00 – 01:40 |
+| 2 · The Roadmap: Slice by Slice | 244 | 02:05 | 01:40 – 03:45 |
+| 3 · The Team: Who Builds What | 198 | 01:40 | 03:45 – 05:25 |
+| 4 · The Money: Build, Run and Dual-Run | 185 | 01:35 | 05:25 – 07:00 |
+| 5 · AI Guardrails for the Whole Programme | 165 | 01:25 | 07:00 – 08:25 |
+| 6 · Gates, Done and Metrics | 170 | 01:30 | 08:25 – 09:55 |
+| 7 · Risks and the First 90 Days | 177 | 01:30 | 09:55 – 11:25 |
+| **Total** | **1331** | **11:25** | at 125 words per minute, plus 6 s per slide for drawing |
 
 ---
 
 <!-- slide:1 -->
 ## Slide 1 · From Design to a Plan
 
-**[tag ①]** This is the final design and planning episode. The earlier episodes produced a **reference set** of inputs: rules to validate with the bank, an estate map, a candidate first slice, a backlog, NFRs, security controls, architecture options, and contracts. They are not claims of completed bank approvals.
+**[tag ①]** This is the final design and planning episode. The earlier episodes built a **working set** of inputs: rules to validate with the bank, an estate map, a candidate first slice, a backlog, NFRs, security controls, architecture options, and contracts. In this payment sandbox, I turn those inputs into an execution plan that leaders can challenge.
 
 **[tag ②]** AI can help turn these inputs into a first plan: dependencies, rough estimates, risks, and a budget draft. I would mark uncertain items and ask the owners for evidence.
 
-**[tag ③]** **Leaders** decide. The CTO, payments owner, CFO, risk owner, and architects would review the plan in a real institution. I can make the technical options and trade-offs clear; I do not choose its business priorities.
+**[tag ③]** **Leaders** decide. The CTO, payments owner, CFO, risk owner, and architects would review the plan in a real institution. My job is to make the technical options, dependencies, costs and trade-offs clear so they can choose the priorities.
 
 **[tag ④]** A useful plan answers five questions. What might we build, and when? Who owns each part? What could it cost? How is AI controlled? And what evidence would justify the next step?
 
@@ -39,7 +39,7 @@
 <!-- slide:2 -->
 ## Slide 2 · The Roadmap: Slice by Slice
 
-**[tag ①]** Here is an **illustrative** twenty-four-month roadmap, not a forecast for a real bank. Phase zero sets a proposed AWS landing zone, delivery pipeline, and AI guardrails. The bank would decide whether this is the right starting point and pace.
+**[tag ①]** Here is a **sample** twenty-four-month roadmap for the sandbox. Phase zero sets an AWS landing zone, delivery pipeline, and AI guardrails. In a real programme, discovery and the bank's priorities set the starting point and pace.
 
 **[tag ②]** A possible warm-up is a read-only status API. It may have a smaller change surface, but production still needs data, security, and operations approval. Its purpose would be to test the delivery path end to end.
 
@@ -79,13 +79,13 @@
 <!-- slide:4 -->
 ## Slide 4 · The Money: Build, Run and Dual-Run
 
-**[tag ①]** Now the cost model. The chart uses an **index**: one hundred stands for current payment spend. It is not based on an actual bank's books. The black line represents total cost in this example.
+**[tag ①]** Now the cost model. The chart uses a **planning index**: one hundred stands for current payment spend. The black line represents total cost. A real programme would replace the index with its own cost base.
 
 **[tag ②]** In this scenario, cost goes **up** during dual run: legacy capacity remains, AWS begins, and the delivery team grows. I would measure this overlap, not assume it will be short.
 
 **[tag ③]** After traffic moves, legacy load may fall. Contract terms and fixed costs may delay any savings. A CFO needs the actual capacity and commercial model, not just a traffic chart.
 
-**[tag ④]** The twenty percent reduction in year three is an **illustrative assumption**, not a result or business case. A bank would build its own model using contracts, usage, staff, risk, and dual-run duration.
+**[tag ④]** The twenty percent reduction in year three is a **sandbox sensitivity case**. A bank would build its own business case using contracts, usage, staff, risk, and dual-run duration.
 
 **[tag ⑤]** The diagram groups costs into four drivers: legacy capacity, AWS, delivery team, and dual run. These categories help frame questions for finance.
 

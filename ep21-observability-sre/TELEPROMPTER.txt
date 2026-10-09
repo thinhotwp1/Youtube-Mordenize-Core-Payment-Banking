@@ -1,8 +1,8 @@
 ﻿===== Slide 1 · The 3 a.m. Question  (00:00 – 02:05) =====
 
 [tag ①]
-The reference roadmap has reached operations.
-This is not a bank platform I have run; it is a way to examine the execution problem.
+The payments sandbox has reached operations.
+The enterprise execution problem is clear: can the team explain a customer's journey when a service fails?
 Imagine a customer asking at three in the morning: "I sent five hundred euros an hour ago.
 Where is it?"
 The bank defines the correct status and communication; engineering must make the evidence findable.

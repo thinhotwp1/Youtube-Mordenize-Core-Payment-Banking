@@ -1,11 +1,10 @@
-﻿===== Slide 1 · One Front Door  (00:00 – 01:55) =====
+﻿===== Slide 1 · One Front Door  (00:00 – 01:50) =====
 
 [tag ①]
 In large enterprise systems, including airline networks, I have worked with comparable load and routing problems.
-Gradual traffic shifts and rollback are patterns I can bring here; payment meaning is not transferable one-to-one.
-This router is an illustrative bank design.
-Domain teams must confirm eligible channels and payment types.
-In the reference flow, channels keep one API while the gateway checks the caller and reads the Idempotency-Key.
+I bring that experience to gradual traffic shifts, route ownership and recovery.
+This payment sandbox uses one API while the gateway checks the caller and reads the Idempotency-Key.
+Bank domain teams define eligible channels and payment types.
 
 [tag ②]
 Behind the gateway is the payment router.
@@ -29,7 +28,7 @@ The router should not invent payment policy, store balances, or alter the reques
 Bank domain owners define eligibility; engineers encode and test it.
 If routing facts are missing, legacy is our proposed default, subject to the bank's safety review.
 
-===== Slide 2 · How the Router Decides  (01:55 – 03:35) =====
+===== Slide 2 · How the Router Decides  (01:50 – 03:30) =====
 
 [tag ①]
 So how does the router decide?
@@ -61,7 +60,7 @@ A stable hash maps a customer ID to a bucket from zero to ninety-nine.
 That makes the pilot cohort repeatable, so a larger percentage adds customers instead of reshuffling them.
 It does not prove a customer has no payments on both systems; ownership and retry rules still need separate controls.
 
-===== Slide 3 · Flags as Code  (03:35 – 05:20) =====
+===== Slide 3 · Flags as Code  (03:30 – 05:15) =====
 
 [tag ①]
 How could a flag change safely?
@@ -100,12 +99,12 @@ On the right is the flag file itself.
 Kill switch, payment types, channels, the pilot limit, staff, and the retail percentage.
 Every change has an author, a ticket, and a full history.
 
-===== Slide 4 · A Pure Decision  (05:20 – 07:15) =====
+===== Slide 4 · A Pure Decision  (05:15 – 07:10) =====
 
 [tag ①]
 Now the implementation pattern.
 In Java twenty-one, I would model the route with a sealed interface: Legacy or NewPlatform, plus the rule that made the decision.
-This is an example code design, not a deployed router.
+That makes the sandbox policy explicit and easy to test.
 
 [tag ②]
 The decide method is a pure function.
@@ -137,7 +136,7 @@ AI can draft a policy and property tests from a rule table.
 The bank's domain owner approves the rule meaning; the architect checks ordering; security reviews the header.
 Generated code is only a starting point until people and tests validate it.
 
-===== Slide 5 · The Dangerous Edges  (07:15 – 09:00) =====
+===== Slide 5 · The Dangerous Edges  (07:10 – 08:55) =====
 
 [tag ①]
 Two systems at once create dangerous edges.
@@ -166,13 +165,12 @@ Finally, rollback must not abandon payments in flight.
 The proposed rule sends new payments back to legacy while existing work remains with its original owner until resolved.
 We need tests for crashes, delayed messages and unknown outcomes before relying on that rule.
 
-===== Slide 6 · Ramp Up, Roll Back  (09:00 – 10:40) =====
+===== Slide 6 · Ramp Up, Roll Back  (08:55 – 10:30) =====
 
 [tag ①]
 How might a bank move the dial?
-The slide proposes a staff cohort for two weeks.
-That is a planning example, not a claim that staff are always the right pilot group.
-Product, risk and operations would approve the cohort.
+The slide uses a staff cohort for two weeks as one planning option.
+Product, risk and operations would select and approve the real pilot cohort.
 
 [tag ②]
 The diagram proposes one, five, twenty-five, fifty and one hundred percent as possible steps.
@@ -198,7 +196,7 @@ There are two proposed ways back: an automatic alarm and an authorised manual ki
 Small steps limit exposure.
 I would require a timed rollback drill before relying on either path.
 
-===== Slide 7 · Proof Plan and Next  (10:40 – 12:20) =====
+===== Slide 7 · Proof Plan and Next  (10:30 – 12:10) =====
 
 [tag ①]
 This is the engineering evidence I would ask for. k6 sends synthetic payment traffic through the reference stack from episode ten.

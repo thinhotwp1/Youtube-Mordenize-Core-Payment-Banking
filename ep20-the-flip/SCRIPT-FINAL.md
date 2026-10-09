@@ -1,6 +1,6 @@
 # EP 20 · The Flip, Segment by Segment: Final Script
 
-**Series:** Core Banking Payments Modernization (reference scenario · Stage 5: Test & Deploy). **Speed:** 120–130 words per minute. **Language:** clear international English for banking and technology leaders.
+**Series:** Core Banking Payments Modernization (payments sandbox · Stage 5: Test & Deploy). **Speed:** 120–130 words per minute. **Language:** clear international English for banking and technology leaders.
 
 **How to read it**
 - **Bold** = stress this word.
@@ -13,21 +13,21 @@
 <!-- TIMETABLE -->
 | Slide | Words | Length | Timestamp |
 |---|---|---|---|
-| 1 · What "the Flip" Really Means | 242 | 02:00 | 00:00 – 02:00 |
+| 1 · What "the Flip" Really Means | 237 | 02:00 | 00:00 – 02:00 |
 | 2 · Earn the Flip | 216 | 01:50 | 02:00 – 03:50 |
 | 3 · The Wave Plan | 247 | 02:05 | 03:50 – 05:55 |
 | 4 · The Cutover Runbook | 250 | 02:05 | 05:55 – 08:00 |
 | 5 · The Fallback Window | 211 | 01:45 | 08:00 – 09:45 |
-| 6 · Hypercare and Switch-Off | 189 | 01:35 | 09:45 – 11:20 |
+| 6 · Hypercare and Switch-Off | 181 | 01:35 | 09:45 – 11:20 |
 | 7 · Lessons, AI and Handover | 151 | 01:20 | 11:20 – 12:40 |
-| **Total** | **1506** | **12:40** | at 125 words per minute, plus 6 s per slide for drawing |
+| **Total** | **1493** | **12:40** | at 125 words per minute, plus 6 s per slide for drawing |
 
 ---
 
 <!-- slide:1 -->
 ## Slide 1 · What "the Flip" Really Means
 
-**[tag ①]** This episode examines a proposed change of **write authority** in our reference scenario. Before cutover, the example DB2 ledger is authoritative for the accounts in scope. The bank's finance and payments owners define what that authority means in its actual books.
+**[tag ①]** This episode examines a change of **write authority** in our payments sandbox. Before cutover, the example DB2 ledger is authoritative for the accounts in scope. The bank's finance and payments owners define what that authority means in its actual books.
 
 **[tag ②]** During the proposed parallel run, a mirror received legacy changes through CDC, while the shadow ledger calculated postings independently from approved events. Reconciliation compared them at a consistent cut. This distinction matters: copying the old balance does not prove the new ledger's logic.
 
@@ -37,7 +37,7 @@
 
 **[tag ⑤]** The central technical change is **write authority**, not a bulk copy. A routing table identifies the proposed owner, but routing alone is not enough. We also need fencing against stale writers, idempotent retries, an in-flight transaction policy and a verified cut position.
 
-**[tag ⑥]** This is phase three of an **illustrative** roadmap. Retiring the old payment path would be a later decision, after dependencies, records and fallback obligations are checked. I am showing the engineering questions a bank team would need to answer, not reporting a cutover I have run.
+**[tag ⑥]** This is phase three of the **sandbox** roadmap. Retiring the old payment path comes later, after dependencies, records and fallback obligations are checked. The execution method is transferable: establish ownership, prove the cut position, rehearse recovery and let evidence open the gate.
 <!-- /slide -->
 
 ---
@@ -125,7 +125,7 @@
 
 **[tag ①]** After each wave, I would propose **hypercare** with payments operations, SRE and the owning squads. The two-to-four-week window is an example; the bank ends it only when evidence supports normal operation.
 
-**[tag ②]** The day-fourteen dashboard is **sample data**, not an observed bank result. It shows the types of evidence to review: p99 latency, straight-through processing, breaks, complaints and fallbacks. A credible go decision also needs the bank's baselines and a check for missing or delayed outcomes.
+**[tag ②]** The day-fourteen dashboard uses **sample data** to show the evidence to review: p99 latency, straight-through processing, breaks, complaints and fallbacks. A credible go decision needs measured bank baselines and a check for missing or delayed outcomes.
 
 **[tag ③]** Finance receives the signed reconciliation report at the cadence it approves.
 

@@ -57,7 +57,7 @@ function d1(){return [
 
 /* 2 · Go / no-go: earn the flip */
 function d2(){return [
-  group({x:10,y:30,w:760,h:560,k:'good',label:'✅ ILLUSTRATIVE GATE · NO BANK SIGN-OFF'}),
+  group({x:10,y:30,w:760,h:560,k:'good',label:'🚦 PROPOSED GATE · BANK APPROVAL REQUIRED'}),
   table({x:30,y:66,w:720,hh:30,rh:56,cols:[['CRITERION',0],['TARGET',230],['STATUS',560]],
     rows:[['Reconciliation','3 clean month-end closes','sample'],['Unexplained breaks','0 in the last 30 days','sample'],
           ['Peak load test','5,000 TPS · p99 < 0.5 s','sample'],['DR drill','region failover < 15 min','sample'],
@@ -279,7 +279,7 @@ function d7(){return [
    ============================================================ */
 const DECK={
   brand:'🏦 CORE BANKING PAYMENTS MODERNIZATION · AWS',
-  ep:'EP 20', epShort:'EP20', title:'The Flip, Segment by Segment', subtitle:'Execution Architecture · Reference Scenario',
+  ep:'EP 20', epShort:'EP20', title:'The Flip, Segment by Segment', subtitle:'Payments Sandbox · Enterprise Execution',
   seriesTitle:'Core Payments Modernization · Execution Architecture',
   logo:'../shared/jo-logo.png', background:'../shared/background.png',
   stages:[['🔍','Discover'],['📋','Requirements'],['📐','Design & Plan'],['🛠️','Build'],['🚀','Test & Deploy'],['🔧','Operate']],
@@ -333,7 +333,7 @@ const DECK={
             ['AWS in charge','After: the AWS ledger takes every write for the segment.'],
             ['Mainframe follows','Reverse sync may support a tested fallback.'],
             ['Flip authority, not data','Fencing, in-flight work and cuts protect the change.'],
-            ['Phase 3 design','An illustrative next phase, not a completed bank cutover.']]},
+            ['Phase 3 sandbox','Transfer authority only after the evidence gate.']]},
     {icon:'🚦',kicker:'EP20 · 2/7 · GO / NO-GO',title:'Earn the Flip',time:'02:00 – 03:50',draw:d2,
      key:'Every criterion green — or we wait.',next:'🔜 Next: the wave plan',
      open:'Before any flip, we ask one question: have we earned it?',

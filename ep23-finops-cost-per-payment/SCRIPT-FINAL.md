@@ -1,6 +1,6 @@
 # EP 23 · FinOps: Cost per Payment — Final Script
 
-**Series:** Core Payments Modernization — execution architecture (Stage 6: Operate). **Delivery:** clear English for global technology leaders. Every cost and saving on the charts is illustrative; Finance, Procurement and engineering must validate the real contracts and baseline.
+**Series:** Core Payments Modernization — execution architecture (Stage 6: Operate). **Delivery:** clear English for global technology leaders. Payments is the sandbox for an enterprise FinOps method. Chart values are illustrative; Finance, Procurement and engineering validate the live contracts and baseline.
 
 **How to read it**
 - **Bold** = stress this word.
@@ -13,21 +13,21 @@
 <!-- TIMETABLE -->
 | Slide | Words | Length | Timestamp |
 |---|---|---|---|
-| 1 · Two Bills, One Question | 191 | 01:40 | 00:00 – 01:40 |
-| 2 · Cost per Payment | 217 | 01:50 | 01:40 – 03:30 |
-| 3 · Make Cost Visible | 143 | 01:15 | 03:30 – 04:45 |
-| 4 · Where the Money Goes | 167 | 01:25 | 04:45 – 06:10 |
-| 5 · Test the Mainframe Savings | 196 | 01:40 | 06:10 – 07:50 |
-| 6 · Budgets, Anomalies, Cost in CI | 184 | 01:35 | 07:50 – 09:25 |
-| 7 · From Numbers to Decisions | 140 | 01:15 | 09:25 – 10:40 |
-| **Total** | **1238** | **10:40** | at 125 words per minute, plus 6 s per slide for drawing |
+| 1 · Two Bills, One Question | 188 | 01:35 | 00:00 – 01:35 |
+| 2 · Cost per Payment | 217 | 01:50 | 01:35 – 03:25 |
+| 3 · Make Cost Visible | 143 | 01:15 | 03:25 – 04:40 |
+| 4 · Where the Money Goes | 167 | 01:25 | 04:40 – 06:05 |
+| 5 · Test the Mainframe Savings | 189 | 01:35 | 06:05 – 07:40 |
+| 6 · Budgets, Anomalies, Cost in CI | 184 | 01:35 | 07:40 – 09:15 |
+| 7 · From Numbers to Decisions | 140 | 01:15 | 09:15 – 10:30 |
+| **Total** | **1228** | **10:30** | at 125 words per minute, plus 6 s per slide for drawing |
 
 ---
 
 <!-- slide:1 -->
 ## Slide 1 · Two Bills, One Question
 
-**[tag ①]** Earlier, we treated lower cost as a possible outcome. It must be **measured**, not promised. This episode compares two cost models in a reference bank. Mainframe pricing may involve capacity, software and contract terms; the actual bill and renewal rules are specific to the organisation.
+**[tag ①]** Earlier, we treated lower cost as a possible outcome. It must be **measured**, not promised. This payments sandbox compares two cost models. Mainframe pricing may involve capacity, software and contract terms; the actual bill and renewal rules are specific to the organisation.
 
 **[tag ②]** AWS has usage-based charges, commitments and discounts. A technical change can move the cloud bill, but the net effect depends on pricing, utilisation and the bank's agreements.
 
@@ -103,7 +103,7 @@
 
 **[tag ②]** In this synthetic profile, night batch sits below the daytime peak. Moving it might not change a peak-based charge. Under another contract, the answer could differ.
 
-**[tag ③]** The fall from nine hundred and fifty to eight hundred and thirty-five units is a **scenario calculation**, about twelve percent. It is not a result from a bank migration. A real reduction must be measured in the relevant SMF data and translated through the contract.
+**[tag ③]** The fall from nine hundred and fifty to eight hundred and thirty-five units is a **scenario calculation**, about twelve percent. To claim a real reduction, I would measure the relevant SMF data and translate it through the contract.
 
 **[tag ④]** I would compare mainframe capacity and billing data before and after each slice, with seasonality and other workloads accounted for.
 

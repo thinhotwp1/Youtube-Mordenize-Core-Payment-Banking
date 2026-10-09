@@ -1,7 +1,7 @@
 ﻿===== Slide 1 · What "the Flip" Really Means  (00:00 – 02:00) =====
 
 [tag ①]
-This episode examines a proposed change of write authority in our reference scenario.
+This episode examines a change of write authority in our payments sandbox.
 Before cutover, the example DB2 ledger is authoritative for the accounts in scope.
 The bank's finance and payments owners define what that authority means in its actual books.
 
@@ -25,9 +25,9 @@ A routing table identifies the proposed owner, but routing alone is not enough.
 We also need fencing against stale writers, idempotent retries, an in-flight transaction policy and a verified cut position.
 
 [tag ⑥]
-This is phase three of an illustrative roadmap.
-Retiring the old payment path would be a later decision, after dependencies, records and fallback obligations are checked.
-I am showing the engineering questions a bank team would need to answer, not reporting a cutover I have run.
+This is phase three of the sandbox roadmap.
+Retiring the old payment path comes later, after dependencies, records and fallback obligations are checked.
+The execution method is transferable: establish ownership, prove the cut position, rehearse recovery and let evidence open the gate.
 
 ===== Slide 2 · Earn the Flip  (02:00 – 03:50) =====
 
@@ -169,9 +169,8 @@ After each wave, I would propose hypercare with payments operations, SRE and the
 The two-to-four-week window is an example; the bank ends it only when evidence supports normal operation.
 
 [tag ②]
-The day-fourteen dashboard is sample data, not an observed bank result.
-It shows the types of evidence to review: p99 latency, straight-through processing, breaks, complaints and fallbacks.
-A credible go decision also needs the bank's baselines and a check for missing or delayed outcomes.
+The day-fourteen dashboard uses sample data to show the evidence to review: p99 latency, straight-through processing, breaks, complaints and fallbacks.
+A credible go decision needs measured bank baselines and a check for missing or delayed outcomes.
 
 [tag ③]
 Finance receives the signed reconciliation report at the cadence it approves.

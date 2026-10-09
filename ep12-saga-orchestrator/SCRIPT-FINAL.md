@@ -13,21 +13,21 @@
 <!-- TIMETABLE -->
 | Slide | Words | Length | Timestamp |
 |---|---|---|---|
-| 1 · What the Orchestrator Does | 232 | 01:55 | 00:00 – 01:55 |
+| 1 · What the Orchestrator Does | 230 | 01:55 | 00:00 – 01:55 |
 | 2 · The State Machine | 258 | 02:10 | 01:55 – 04:05 |
 | 3 · In the Code: Java 21 | 226 | 01:55 | 04:05 – 06:00 |
 | 4 · Time Is a State Too | 180 | 01:30 | 06:00 – 07:30 |
 | 5 · Undo Before the Pivot, Forward After | 213 | 01:50 | 07:30 – 09:20 |
 | 6 · Test Every Cell, Not Just the Happy Path | 195 | 01:40 | 09:20 – 11:00 |
 | 7 · Operations and Handover | 159 | 01:20 | 11:00 – 12:20 |
-| **Total** | **1463** | **12:20** | at 125 words per minute, plus 6 s per slide for drawing |
+| **Total** | **1461** | **12:20** | at 125 words per minute, plus 6 s per slide for drawing |
 
 ---
 
 <!-- slide:1 -->
 ## Slide 1 · What the Orchestrator Does
 
-**[tag ①]** In this reference design, the payment **orchestrator** coordinates a difficult workflow. It begins with PaymentInitiated from the service in episode eleven. This is a way to show my execution method, not a claim that I have operated a bank payment core.
+**[tag ①]** In this payment sandbox, the **orchestrator** coordinates a difficult workflow. It begins with PaymentInitiated from the service in episode eleven. The method also applies to complex workflows in other large enterprise systems: make state, ownership, failure and recovery explicit.
 
 **[tag ②]** The orchestrator is the **technical owner** of the workflow state. It records what it knows and selects a next command from approved rules. External systems may still have uncertain or delayed status; the bank defines the authoritative business state.
 

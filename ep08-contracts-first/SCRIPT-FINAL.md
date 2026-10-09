@@ -13,21 +13,21 @@
 <!-- TIMETABLE -->
 | Slide | Words | Length | Timestamp |
 |---|---|---|---|
-| 1 · Why Contracts Come First | 260 | 02:10 | 00:00 – 02:10 |
-| 2 · The Contract Map for Slice 1 | 189 | 01:35 | 02:10 – 03:45 |
-| 3 · Anatomy of the Payment API | 205 | 01:45 | 03:45 – 05:30 |
-| 4 · Event Contracts That Don't Break | 215 | 01:50 | 05:30 – 07:20 |
-| 5 · Speaking ISO 20022 | 233 | 02:00 | 07:20 – 09:20 |
-| 6 · Contract Tests & Governance | 184 | 01:35 | 09:20 – 10:55 |
-| 7 · Version, Approve, Hand Over | 211 | 01:45 | 10:55 – 12:40 |
-| **Total** | **1497** | **12:40** | at 125 words per minute, plus 6 s per slide for drawing |
+| 1 · Why Contracts Come First | 264 | 02:15 | 00:00 – 02:15 |
+| 2 · The Contract Map for Slice 1 | 189 | 01:35 | 02:15 – 03:50 |
+| 3 · Anatomy of the Payment API | 205 | 01:45 | 03:50 – 05:35 |
+| 4 · Event Contracts That Don't Break | 215 | 01:50 | 05:35 – 07:25 |
+| 5 · Speaking ISO 20022 | 233 | 02:00 | 07:25 – 09:25 |
+| 6 · Contract Tests & Governance | 184 | 01:35 | 09:25 – 11:00 |
+| 7 · Version, Approve, Hand Over | 211 | 01:45 | 11:00 – 12:45 |
+| **Total** | **1501** | **12:45** | at 125 words per minute, plus 6 s per slide for drawing |
 
 ---
 
 <!-- slide:1 -->
 ## Slide 1 · Why Contracts Come First
 
-**[tag ①]** In this episode, I show how I design **contracts** between systems. A contract defines what one side sends and the other returns. I have seen large systems lose time when teams agree this too late: field names differ, money formats conflict, and retry behavior is unclear. This is an execution problem I can address without pretending to define a bank's payment rules.
+**[tag ①]** In this episode, I show how I design **contracts** between systems. A contract defines what one side sends and the other returns. I have seen large systems lose time when teams agree this too late: field names differ, money formats conflict, and retry behavior is unclear. Contract design is a transferable execution skill; in a real programme, bank specialists would provide and approve the payment meaning.
 
 **[tag ②]** My approach is to agree the technical contract **first**: OpenAPI for request-and-response APIs, AsyncAPI and Avro for events, and a scheme-approved ISO 20022 profile at the external boundary.
 

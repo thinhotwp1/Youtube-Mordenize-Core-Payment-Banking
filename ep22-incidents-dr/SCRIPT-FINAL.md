@@ -1,6 +1,6 @@
 # EP 22 · Incidents & DR Drills: Final Script
 
-**Series:** Core Payments Modernization — execution architecture (Stage 6: Operate). **Delivery:** clear English for global technology leaders. Incident and DR figures are synthetic scenarios; bank operations, Compliance and payments SMEs own live policy and acceptance.
+**Series:** Core Payments Modernization — execution architecture (Stage 6: Operate). **Delivery:** clear English for global technology leaders. Payments is the sandbox for enterprise incident and recovery methods. Figures are synthetic; bank operations, Compliance and payments SMEs own live policy and acceptance.
 
 **How to read it**
 - **Bold** = stress this word.
@@ -15,12 +15,12 @@
 |---|---|---|---|
 | 1 · Every Incident, the Same Five Steps | 208 | 01:45 | 00:00 – 01:45 |
 | 2 · Detect Fast — Without the Noise | 223 | 01:55 | 01:45 – 03:40 |
-| 3 · INC-0412: Stuck Payments | 258 | 02:10 | 03:40 – 05:50 |
-| 4 · Stop the Bleeding: Safe Switches | 212 | 01:50 | 05:50 – 07:40 |
-| 5 · Game Day: Lose a Whole Region | 257 | 02:10 | 07:40 – 09:50 |
-| 6 · Learn Without Blame | 182 | 01:35 | 09:50 – 11:25 |
-| 7 · Getting Better Every Quarter | 160 | 01:25 | 11:25 – 12:50 |
-| **Total** | **1500** | **12:50** | at 125 words per minute, plus 6 s per slide for drawing |
+| 3 · INC-0412: Stuck Payments | 250 | 02:05 | 03:40 – 05:45 |
+| 4 · Stop the Bleeding: Safe Switches | 212 | 01:50 | 05:45 – 07:35 |
+| 5 · Game Day: Lose a Whole Region | 249 | 02:05 | 07:35 – 09:40 |
+| 6 · Learn Without Blame | 182 | 01:35 | 09:40 – 11:15 |
+| 7 · Getting Better Every Quarter | 164 | 01:25 | 11:15 – 12:40 |
+| **Total** | **1488** | **12:40** | at 125 words per minute, plus 6 s per slide for drawing |
 
 ---
 
@@ -63,7 +63,7 @@
 <!-- slide:3 -->
 ## Slide 3 · INC-0412: Stuck Payments
 
-**[tag ①]** Let's walk through a **synthetic incident**. At two minutes past six on a Friday, the example dashboard shows two point one percent of payments without a final status. This is a scenario for testing the response, not a bank incident I have handled.
+**[tag ①]** Let's walk through a **synthetic incident**. At two minutes past six on a Friday, the example dashboard shows two point one percent of payments without a final status. The sandbox lets us test the response sequence, ownership and evidence trail.
 
 **[tag ②]** The sample runbook escalates from SEV two to SEV one as impact grows. The app banner illustrates customer communication. In a real bank, severity and wording need authorised owners and verified customer impact.
 
@@ -75,7 +75,7 @@
 
 **[tag ⑥]** The chart splits those cases into confirmed, not found and unresolved groups. But "not found" alone may not authorise an automatic funds release. The bank's scheme and ledger rules define when to release a hold, when to retry and when operations must investigate. The desired evidence is zero unexplained debits, not an unverified claim of zero loss.
 
-**[tag ⑦]** Compliance would classify the real incident against current DORA criteria and record its reasoning. The diagram shows that review as an open decision. Customer care and the review team use verified impact and timeline, not the synthetic numbers.
+**[tag ⑦]** Compliance classifies any live incident against current DORA criteria and records its reasoning. The diagram leaves that review open. Customer care and the review team use verified impact and timeline before they communicate.
 <!-- /slide -->
 
 ---
@@ -101,7 +101,7 @@
 <!-- slide:5 -->
 ## Slide 5 · Game Day: Lose a Whole Region
 
-**[tag ①]** Now a **proposed game-day scenario**: the primary AWS Region fails. The aim is to test the people, tooling, data position and customer path before a real outage. It is not a drill I claim to have run for a bank.
+**[tag ①]** Now a **sandbox game day**: the primary AWS Region fails. I would test the people, tooling, data position and customer path before a real outage. The drill turns recovery assumptions into evidence.
 
 **[tag ②]** The architecture proposes a warm standby in a second Region. Whether it can scale in time is part of the drill, not an assumption.
 
@@ -143,7 +143,7 @@
 <!-- slide:7 -->
 ## Slide 7 · Getting Better Every Quarter
 
-**[tag ①]** To know whether resilience improves, measure detection, restoration, severity and action closure over time. The two-minute detection, twenty-four-minute recovery and eighty-seven-percent closure on this chart are **synthetic example values**, not bank results.
+**[tag ①]** To know whether resilience improves, measure detection, restoration, severity and action closure over time. The two-minute detection, twenty-four-minute recovery and eighty-seven-percent closure on this chart are **synthetic example values**. A live scorecard uses measured incident records.
 
 **[tag ②]** The decline from nineteen to seven incidents over six quarters is an **illustrative trend**. A real scorecard needs consistent definitions and a stable reporting baseline.
 

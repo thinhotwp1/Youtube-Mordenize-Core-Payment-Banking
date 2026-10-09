@@ -13,27 +13,27 @@
 <!-- TIMETABLE -->
 | Slide | Words | Length | Timestamp |
 |---|---|---|---|
-| 1 · The Front Door for Slice 1 | 222 | 01:55 | 00:00 – 01:55 |
-| 2 · Inside the Service | 223 | 01:55 | 01:55 – 03:50 |
+| 1 · The Front Door for Slice 1 | 230 | 01:55 | 00:00 – 01:55 |
+| 2 · Inside the Service | 224 | 01:55 | 01:55 – 03:50 |
 | 3 · Two Kinds of Duplicate | 210 | 01:45 | 03:50 – 05:35 |
-| 4 · Idempotency in Code | 220 | 01:50 | 05:35 – 07:25 |
+| 4 · Idempotency in Code | 218 | 01:50 | 05:35 – 07:25 |
 | 5 · The Outbox in Practice | 209 | 01:45 | 07:25 – 09:10 |
 | 6 · AI-Assisted Build Plan | 186 | 01:35 | 09:10 – 10:45 |
 | 7 · Proof Plan: Same Payment Twice | 213 | 01:50 | 10:45 – 12:35 |
-| **Total** | **1483** | **12:35** | at 125 words per minute, plus 6 s per slide for drawing |
+| **Total** | **1490** | **12:35** | at 125 words per minute, plus 6 s per slide for drawing |
 
 ---
 
 <!-- slide:1 -->
 ## Slide 1 · The Front Door for Slice 1
 
-**[tag ①]** This episode examines the **front door** of the reference first slice. The diagram routes a mobile payment request through an API gateway to an initiation service. I use this scenario to show how I turn an approved contract into code; the bank decides the actual channel and product behavior.
+**[tag ①]** This episode examines the **front door** of the payment sandbox. The diagram routes a mobile request through an API gateway to an initiation service. The same engineering challenge appears in other high-volume systems: turn an approved contract into reliable code. Bank teams define the actual payment channel and product behavior.
 
 **[tag ②]** The proposed service aims to answer **quickly**, without waiting for fraud or scheme calls. Two-oh-two means accepted for processing, not paid or settled. The response includes a status link, with wording approved by the bank.
 
 **[tag ③]** It saves a payment record and an outbox entry in one transaction. Debezium can publish the event to Kafka, where the orchestrator must handle possible duplicates.
 
-**[tag ④]** The engineering responsibilities are input validation, idempotency, atomic storage, and a timely response. IBAN, amount, and currency checks follow a contract reviewed by the bank; I do not infer business eligibility from these technical checks.
+**[tag ④]** The engineering responsibilities are input validation, idempotency, atomic storage, and a timely response. I would implement IBAN, amount and currency checks from the bank's reviewed contract, with tests for each rule. Business eligibility follows the owner and boundary agreed for that check.
 
 **[tag ⑤]** The boundary is just as important. In this design, fraud, limits, possible business duplicates, ledger holds, and scheme messages belong to separate owners. Those boundaries are proposals to review with the bank; the initiation domain code does not publish directly to Kafka.
 
@@ -49,7 +49,7 @@
 
 **[tag ②]** On the left, a REST controller reads the request and Idempotency-Key. Validation can check format, IBAN digits, amount, currency, and decimal scale. The exact allowed values and error response need a bank-approved contract.
 
-**[tag ③]** The centre has a **domain model** for Payment, Money, IBAN, and status. BigDecimal with currency avoids binary rounding. Keeping Spring, SQL, and Kafka outside makes the model easier to test. It does not give me authority to define the bank's business states.
+**[tag ③]** The centre has a **domain model** for Payment, Money, IBAN, and status. BigDecimal with currency avoids binary rounding. Keeping Spring, SQL, and Kafka outside makes the model easier to test. Bank owners define the business states; I encode and verify their agreed transitions.
 
 **[tag ④]** On the right, a repository writes to PostgreSQL and an outbox writer records the event in the same transaction. Aurora is the candidate managed database in this architecture.
 
@@ -83,7 +83,7 @@
 <!-- slide:4 -->
 ## Slide 4 · Idempotency in Code
 
-**[tag ①]** Here is the core algorithm as **illustrative code**. First, look up the customer and key. If there is a completed result, replay it. The code shown is a design sketch, not a claim about deployed bank software.
+**[tag ①]** Here is the core algorithm as **sandbox code**. First, look up the customer and key. If there is a completed result, replay it. This makes the idempotency rule concrete enough to test under concurrent traffic.
 
 **[tag ②]** Compare a **hash** of the approved request fields. A changed amount with the same key must be rejected under the proposed contract. We need tests for canonicalisation, not only one happy-path hash.
 

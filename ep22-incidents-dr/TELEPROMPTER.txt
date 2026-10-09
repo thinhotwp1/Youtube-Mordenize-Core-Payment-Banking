@@ -61,12 +61,12 @@ The commander checks whether they truly share one cause.
 But the incident commander checks the draft, and decides.
 AI only drafts.
 
-===== Slide 3 · INC-0412: Stuck Payments  (03:40 – 05:50) =====
+===== Slide 3 · INC-0412: Stuck Payments  (03:40 – 05:45) =====
 
 [tag ①]
 Let's walk through a synthetic incident.
 At two minutes past six on a Friday, the example dashboard shows two point one percent of payments without a final status.
-This is a scenario for testing the response, not a bank incident I have handled.
+The sandbox lets us test the response sequence, ownership and evidence trail.
 
 [tag ②]
 The sample runbook escalates from SEV two to SEV one as impact grows.
@@ -94,11 +94,11 @@ The bank's scheme and ledger rules define when to release a hold, when to retry 
 The desired evidence is zero unexplained debits, not an unverified claim of zero loss.
 
 [tag ⑦]
-Compliance would classify the real incident against current DORA criteria and record its reasoning.
-The diagram shows that review as an open decision.
-Customer care and the review team use verified impact and timeline, not the synthetic numbers.
+Compliance classifies any live incident against current DORA criteria and records its reasoning.
+The diagram leaves that review open.
+Customer care and the review team use verified impact and timeline before they communicate.
 
-===== Slide 4 · Stop the Bleeding: Safe Switches  (05:50 – 07:40) =====
+===== Slide 4 · Stop the Bleeding: Safe Switches  (05:45 – 07:35) =====
 
 [tag ①]
 During an incident, the first goal is to limit customer harm.
@@ -127,12 +127,12 @@ The bank sets who may activate each switch.
 The commander follows the runbook; automation records the action; a second approver checks high-risk moves where policy requires.
 Every switch needs a rehearsed reversal and a way to see unintended effects.
 
-===== Slide 5 · Game Day: Lose a Whole Region  (07:40 – 09:50) =====
+===== Slide 5 · Game Day: Lose a Whole Region  (07:35 – 09:40) =====
 
 [tag ①]
-Now a proposed game-day scenario: the primary AWS Region fails.
-The aim is to test the people, tooling, data position and customer path before a real outage.
-It is not a drill I claim to have run for a bank.
+Now a sandbox game day: the primary AWS Region fails.
+I would test the people, tooling, data position and customer path before a real outage.
+The drill turns recovery assumptions into evidence.
 
 [tag ②]
 The architecture proposes a warm standby in a second Region.
@@ -166,7 +166,7 @@ Zero duplicate debits is an acceptance goal, not a result shown here.
 A later failback drill should check data convergence and customer routing with the same care.
 A recovery plan needs measured evidence before leaders rely on it.
 
-===== Slide 6 · Learn Without Blame  (09:50 – 11:25) =====
+===== Slide 6 · Learn Without Blame  (09:40 – 11:15) =====
 
 [tag ①]
 After an incident, gather verified facts: chat, alerts, logs, notes and recent changes.
@@ -206,11 +206,12 @@ People review and sign the post-mortem.
 [tag ⑦]
 Share the reviewed lessons with teams that have the same dependency, under the bank's information-handling rules.
 
-===== Slide 7 · Getting Better Every Quarter  (11:25 – 12:50) =====
+===== Slide 7 · Getting Better Every Quarter  (11:15 – 12:40) =====
 
 [tag ①]
 To know whether resilience improves, measure detection, restoration, severity and action closure over time.
-The two-minute detection, twenty-four-minute recovery and eighty-seven-percent closure on this chart are synthetic example values, not bank results.
+The two-minute detection, twenty-four-minute recovery and eighty-seven-percent closure on this chart are synthetic example values.
+A live scorecard uses measured incident records.
 
 [tag ②]
 The decline from nineteen to seven incidents over six quarters is an illustrative trend.

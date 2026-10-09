@@ -1,6 +1,6 @@
 # EP 19 · Shadow Ledger & Reconciliation: Final Script
 
-**Series:** Core Banking Payments Modernization (reference scenario · Stage 5: Test & Deploy). **Speed:** 120–130 words per minute. **Language:** clear international English for banking and technology leaders.
+**Series:** Core Banking Payments Modernization (payments sandbox · Stage 5: Test & Deploy). **Speed:** 120–130 words per minute. **Language:** clear international English for banking and technology leaders.
 
 **How to read it**
 - **Bold** = stress this word.
@@ -13,21 +13,21 @@
 <!-- TIMETABLE -->
 | Slide | Words | Length | Timestamp |
 |---|---|---|---|
-| 1 · Why a Shadow Ledger | 227 | 01:55 | 00:00 – 01:55 |
+| 1 · Why a Shadow Ledger | 222 | 01:55 | 00:00 – 01:55 |
 | 2 · How the Parallel Run Works | 273 | 02:15 | 01:55 – 04:10 |
 | 3 · Three Levels, Every Day | 240 | 02:00 | 04:10 – 06:10 |
-| 4 · Find, Classify, Fix Every Break | 209 | 01:45 | 06:10 – 07:55 |
-| 5 · Month-End and the Hard Days | 220 | 01:50 | 07:55 – 09:45 |
-| 6 · Test Read Offload and MIPS | 186 | 01:35 | 09:45 – 11:20 |
-| 7 · Ready to Flip? | 185 | 01:35 | 11:20 – 12:55 |
-| **Total** | **1540** | **12:55** | at 125 words per minute, plus 6 s per slide for drawing |
+| 4 · Find, Classify, Fix Every Break | 199 | 01:40 | 06:10 – 07:50 |
+| 5 · Month-End and the Hard Days | 220 | 01:50 | 07:50 – 09:40 |
+| 6 · Test Read Offload and MIPS | 189 | 01:35 | 09:40 – 11:15 |
+| 7 · Ready to Flip? | 177 | 01:30 | 11:15 – 12:45 |
+| **Total** | **1520** | **12:45** | at 125 words per minute, plus 6 s per slide for drawing |
 
 ---
 
 <!-- slide:1 -->
 ## Slide 1 · Why a Shadow Ledger
 
-**[tag ①]** Phase two of this **reference design** is a shadow ledger. The proposed new payment path runs beside a legacy mainframe, while the existing ledger remains the system of record. This is a design exercise, not a report from a bank programme I have led. I focus on the evidence a bank would need before changing that authority.
+**[tag ①]** Phase two of this **payments sandbox** is a shadow ledger. The proposed new payment path runs beside a legacy mainframe, while the existing ledger remains the system of record. My focus is the execution decision: what evidence would justify changing that authority? The compare-before-cutover method also applies to other large enterprise migrations.
 
 **[tag ②]** Why is this different from moving an ordinary service? Ledger entries affect balances and financial reporting. The exact posting, interest, fee and rounding rules depend on the bank's products and legal entities. Finance and payments specialists must define those rules. My engineering task is to make each rule traceable, testable and observable.
 
@@ -81,7 +81,7 @@
 <!-- slide:4 -->
 ## Slide 4 · Find, Classify, Fix Every Break
 
-**[tag ①]** A difference between two ledger results is a **break**. This chart is an illustrative target trajectory over thirty-two weeks, not a record of a bank programme. It shows how the team would expect unexplained breaks to fall, including through three close cycles. Real evidence would come from signed reconciliation reports.
+**[tag ①]** A difference between two ledger results is a **break**. This chart sketches an illustrative target trajectory over thirty-two weeks and three close cycles. I would use signed reconciliation reports to track actual progress and decide whether the gate is ready.
 
 **[tag ②]** I would start triage with four candidate causes, then let bank specialists refine the taxonomy.
 
@@ -127,7 +127,7 @@
 
 **[tag ③]** Read offload is a cost **hypothesis**. We measure mainframe usage and contract terms before counting savings.
 
-**[tag ④]** The chart models a fall from one hundred to seventy-eight MIPS units, about twenty-two percent. That is an **illustrative calculation**, not a measured bank result.
+**[tag ④]** The chart models a fall from one hundred to seventy-eight MIPS units, about twenty-two percent. It is an **illustrative calculation**; actual savings require measured workload and contract evidence.
 
 **[tag ⑤]** Freshness must be observable. The five-second p99 target and thirty-second alert shown here are example thresholds. A bank sets them from each read's tolerance and tests them under peak load.
 
@@ -147,7 +147,7 @@
 
 **[tag ④]** AI may assemble links to signed reports and break logs, then draft a summary. People check each claim against the source. The evidence pack is versioned and protected after approval.
 
-**[tag ⑤]** Episode twenty examines a **proposed** segment-by-segment cutover and its fallback limits. It does not claim that a bank has executed this design. Evidence, domain ownership and rehearsed recovery must earn any change of write authority.
+**[tag ⑤]** Episode twenty applies this method to a **proposed** segment-by-segment cutover and its fallback limits. Evidence, domain ownership and rehearsed recovery must earn any change of write authority.
 <!-- /slide -->
 
 

@@ -13,22 +13,22 @@
 <!-- TIMETABLE -->
 | Slide | Words | Length | Timestamp |
 |---|---|---|---|
-| 1 · Overnight Engine. Real-Time World. | 357 | 02:55 | 00:00 – 02:55 |
-| 2 · What "Done" Looks Like | 338 | 02:50 | 02:55 – 05:45 |
-| 3 · Strangle, Don't Rewrite | 364 | 03:00 | 05:45 – 08:45 |
-| 4 · Phase 2: Prove It Before We Trust It | 281 | 02:20 | 08:45 – 11:05 |
-| 5 · Phase 3: Flip Safely. Fail Gracefully. | 358 | 03:00 | 11:05 – 14:05 |
-| 6 · Consistency Without Two-Phase Commit | 306 | 02:35 | 14:05 – 16:40 |
-| 7 · AI Drafts. Experts Approve. Tests Enforce. | 246 | 02:05 | 16:40 – 18:45 |
-| 8 · Trade-offs & Takeaways | 234 | 02:00 | 18:45 – 20:45 |
-| **Total** | **2484** | **20:45** | at 125 words per minute, plus 6 s per slide for drawing |
+| 1 · Overnight Engine. Real-Time World. | 345 | 02:50 | 00:00 – 02:50 |
+| 2 · What "Done" Looks Like | 338 | 02:50 | 02:50 – 05:40 |
+| 3 · Strangle, Don't Rewrite | 364 | 03:00 | 05:40 – 08:40 |
+| 4 · Phase 2: Prove It Before We Trust It | 281 | 02:20 | 08:40 – 11:00 |
+| 5 · Phase 3: Flip Safely. Fail Gracefully. | 358 | 03:00 | 11:00 – 14:00 |
+| 6 · Consistency Without Two-Phase Commit | 306 | 02:35 | 14:00 – 16:35 |
+| 7 · AI Drafts. Experts Approve. Tests Enforce. | 246 | 02:05 | 16:35 – 18:40 |
+| 8 · Trade-offs & Takeaways | 234 | 02:00 | 18:40 – 20:40 |
+| **Total** | **2472** | **20:40** | at 125 words per minute, plus 6 s per slide for drawing |
 
 ---
 
 <!-- slide:1 -->
 ## Slide 1 · Overnight Engine. Real-Time World.
 
-**[tag ①]** This series uses an **illustrative bank** to examine a real engineering question: how do you change a critical system while it keeps running? I have built and operated large enterprise systems, but I have not directly modernized a core banking system. The bank owns its payment rules and obligations. My role here is to show how those rules become architecture, code, tests, release controls, and operating decisions. In our reference scenario, COBOL and CICS process payments, DB2 holds balances, and a nightly batch completes some work. A real bank would first confirm this picture against its own estate.
+**[tag ①]** This series uses a **payments sandbox** to examine a challenge I know from large enterprise systems: how do you change a critical platform while it keeps running? The methods apply beyond banking. I will show how confirmed business needs become architecture, code, tests, release controls, and operating decisions. In this reference scenario, COBOL and CICS process payments, DB2 holds balances, and a nightly batch completes some work. Bank specialists own the payment rules and obligations; an actual programme would confirm its estate and requirements before design.
 
 **[tag ②]** First, **business opportunity**. A bank may want faster payment products, but the target depends on its market, scheme, and customers. The architecture must support the product decision the bank actually makes.
 

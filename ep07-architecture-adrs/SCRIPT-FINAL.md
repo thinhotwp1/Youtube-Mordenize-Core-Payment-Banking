@@ -13,21 +13,21 @@
 <!-- TIMETABLE -->
 | Slide | Words | Length | Timestamp |
 |---|---|---|---|
-| 1 · Architecture Starts From Drivers | 229 | 01:55 | 00:00 – 01:55 |
-| 2 · Slice 1 in Context | 219 | 01:50 | 01:55 – 03:45 |
-| 3 · Inside the Platform | 237 | 02:00 | 03:45 – 05:45 |
-| 4 · Follow One Payment Through the Design | 263 | 02:10 | 05:45 – 07:55 |
-| 5 · Staying 24/7 When the Mainframe Sleeps | 301 | 02:30 | 07:55 – 10:25 |
-| 6 · ADRs: Decisions You Can Audit | 279 | 02:20 | 10:25 – 12:45 |
-| 7 · Review, Guardrails & Hand Over | 208 | 01:45 | 12:45 – 14:30 |
-| **Total** | **1736** | **14:30** | at 125 words per minute, plus 6 s per slide for drawing |
+| 1 · Architecture Starts From Drivers | 235 | 02:00 | 00:00 – 02:00 |
+| 2 · Slice 1 in Context | 219 | 01:50 | 02:00 – 03:50 |
+| 3 · Inside the Platform | 237 | 02:00 | 03:50 – 05:50 |
+| 4 · Follow One Payment Through the Design | 263 | 02:10 | 05:50 – 08:00 |
+| 5 · Staying 24/7 When the Mainframe Sleeps | 302 | 02:30 | 08:00 – 10:30 |
+| 6 · ADRs: Decisions You Can Audit | 277 | 02:20 | 10:30 – 12:50 |
+| 7 · Review, Guardrails & Hand Over | 208 | 01:45 | 12:50 – 14:35 |
+| **Total** | **1741** | **14:35** | at 125 words per minute, plus 6 s per slide for drawing |
 
 ---
 
 <!-- slide:1 -->
 ## Slide 1 · Architecture Starts From Drivers
 
-**[tag ①]** Welcome to the **design** stage. This is a reference case, not a claim that I have modernised a bank's payment core. The bank owns its business rules and risk choices. My role is to turn those confirmed inputs into technical decisions. I start with a rules catalog, a proposed first slice, a backlog, NFRs, and security controls.
+**[tag ①]** Welcome to the **design** stage. This payments sandbox lets me show the architecture decisions behind a large system change. The engineering method applies across enterprise domains; in a real programme, bank owners would supply the payment rules and risk choices. I turn those confirmed inputs into technical decisions, starting with a rules catalog, a proposed first slice, a backlog, NFRs, and security controls.
 
 **[tag ②]** From these, I identify the architecture **drivers**: requirements that shape the design. In this example, preventing duplicate processing and lost instructions ranks above speed. Then come availability, recovery, security, audit, changeability, and cost. The bank must confirm that order and the exact targets.
 
@@ -103,7 +103,7 @@
 <!-- slide:5 -->
 ## Slide 5 · Staying 24/7 When the Mainframe Sleeps
 
-**[tag ①]** This slide explores a hard architectural question: what if a legacy ledger has a planned outage but the proposed service needs wider hours? I have not made this decision for a bank. Here are three candidate options scored against the example drivers.
+**[tag ①]** This slide explores a hard architectural question: what if a legacy ledger has a planned outage but the proposed service needs wider hours? I compare three candidate options against the example drivers, then identify the evidence a bank would need before choosing one.
 
 **[tag ②]** Option B, **stand-in** processing, appears on the diagram as the working hypothesis for slice one. It cannot claim a ninety-nine point nine nine percent outcome, a risk rating, or a delivery date yet. Those require evidence and approval from ledger, finance, risk, compliance, and scheme owners.
 
@@ -135,7 +135,7 @@
 
 **[tag ⑥]** AI can draft an ADR from an options matrix and flag conflicts with earlier decisions. Architects verify the evidence; the bank's review board is responsible for its own signoff.
 
-**[tag ⑦]** Spikes are where technical confidence becomes evidence. I would measure whether the ledger can meet a one hundred and twenty millisecond budget, whether Kafka handles a five-thousand-per-second test load, and whether replay preserves accounting invariants. The ninety-eight millisecond result shown is an example only; I am not presenting it as a real bank benchmark.
+**[tag ⑦]** Spikes are where technical confidence becomes evidence. I would measure whether the ledger can meet a one hundred and twenty millisecond budget, whether Kafka handles a five-thousand-per-second test load, and whether replay preserves accounting invariants. The ninety-eight millisecond figure is a synthetic example; the decision needs measured results from the target environment.
 <!-- /slide -->
 
 ---

@@ -17,17 +17,17 @@
 | 2 · Translate, Don’t Leak | 217 | 01:50 | 01:55 – 03:45 |
 | 3 · Calling the Mainframe Safely | 241 | 02:00 | 03:45 – 05:45 |
 | 4 · Change Data Capture: DB2 → AWS | 211 | 01:45 | 05:45 – 07:30 |
-| 5 · One Truth, Two Worlds | 204 | 01:45 | 07:30 – 09:15 |
-| 6 · Simulating the Mainframe Boundary | 193 | 01:40 | 09:15 – 10:55 |
-| 7 · Operations and Handover | 185 | 01:35 | 10:55 – 12:30 |
-| **Total** | **1481** | **12:30** | at 125 words per minute, plus 6 s per slide for drawing |
+| 5 · One Truth, Two Worlds | 200 | 01:40 | 07:30 – 09:10 |
+| 6 · Simulating the Mainframe Boundary | 193 | 01:40 | 09:10 – 10:50 |
+| 7 · Operations and Handover | 185 | 01:35 | 10:50 – 12:25 |
+| **Total** | **1477** | **12:25** | at 125 words per minute, plus 6 s per slide for drawing |
 
 ---
 
 <!-- slide:1 -->
 ## Slide 1 · Two Bridges, Two Directions
 
-**[tag ①]** This episode asks how a new platform could coexist with a legacy ledger. The diagram uses a DB2 mainframe as a **reference scenario**. A real bank would confirm its system of record and migration boundary first. If the ledger stays authoritative during the first slice, the new services need a controlled bridge in two directions.
+**[tag ①]** This episode asks how a new platform can coexist with a legacy system of record. That is a familiar enterprise integration problem. The payment sandbox uses a DB2 mainframe ledger: while it stays authoritative, new services need a controlled bridge in two directions. A bank would confirm its own system of record and migration boundary.
 
 **[tag ②]** Commands go **out**. For example, an orchestrator requests a hold of two hundred and fifty euros. An adapter could translate that request to a CICS program through z/OS Connect, then return a clear result.
 
@@ -115,7 +115,7 @@
 
 **[tag ⑤]** A daily balance reconciliation is one candidate control, down to the **cent** where the domain model supports it. The bank sets coverage, timing and treatment of known differences.
 
-**[tag ⑥]** The diagram's two-point-one-million accounts and three differences are **illustrative test data**, not a production report. The execution principle is real: every unexplained difference gets an owner, evidence and a resolution path.
+**[tag ⑥]** The diagram's two-point-one-million accounts and three differences are **synthetic test data**. The execution principle is real: every unexplained difference gets an owner, evidence and a resolution path.
 <!-- /slide -->
 
 ---
@@ -123,11 +123,11 @@
 <!-- slide:6 -->
 ## Slide 6 · Simulating the Mainframe Boundary
 
-**[tag ①]** How would I de-risk a mainframe bridge before integration? Start with the same ledger-adapter code intended for deployment, surrounded by controlled test doubles. A local harness proves engineering behaviour; it cannot prove the bank's mainframe contract by itself.
+**[tag ①]** How would I de-risk a mainframe bridge before integration? Start with the same ledger-adapter code intended for deployment, surrounded by controlled test doubles. The local harness tests engineering behaviour; the bank's interface and environment provide the contract and capacity gates.
 
 **[tag ②]** Toxiproxy could inject delays and broken connections between the adapter and simulator. A recorded fault test would show whether timeout and circuit-breaker behaviour meet the target.
 
-**[tag ③]** A REST shim can mimic z/OS Connect, and GnuCOBOL can execute a **representative** PAYHOLD routine. It is not the bank's real COBOL program unless the bank supplies and approves it.
+**[tag ③]** A REST shim can mimic z/OS Connect, and GnuCOBOL can execute a **representative** PAYHOLD routine. The bank's approved copybooks and program behaviour become the contract for integration tests.
 
 **[tag ④]** Postgres plays DB2, and Debezium plays the CDC tool, so the data-in direction works too.
 

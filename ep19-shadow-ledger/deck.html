@@ -241,7 +241,7 @@ function d6(){
 
 /* 7 · Go / no-go for the flip */
 function d7(){return [
-  group({x:10,y:30,w:780,h:560,k:'good',label:'🚦 ILLUSTRATIVE GATE · NO BANK SIGN-OFF'}),
+  group({x:10,y:30,w:780,h:560,k:'good',label:'🚦 PROPOSED GATE · BANK APPROVAL REQUIRED'}),
   table({x:30,y:66,w:740,hh:28,rh:54,cols:[['CRITERION',0],['EVIDENCE',400],['STATUS',590]],
     rows:[['3 clean month-ends in a row','weeks 22 · 26 · 30','sample pass'],
           ['0 unexplained breaks for 60 days','daily reports','sample pass'],
@@ -277,7 +277,7 @@ function d7(){return [
    ============================================================ */
 const DECK={
   brand:'🏦 CORE BANKING PAYMENTS MODERNIZATION · AWS',
-  ep:'EP 19', epShort:'EP19', title:'Shadow Ledger & Reconciliation', subtitle:'Execution Architecture · Reference Scenario',
+  ep:'EP 19', epShort:'EP19', title:'Shadow Ledger & Reconciliation', subtitle:'Payments Sandbox · Enterprise Execution',
   seriesTitle:'Core Payments Modernization · Execution Architecture',
   logo:'../shared/jo-logo.png', background:'../shared/background.png',
   stages:[['🔍','Discover'],['📋','Requirements'],['📐','Design & Plan'],['🛠️','Build'],['🚀','Test & Deploy'],['🔧','Operate']],
@@ -359,7 +359,7 @@ const DECK={
             ['Same cut','Link source position to event watermark and posting IDs.'],
             ['How often','Minutes, daily, and every month-end.'],
             ['Daily scorecard','Match rate, breaks, unexplained, oldest break.']]},
-    {icon:'🚩',kicker:'EP19 · 4/7 · BREAKS',title:'Find, Classify, Fix Every Break',time:'06:10 – 07:55',draw:d4,
+    {icon:'🚩',kicker:'EP19 · 4/7 · BREAKS',title:'Find, Classify, Fix Every Break',time:'06:10 – 07:50',draw:d4,
      key:'Explain every break. Never copy a bug by accident.',next:'🔜 Next: month-end and the hard days',
      open:'A difference between the two books is called a break.',
      land:'A break is closed only after replay and a clean re-check.',
@@ -373,7 +373,7 @@ const DECK={
             ['Legacy bug: decide','The business decides; we record why.'],
             ['AI groups breaks','Thousands of breaks → a few likely causes.'],
             ['Closed after replay','Only a clean re-check closes a break.']]},
-    {icon:'📅',kicker:'EP19 · 5/7 · HARD DAYS',title:'Month-End and the Hard Days',time:'07:55 – 09:45',draw:d5,
+    {icon:'📅',kicker:'EP19 · 5/7 · HARD DAYS',title:'Month-End and the Hard Days',time:'07:50 – 09:40',draw:d5,
      key:'Easy days prove little. Hard days prove the ledger.',next:'🔜 Next: move the reads, cut the MIPS',
      open:'A normal Tuesday proves very little.',
      land:'Reconcile by business day. Trace by timestamp.',
@@ -387,7 +387,7 @@ const DECK={
             ['Interest and fees','Tiny rounding adds up across millions of accounts.'],
             ['Two kinds of day','Bank-defined business date and event timestamp.'],
             ['Record both dates','Business date + exact timestamp on every posting.']]},
-    {icon:'🔻',kicker:'EP19 · 6/7 · COST HYPOTHESIS',title:'Test Read Offload and MIPS',time:'09:45 – 11:20',draw:d6,
+    {icon:'🔻',kicker:'EP19 · 6/7 · COST HYPOTHESIS',title:'Test Read Offload and MIPS',time:'09:40 – 11:15',draw:d6,
      key:'Test read offload and measure any savings.',next:'🔜 Next: go / no-go for the flip',
      open:'Read offload may be useful before the flip, if bank controls allow it.',
      land:'Prove freshness and cost before claiming savings.',
@@ -400,7 +400,7 @@ const DECK={
             ['Example −22%','Illustrative 100-to-78 unit scenario.'],
             ['Freshness watched','CDC lag p99 under 5 s, alarm at 30 s.'],
             ['Rehearsed fallback','Lag may route eligible reads back if capacity allows.']]},
-    {icon:'🚦',kicker:'EP19 · 7/7 · GO / NO-GO',title:'Ready to Flip?',time:'11:20 – 12:55',draw:d7,
+    {icon:'🚦',kicker:'EP19 · 7/7 · GO / NO-GO',title:'Ready to Flip?',time:'11:15 – 12:45',draw:d7,
      key:'Evidence, not opinion, earns the flip.',next:'🔜 Next episode: EP20 — The Flip, Segment by Segment',
      open:'So, are we ready to flip?',
      land:'Evidence, not opinion, earns the flip.',

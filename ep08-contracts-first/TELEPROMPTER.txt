@@ -1,10 +1,10 @@
-﻿===== Slide 1 · Why Contracts Come First  (00:00 – 02:10) =====
+﻿===== Slide 1 · Why Contracts Come First  (00:00 – 02:15) =====
 
 [tag ①]
 In this episode, I show how I design contracts between systems.
 A contract defines what one side sends and the other returns.
 I have seen large systems lose time when teams agree this too late: field names differ, money formats conflict, and retry behavior is unclear.
-This is an execution problem I can address without pretending to define a bank's payment rules.
+Contract design is a transferable execution skill; in a real programme, bank specialists would provide and approve the payment meaning.
 
 [tag ②]
 My approach is to agree the technical contract first: OpenAPI for request-and-response APIs, AsyncAPI and Avro for events, and a scheme-approved ISO 20022 profile at the external boundary.
@@ -34,7 +34,7 @@ That gives teams one technical reference, with clear links to the bank's authori
 Prism can serve a mock from the contract.
 I use it to expose integration gaps early, then validate behavior with the real implementation.
 
-===== Slide 2 · The Contract Map for Slice 1  (02:10 – 03:45) =====
+===== Slide 2 · The Contract Map for Slice 1  (02:15 – 03:50) =====
 
 [tag ①]
 Here is the contract map for the reference first slice.
@@ -61,7 +61,7 @@ I would aim for a stable contract, but a change in ledger semantics may still re
 This example maps five main contracts: Payments API, payment events, fraud API, ledger adapter, and scheme messages.
 Before delivery, I would identify an owner, every consumer, and the business authority for each.
 
-===== Slide 3 · Anatomy of the Payment API  (03:45 – 05:30) =====
+===== Slide 3 · Anatomy of the Payment API  (03:50 – 05:35) =====
 
 [tag ①]
 Let's inspect a proposed payment-start contract: POST slash payments.
@@ -94,7 +94,7 @@ The bank's identity and compliance teams define the actual proof required.
 The extension fields link this contract to the story, latency budget, and confirmed rules.
 That trace lets a reviewer see why a field or response exists, and who can change it.
 
-===== Slide 4 · Event Contracts That Don't Break  (05:30 – 07:20) =====
+===== Slide 4 · Event Contracts That Don't Break  (05:35 – 07:25) =====
 
 [tag ①]
 Event contracts need care because one producer may have many readers.
@@ -126,7 +126,7 @@ The working rule is: add carefully, then test.
 An optional field with a default may be compatible, but changes in meaning can still break a reader.
 For a major change, version two can run beside version one during a controlled move, with each consumer owner agreeing the plan.
 
-===== Slide 5 · Speaking ISO 20022  (07:20 – 09:20) =====
+===== Slide 5 · Speaking ISO 20022  (07:25 – 09:25) =====
 
 [tag ①]
 The diagram proposes a canonical model inside the platform, with names aligned where useful to ISO 20022.
@@ -157,7 +157,7 @@ Tests should cover approved sample messages, field boundaries, and the official 
 Schema validation proves structure, not scheme acceptance or business correctness.
 The bank's scheme owner must sign off the mapping before live traffic.
 
-===== Slide 6 · Contract Tests & Governance  (09:20 – 10:55) =====
+===== Slide 6 · Contract Tests & Governance  (09:25 – 11:00) =====
 
 [tag ①]
 A contract is useful only when code keeps it.
@@ -188,7 +188,7 @@ It must use confirmed stories and rules as sources.
 People approve changes, including business meaning.
 The desired result is fewer surprises in integration, measured by contract failures and rework.
 
-===== Slide 7 · Version, Approve, Hand Over  (10:55 – 12:40) =====
+===== Slide 7 · Version, Approve, Hand Over  (11:00 – 12:45) =====
 
 [tag ①]
 Contracts will change.

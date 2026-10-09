@@ -1,11 +1,10 @@
-﻿===== Slide 1 · Architecture Starts From Drivers  (00:00 – 01:55) =====
+﻿===== Slide 1 · Architecture Starts From Drivers  (00:00 – 02:00) =====
 
 [tag ①]
 Welcome to the design stage.
-This is a reference case, not a claim that I have modernised a bank's payment core.
-The bank owns its business rules and risk choices.
-My role is to turn those confirmed inputs into technical decisions.
-I start with a rules catalog, a proposed first slice, a backlog, NFRs, and security controls.
+This payments sandbox lets me show the architecture decisions behind a large system change.
+The engineering method applies across enterprise domains; in a real programme, bank owners would supply the payment rules and risk choices.
+I turn those confirmed inputs into technical decisions, starting with a rules catalog, a proposed first slice, a backlog, NFRs, and security controls.
 
 [tag ②]
 From these, I identify the architecture drivers: requirements that shape the design.
@@ -31,7 +30,7 @@ In a real programme, these are only approved through the bank's own governance.
 [validation plan]
 The engineering evidence would be versioned Structurizr diagrams and decision records in Git, so reviewers can trace each choice.
 
-===== Slide 2 · Slice 1 in Context  (01:55 – 03:45) =====
+===== Slide 2 · Slice 1 in Context  (02:00 – 03:50) =====
 
 [tag ①]
 I use the C4 model to make assumptions visible.
@@ -61,7 +60,7 @@ At the bottom are asynchronous feeds for screening, anti-money-laundering, repor
 Their timing, content, and controls need bank approval.
 Technically, I would publish governed events or files and avoid direct reads of another service's database.
 
-===== Slide 3 · Inside the Platform  (03:45 – 05:45) =====
+===== Slide 3 · Inside the Platform  (03:50 – 05:50) =====
 
 [tag ①]
 Now we zoom in to level two, the containers.
@@ -97,7 +96,7 @@ OpenTelemetry, CloudWatch, and X-Ray provide trace evidence across the flow.
 A second region is a recovery option.
 We would test replication, failover, and the actual recovery time against the bank's agreed targets.
 
-===== Slide 4 · Follow One Payment Through the Design  (05:45 – 07:55) =====
+===== Slide 4 · Follow One Payment Through the Design  (05:50 – 08:00) =====
 
 [tag ①]
 Let's follow one payment through this reference design.
@@ -135,12 +134,11 @@ Finally, the proposed flow posts to the legacy ledger and sends a customer updat
 The half-second p99 shown here is an illustrative target for internal steps.
 It needs a load test and end-to-end reconciliation evidence.
 
-===== Slide 5 · Staying 24/7 When the Mainframe Sleeps  (07:55 – 10:25) =====
+===== Slide 5 · Staying 24/7 When the Mainframe Sleeps  (08:00 – 10:30) =====
 
 [tag ①]
 This slide explores a hard architectural question: what if a legacy ledger has a planned outage but the proposed service needs wider hours?
-I have not made this decision for a bank.
-Here are three candidate options scored against the example drivers.
+I compare three candidate options against the example drivers, then identify the evidence a bank would need before choosing one.
 
 [tag ②]
 Option B, stand-in processing, appears on the diagram as the working hypothesis for slice one.
@@ -173,7 +171,7 @@ Risk owners would set exposure limits, maximum duration, alerts, and reporting.
 I would first run a spike with failure and replay tests, then present the evidence to the bank.
 The architecture is only credible if its controls can be demonstrated.
 
-===== Slide 6 · ADRs: Decisions You Can Audit  (10:25 – 12:45) =====
+===== Slide 6 · ADRs: Decisions You Can Audit  (10:30 – 12:50) =====
 
 [tag ①]
 I put each major technical choice in an architecture decision record, or ADR.
@@ -208,9 +206,9 @@ Architects verify the evidence; the bank's review board is responsible for its o
 [tag ⑦]
 Spikes are where technical confidence becomes evidence.
 I would measure whether the ledger can meet a one hundred and twenty millisecond budget, whether Kafka handles a five-thousand-per-second test load, and whether replay preserves accounting invariants.
-The ninety-eight millisecond result shown is an example only; I am not presenting it as a real bank benchmark.
+The ninety-eight millisecond figure is a synthetic example; the decision needs measured results from the target environment.
 
-===== Slide 7 · Review, Guardrails & Hand Over  (12:45 – 14:30) =====
+===== Slide 7 · Review, Guardrails & Hand Over  (12:50 – 14:35) =====
 
 [tag ①]
 Before building a production payment flow, the bank's architecture and risk owners must review the design.

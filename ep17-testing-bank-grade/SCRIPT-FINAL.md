@@ -1,6 +1,6 @@
 # EP 17 · Testing a Bank-Grade Platform: Final Script
 
-**Series:** Core Payments Modernization — execution architecture (Stage 5: Test & Deploy). **Delivery:** clear English for global technology leaders. This is an illustrative bank scenario; bank domain owners define the payment rules and acceptance evidence.
+**Series:** Core Payments Modernization — execution architecture (Stage 5: Test & Deploy). **Delivery:** clear English for global technology leaders. Payments is the sandbox; the execution method applies across large enterprise systems. Bank domain owners define payment rules and acceptance evidence.
 
 **How to read it**
 - **Bold** = stress this word.
@@ -13,21 +13,21 @@
 <!-- TIMETABLE -->
 | Slide | Words | Length | Timestamp |
 |---|---|---|---|
-| 1 · Many Layers, One Goal | 231 | 01:55 | 00:00 – 01:55 |
-| 2 · Evidence Across Test Environments | 197 | 01:40 | 01:55 – 03:35 |
-| 3 · Realistic Data, Zero Real Customers | 204 | 01:45 | 03:35 – 05:20 |
-| 4 · AI Writes Tests. People Decide. | 225 | 01:55 | 05:20 – 07:15 |
-| 5 · Money Must Never Be Lost | 245 | 02:05 | 07:15 – 09:20 |
-| 6 · No Green, No Go | 188 | 01:35 | 09:20 – 10:55 |
-| 7 · Pilot Gate Evidence | 211 | 01:45 | 10:55 – 12:40 |
-| **Total** | **1501** | **12:40** | at 125 words per minute, plus 6 s per slide for drawing |
+| 1 · Many Layers, One Goal | 226 | 01:55 | 00:00 – 01:55 |
+| 2 · Evidence Across Test Environments | 190 | 01:35 | 01:55 – 03:30 |
+| 3 · Realistic Data, Zero Real Customers | 199 | 01:40 | 03:30 – 05:10 |
+| 4 · AI Writes Tests. People Decide. | 215 | 01:50 | 05:10 – 07:00 |
+| 5 · Money Must Never Be Lost | 245 | 02:05 | 07:00 – 09:05 |
+| 6 · No Green, No Go | 184 | 01:35 | 09:05 – 10:40 |
+| 7 · Pilot Gate Evidence | 211 | 01:45 | 10:40 – 12:25 |
+| **Total** | **1470** | **12:25** | at 125 words per minute, plus 6 s per slide for drawing |
 
 ---
 
 <!-- slide:1 -->
 ## Slide 1 · Many Layers, One Goal
 
-**[tag ①]** We are now at the test and deploy stage of this **reference design**. The challenge is to turn requirements into evidence before real money is at risk. I would use a test pyramid, but no test suite alone can prove every bank rule or law. Payments and compliance owners define what must be accepted.
+**[tag ①]** We are at the test and deploy stage of this **payments sandbox**. In large enterprise systems, I turn requirements into evidence before a critical release. A test pyramid gives fast feedback. Payments and compliance owners define the business cases and the acceptance gate.
 
 **[tag ②]** Unit tests cover small decisions quickly. The slide's three thousand tests and two-minute run are **planning figures**. The real suite and duration would be measured in the delivery pipeline.
 
@@ -35,7 +35,7 @@
 
 **[tag ④]** Contract tests check APIs and message formats against agreed interfaces. ISO 20022 meaning and scheme profiles still need payments SME approval; a passing schema test is not enough.
 
-**[tag ⑤]** End-to-end tests exercise payment flows with partner simulators. Golden tests can compare old and new outcomes against bank-approved examples. Fifty thousand nightly cases is an illustrative target, not an existing bank test suite.
+**[tag ⑤]** End-to-end tests exercise payment flows with partner simulators. Golden tests can compare old and new outcomes against bank-approved examples. Fifty thousand nightly cases is an illustrative planning target; the actual suite follows the risk profile and available partner environments.
 
 **[tag ⑥]** Load, fault and security tests probe non-functional risks. Their schedule should reflect change risk and environment cost; weekly and pre-release are sample gates.
 
@@ -47,7 +47,7 @@
 <!-- slide:2 -->
 ## Slide 2 · Evidence Across Test Environments
 
-**[tag ①]** The diagram shows six possible environments, from local development to production. They are a planning model, not a description of an existing bank estate. Each step should make the test more representative.
+**[tag ①]** The diagram proposes six environments, from local development to production. Each step makes the test more representative and adds evidence for the next release gate.
 
 **[tag ②]** A CI environment created by Terraform could give each pull request a clean test space. Whether it is practical for every change depends on cost, security and provisioning time.
 
@@ -69,7 +69,7 @@
 
 **[tag ②]** Masked production-derived data may be useful for golden comparisons if the bank permits it and re-identification risk is controlled. Access, retention and environment boundaries need explicit approval.
 
-**[tag ③]** Raw production customer data should not enter ordinary test environments. Whether any exceptional use is lawful is for the bank's privacy and legal teams, not a claim I can make from this diagram.
+**[tag ③]** Raw production customer data should not enter ordinary test environments. The bank's privacy and legal teams decide whether any exceptional use is lawful and how it is controlled.
 
 **[tag ④]** To make synthetic data useful, feed the generator bank-approved patterns: peak days, account states, valid identifiers and customer profiles. The earlier episodes provide candidate cases, not evidence of a particular bank's behaviour.
 
@@ -97,7 +97,7 @@
 
 **[tag ⑥]** The mutation score is the share of seeded changes the tests catch. Eighty-two percent and a seventy-five-percent gate on this slide are **illustrative**, not measured results or universal thresholds.
 
-**[tag ⑦]** Watch for tests that assert nothing, copy a bug, or fail randomly. The twelve-hundred-test count and seventy-four-percent acceptance are sample dashboard figures. In a real programme, I would report actual review and mutation evidence, not borrow these numbers as a success claim.
+**[tag ⑦]** Watch for tests that assert nothing, copy a bug, or fail randomly. The twelve-hundred-test count and seventy-four-percent acceptance are sample dashboard figures. A live release gate needs measured review and mutation evidence.
 <!-- /slide -->
 
 ---
@@ -135,7 +135,7 @@
 
 **[tag ⑤]** Each result should become **traceable evidence**: test, build, environment, owner and linked requirement. Compliance owners map those requirements to applicable obligations. A locked report helps review, but it is only as good as the underlying tests.
 
-**[tag ⑥]** Flaky tests weaken trust. I would quarantine them quickly, assign an owner, and prevent a rerun from hiding a failure. The twenty-four-hour and five-day windows on the slide are proposed service levels, not a bank policy I have implemented.
+**[tag ⑥]** Flaky tests weaken trust. I would quarantine them quickly, assign an owner, and prevent a rerun from hiding a failure. The twenty-four-hour and five-day windows on the slide are proposed service levels for the sandbox.
 <!-- /slide -->
 
 ---
@@ -149,7 +149,7 @@
 
 **[tag ③]** And customer support looks at what customers see, and what they will ask.
 
-**[tag ④]** The go/no-go report should show coverage, open defects, load evidence and current recovery evidence. Zero major defects, five thousand payments per second and four-hundred-and-twenty-millisecond p99 are **illustrative criteria**, not benchmark results. Bank leaders decide the actual gate.
+**[tag ④]** The go/no-go report should show coverage, open defects, load evidence and current recovery evidence. Zero major defects, five thousand payments per second and four-hundred-and-twenty-millisecond p99 are **illustrative criteria**. Bank leaders set the actual gate using measured results.
 
 **[tag ⑤]** The seven differences shown are an **example** of a comparison report. Every real difference would need a business explanation, owner and sign-off. Engineers should not decide alone whether an old behaviour is a bug or an obligation.
 

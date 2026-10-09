@@ -1,6 +1,6 @@
 # EP 18 · CI/CD with Bank Controls: Final Script
 
-**Series:** Core Payments Modernization — execution architecture (Stage 5: Test & Deploy). **Delivery:** clear English for global technology leaders. This is an illustrative bank scenario; bank change, risk, security and payments owners set the real controls.
+**Series:** Core Payments Modernization — execution architecture (Stage 5: Test & Deploy). **Delivery:** clear English for global technology leaders. Payments is the sandbox for an enterprise release-control method; bank change, risk, security and payments owners set the live controls.
 
 **How to read it**
 - **Bold** = stress this word.
@@ -13,21 +13,21 @@
 <!-- TIMETABLE -->
 | Slide | Words | Length | Timestamp |
 |---|---|---|---|
-| 1 · Fast and Safe Are Not Opposites | 205 | 01:45 | 00:00 – 01:45 |
+| 1 · Fast and Safe Are Not Opposites | 208 | 01:45 | 00:00 – 01:45 |
 | 2 · One Change, End to End | 199 | 01:40 | 01:45 – 03:25 |
 | 3 · Scan Every Change | 184 | 01:35 | 03:25 – 05:00 |
-| 4 · Know What You Ship | 215 | 01:50 | 05:00 – 06:50 |
-| 5 · Approval by Risk, Not by Meeting | 189 | 01:35 | 06:50 – 08:25 |
-| 6 · Release in Small Steps | 182 | 01:35 | 08:25 – 10:00 |
-| 7 · Evidence by Design | 174 | 01:30 | 10:00 – 11:30 |
-| **Total** | **1348** | **11:30** | at 125 words per minute, plus 6 s per slide for drawing |
+| 4 · Know What You Ship | 208 | 01:45 | 05:00 – 06:45 |
+| 5 · Approval by Risk, Not by Meeting | 189 | 01:35 | 06:45 – 08:20 |
+| 6 · Release in Small Steps | 182 | 01:35 | 08:20 – 09:55 |
+| 7 · Evidence by Design | 178 | 01:30 | 09:55 – 11:25 |
+| **Total** | **1348** | **11:25** | at 125 words per minute, plus 6 s per slide for drawing |
 
 ---
 
 <!-- slide:1 -->
 ## Slide 1 · Fast and Safe Are Not Opposites
 
-**[tag ①]** Large organisations often face tension between **speed** and control. This slide contrasts two hypothetical release models. In the first, a developer writes a change ticket and waits for a monthly approval meeting. It is an example, not a claim about how every bank works.
+**[tag ①]** Large organisations often face tension between **speed** and control. This payments sandbox contrasts two release models. In the first example, a developer writes a change ticket and waits for a monthly approval meeting. The execution challenge is to keep controls strong while making evidence easier to collect.
 
 **[tag ②]** If fifty changes are bundled into one release, fault isolation becomes harder and manual evidence takes more work. The number fifty is illustrative. I would measure a bank's actual batch size, failure rate and lead time before recommending a change.
 
@@ -97,7 +97,7 @@
 
 **[tag ⑤]** Promoting the same image across environments reduces the chance that a different build reaches production. Environment-specific configuration still needs control and testing.
 
-**[tag ⑥]** Imagine a new library vulnerability. Search the SBOMs, identify affected services, notify owners and assess the fix. The nine-o'clock timeline and three affected services are **illustrative**, not a response time I have observed. Actual speed depends on inventory quality and patch risk.
+**[tag ⑥]** Imagine a new library vulnerability. Search the SBOMs, identify affected services, notify owners and assess the fix. The nine-o'clock timeline and three affected services are **illustrative**. Actual speed depends on inventory quality and patch risk.
 
 **[tag ⑦]** The target is a reliable answer to "are we affected?" quickly, backed by current inventory. I would measure response time and test admission controls. Legal teams determine which supply-chain obligations apply.
 <!-- /slide -->
@@ -155,7 +155,7 @@
 
 **[tag ④]** And the AI risks here? AI could approve its own code, so AI can **never** approve. An AI suggestion could hide a weakness, so every pull request is reviewed and scanned. And secrets could be pasted into a prompt, so we use secret scans and masked data.
 
-**[tag ⑤]** Episode nineteen examines a proposed shadow ledger and reconciliation. Episode twenty examines a possible segment-by-segment flip. The bank's acceptance evidence determines whether the next gate opens; this series shows the execution method, not a completed banking migration.
+**[tag ⑤]** Episode nineteen examines a shadow ledger and reconciliation in the sandbox. Episode twenty examines a segment-by-segment flip. The bank's acceptance evidence determines whether the next gate opens. This is the same evidence-led execution method I use to approach difficult enterprise change.
 <!-- /slide -->
 
 ---

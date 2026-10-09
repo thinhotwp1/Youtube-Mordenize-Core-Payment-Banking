@@ -13,21 +13,21 @@
 <!-- TIMETABLE -->
 | Slide | Words | Length | Timestamp |
 |---|---|---|---|
-| 1 · One Front Door | 227 | 01:55 | 00:00 – 01:55 |
-| 2 · How the Router Decides | 201 | 01:40 | 01:55 – 03:35 |
-| 3 · Flags as Code | 210 | 01:45 | 03:35 – 05:20 |
-| 4 · A Pure Decision | 231 | 01:55 | 05:20 – 07:15 |
-| 5 · The Dangerous Edges | 208 | 01:45 | 07:15 – 09:00 |
-| 6 · Ramp Up, Roll Back | 197 | 01:40 | 09:00 – 10:40 |
-| 7 · Proof Plan and Next | 193 | 01:40 | 10:40 – 12:20 |
-| **Total** | **1467** | **12:20** | at 125 words per minute, plus 6 s per slide for drawing |
+| 1 · One Front Door | 213 | 01:50 | 00:00 – 01:50 |
+| 2 · How the Router Decides | 201 | 01:40 | 01:50 – 03:30 |
+| 3 · Flags as Code | 210 | 01:45 | 03:30 – 05:15 |
+| 4 · A Pure Decision | 231 | 01:55 | 05:15 – 07:10 |
+| 5 · The Dangerous Edges | 208 | 01:45 | 07:10 – 08:55 |
+| 6 · Ramp Up, Roll Back | 189 | 01:35 | 08:55 – 10:30 |
+| 7 · Proof Plan and Next | 193 | 01:40 | 10:30 – 12:10 |
+| **Total** | **1445** | **12:10** | at 125 words per minute, plus 6 s per slide for drawing |
 
 ---
 
 <!-- slide:1 -->
 ## Slide 1 · One Front Door
 
-**[tag ①]** In large enterprise systems, including airline networks, I have worked with comparable load and routing problems. Gradual traffic shifts and rollback are patterns I can bring here; **payment meaning is not transferable one-to-one**. This router is an illustrative bank design. Domain teams must confirm eligible channels and payment types. In the reference flow, channels keep one API while the gateway checks the caller and reads the Idempotency-Key.
+**[tag ①]** In large enterprise systems, including airline networks, I have worked with comparable load and routing problems. I bring that experience to gradual traffic shifts, route ownership and recovery. This payment sandbox uses one API while the gateway checks the caller and reads the Idempotency-Key. Bank domain teams define eligible channels and payment types.
 
 **[tag ②]** Behind the gateway is the **payment router**. It asks one question for every payment: old system, or new platform?
 
@@ -87,7 +87,7 @@
 <!-- slide:4 -->
 ## Slide 4 · A Pure Decision
 
-**[tag ①]** Now the implementation pattern. In Java twenty-one, I would model the route with a sealed interface: Legacy or NewPlatform, plus the rule that made the decision. This is an example code design, not a deployed router.
+**[tag ①]** Now the implementation pattern. In Java twenty-one, I would model the route with a sealed interface: Legacy or NewPlatform, plus the rule that made the decision. That makes the sandbox policy explicit and easy to test.
 
 **[tag ②]** The decide method is a **pure function**. Same facts in, same answer out, with no side effects. Line six is the kill switch, so it runs before anything else.
 
@@ -123,7 +123,7 @@
 <!-- slide:6 -->
 ## Slide 6 · Ramp Up, Roll Back
 
-**[tag ①]** How might a bank move the dial? The slide proposes a staff cohort for two weeks. That is a planning example, not a claim that staff are always the right pilot group. Product, risk and operations would approve the cohort.
+**[tag ①]** How might a bank move the dial? The slide uses a staff cohort for two weeks as one planning option. Product, risk and operations would select and approve the real pilot cohort.
 
 **[tag ②]** The diagram proposes one, five, twenty-five, fifty and one hundred percent as possible steps. Each step needs a bank-approved gate and enough observation time to support the next move.
 

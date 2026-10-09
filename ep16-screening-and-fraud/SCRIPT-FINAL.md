@@ -13,21 +13,21 @@
 <!-- TIMETABLE -->
 | Slide | Words | Length | Timestamp |
 |---|---|---|---|
-| 1 · Catch Fraud, Keep Friction Low | 213 | 01:50 | 00:00 – 01:50 |
-| 2 · Where Each Check Sits | 212 | 01:50 | 01:50 – 03:40 |
-| 3 · Customer Screening Boundary | 260 | 02:10 | 03:40 – 05:50 |
-| 4 · The Fraud Decision in 150 ms | 229 | 01:55 | 05:50 – 07:45 |
-| 5 · When Fraud Is Slow or Down | 218 | 01:50 | 07:45 – 09:35 |
-| 6 · From Alert to Decision | 192 | 01:40 | 09:35 – 11:15 |
-| 7 · Evidence and Ownership Handover | 244 | 02:05 | 11:15 – 13:20 |
-| **Total** | **1568** | **13:20** | at 125 words per minute, plus 6 s per slide for drawing |
+| 1 · Catch Fraud, Keep Friction Low | 220 | 01:50 | 00:00 – 01:50 |
+| 2 · Where Each Check Sits | 200 | 01:40 | 01:50 – 03:30 |
+| 3 · Customer Screening Boundary | 251 | 02:05 | 03:30 – 05:35 |
+| 4 · The Fraud Decision in 150 ms | 229 | 01:55 | 05:35 – 07:30 |
+| 5 · When Fraud Is Slow or Down | 218 | 01:50 | 07:30 – 09:20 |
+| 6 · From Alert to Decision | 192 | 01:40 | 09:20 – 11:00 |
+| 7 · Evidence and Ownership Handover | 237 | 02:00 | 11:00 – 13:00 |
+| **Total** | **1547** | **13:00** | at 125 words per minute, plus 6 s per slide for drawing |
 
 ---
 
 <!-- slide:1 -->
 ## Slide 1 · Catch Fraud, Keep Friction Low
 
-**[tag ①]** Faster payments shrink the time available to detect harm. In this reference scenario, decisions are time-sensitive and a later recall may not recover funds. Exact finality and recall rights depend on the scheme and jurisdiction; bank specialists own that interpretation.
+**[tag ①]** Faster payments shrink the time available to detect harm. In this payment sandbox, the engineering challenge is a timely, traceable decision that works under load. The same decision-service pattern applies across large enterprise systems. Bank specialists define payment finality and recall rights for the chosen scheme and jurisdiction.
 
 **[tag ②]** The diagram highlights three risk classes the bank may need to address: authorised push-payment scams, mule activity, and sanctions restrictions. Their definitions and required controls are bank policy questions.
 
@@ -35,7 +35,7 @@
 
 **[tag ④]** So our goal is a balance: catch fraud, and keep friction low. Every rule and every threshold is a trade-off.
 
-**[tag ⑤]** My execution role is to turn signed risk requirements into four components: rules and limits, an adapter to an approved fraud engine, a controlled status feed, and case-handling plus outage paths. This is a design proposal, not a claim that I own the bank's fraud policy.
+**[tag ⑤]** My execution role is to turn signed risk requirements into four components: rules and limits, an adapter to an approved fraud engine, a controlled status feed, and case-handling plus outage paths. Risk and Financial Crime own policy; I make its decisions executable, observable and testable.
 
 **[tag ⑥]** Why does a CFO care? Fraud losses, reimbursement exposure, false positives and investigation cost all affect outcomes. I would ask Finance and Risk for the bank's actual loss and cost baseline before claiming a business case. Fraud is also a **cost** topic.
 <!-- /slide -->
@@ -51,11 +51,11 @@
 
 **[tag ③]** Some monitoring looks for patterns after a payment; blocked or uncertain payments may create cases. Financial Crime decides which checks must happen before, during or after the transaction.
 
-**[tag ④]** The diagram shows a precomputed blocked-customer status feed as **one possible** sanctions control. It is not a blanket statement that sanctions can always sit outside the flow. Legal and Financial Crime must check the applicable rules, lists and screening points.
+**[tag ④]** The diagram shows a precomputed blocked-customer status feed as **one possible** sanctions control. Legal and Financial Crime check the applicable rules, lists and screening points before deciding whether this feed can serve the payment path.
 
 **[tag ⑤]** Precomputed status could reduce latency, but the claimed one-hundred-and-twenty-millisecond saving and two-millisecond read are **hypotheses**. I would benchmark them and document freshness, missed-event risk and audit evidence. If a real-time screen is required, the design must include it.
 
-**[tag ⑥]** The execution decision is to place each approved check where its legal deadline, risk and latency can all be met. The three lanes on the slide are a discussion tool for the bank's owners, not a universal compliance model.
+**[tag ⑥]** The execution decision is to place each approved check where its legal deadline, risk and latency can all be met. The three lanes make that placement decision visible to the bank's owners.
 <!-- /slide -->
 
 ---
@@ -63,7 +63,7 @@
 <!-- slide:3 -->
 ## Slide 3 · Customer Screening Boundary
 
-**[tag ①]** Here is an **illustrative** interface to an existing screening function owned by Financial Crime. The bank decides which lists, entities and events must be screened, under its jurisdictions and policy. My concern is how an approved decision reaches the payment path reliably.
+**[tag ①]** Here is the sandbox interface to a screening function owned by Financial Crime. The bank decides which lists, entities and events must be screened, under its jurisdictions and policy. I design how an approved decision reaches the payment path reliably.
 
 **[tag ②]** The slide shows scheduled screening and event-driven updates, with fuzzy matching for spelling variants. Frequency and matching policy need approval by Financial Crime, including what happens when a feed is late.
 
@@ -73,7 +73,7 @@
 
 **[tag ⑤]** The engineering boundary shown here stores an approved account status and applies it to a payment decision. AC06 and two milliseconds are example code and target values; the bank validates the reason mapping and benchmark. This component does not itself decide who should be screened.
 
-**[tag ⑥]** I would not use this architecture slide as legal advice. The bank's Legal and Financial Crime teams must interpret the current instant-payments regulation, list obligations and any per-transaction controls, then sign the required screening design.
+**[tag ⑥]** The bank's Legal and Financial Crime teams interpret the current instant-payments regulation, list obligations and any per-transaction controls. Their signed design becomes the source for implementation and tests.
 
 **[tag ⑦]** I would instrument coverage, possible matches, review time, feed lag and time to apply an urgent block. Under one hour is an **illustrative service target**, not an observed result or legal standard.
 <!-- /slide -->
@@ -157,7 +157,7 @@
 
 **[tag ⑦]** The slide lists candidate scenarios: a scam pattern, a mule signal, a blocked account, a fraud outage and an urgent status update. Expected outcomes, AC06 mapping and one-hour or one-hundred-and-fifty-millisecond targets must come from approved policy and measured tests.
 
-**[tag ⑧]** Fourteen rules, one hundred and twenty scenarios and ninety-six milliseconds at p99 are **illustrative dashboard values**, not results I have measured for a bank. The real output would be a signed policy, reproducible tests and load evidence. Episode seventeen examines how to test the pieces **together**.
+**[tag ⑧]** Fourteen rules, one hundred and twenty scenarios and ninety-six milliseconds at p99 are **sandbox dashboard values**. A real programme would publish its signed policy, reproducible tests and measured load evidence. Episode seventeen examines how to test the pieces **together**.
 <!-- /slide -->
 
 ---

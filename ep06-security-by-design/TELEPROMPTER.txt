@@ -3,7 +3,7 @@
 [tag ①]
 Security reviews are costly when they arrive after design choices are locked.
 In large enterprise delivery, this creates avoidable rework.
-For this payment reference scenario, I would bring security and bank compliance owners into the first slice decision, not assume any bank currently leaves them until the end.
+The payments sandbox brings security and bank compliance owners into the first slice decision, so their approved controls shape the architecture from the start.
 
 [tag ②]
 The execution pattern is to make security part of every stage: approved requirements, threat model, build checks, adversarial tests, and production monitoring.

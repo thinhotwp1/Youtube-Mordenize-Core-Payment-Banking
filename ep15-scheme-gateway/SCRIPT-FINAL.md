@@ -14,25 +14,25 @@
 <!-- TIMETABLE -->
 | Slide | Words | Length | Timestamp |
 |---|---|---|---|
-| 1 · The Bank’s Door to the Scheme | 210 | 01:45 | 00:00 – 01:45 |
-| 2 · Selected Scheme Messages | 178 | 01:30 | 01:45 – 03:15 |
-| 3 · From Our Event to a pacs.008 | 208 | 01:45 | 03:15 – 05:00 |
-| 4 · Inside the Gateway | 170 | 01:30 | 05:00 – 06:30 |
-| 5 · When Answers Are Late — or Wrong | 231 | 01:55 | 06:30 – 08:25 |
-| 6 · Test Failure Paths with a Scheme Simulator | 199 | 01:40 | 08:25 – 10:05 |
-| 7 · The Real-Money Gate | 181 | 01:35 | 10:05 – 11:40 |
-| **Total** | **1377** | **11:40** | at 125 words per minute, plus 6 s per slide for drawing |
+| 1 · The Bank’s Door to the Scheme | 197 | 01:40 | 00:00 – 01:40 |
+| 2 · Selected Scheme Messages | 163 | 01:25 | 01:40 – 03:05 |
+| 3 · From Our Event to a pacs.008 | 187 | 01:35 | 03:05 – 04:40 |
+| 4 · Inside the Gateway | 170 | 01:30 | 04:40 – 06:10 |
+| 5 · When Answers Are Late — or Wrong | 231 | 01:55 | 06:10 – 08:05 |
+| 6 · Test Failure Paths with a Scheme Simulator | 188 | 01:35 | 08:05 – 09:40 |
+| 7 · The Real-Money Gate | 183 | 01:35 | 09:40 – 11:15 |
+| **Total** | **1319** | **11:15** | at 125 words per minute, plus 6 s per slide for drawing |
 
 ---
 
 <!-- slide:1 -->
 ## Slide 1 · The Bank’s Door to the Scheme
 
-**[tag ①]** The previous episodes described internal boundaries. This one considers the **door** to an external payment scheme. I am using payments as a reference scenario for a broader integration problem I know from large enterprise systems: keep external contracts out of core services. Here, an internal service could publish a submission command through Kafka.
+**[tag ①]** The previous episodes described internal boundaries. This one considers the **door** to an external payment scheme. In this sandbox, I apply an integration pattern from large enterprise systems: isolate external contracts from core services. An internal service could publish a submission command through Kafka.
 
 **[tag ②]** The proposed design gives one gateway ownership of scheme integration. It acts as an anti-corruption layer, keeping external message versions and connectivity details out of internal services. The bank decides the actual connectivity boundary.
 
-**[tag ③]** For this SEPA Instant reference case, the outside contract uses a specific ISO 20022 profile and a clearing and settlement mechanism, such as TIPS or RT1. Message versions, fields, network steps and settlement meaning come from the bank and scheme documentation. I would not infer them from the generic ISO standard alone.
+**[tag ③]** For this SEPA Instant case, the outside contract uses a specific ISO 20022 profile and a clearing and settlement mechanism, such as TIPS or RT1. Bank and scheme documentation define the message versions, fields, network steps and settlement meaning. I translate those approved sources into testable integration rules.
 
 **[tag ④]** I would structure the gateway around five engineering duties: translate, validate, protect transport, track state, and retain evidence. The scheme's rules determine the exact message and retention requirements.
 
@@ -56,7 +56,7 @@
 
 **[tag ⑤]** A later problem may need a recall process. The diagram uses **camt.056** as an example request; reason and eligibility must come from payments operations and the scheme rulebook.
 
-**[tag ⑥]** The slide shows **pacs.004** and **camt.029** as possible return and resolution messages. I would ask the payments SME to validate every branch, status and exception before implementation. The set on this slide is deliberately limited; it is not a complete scheme process.
+**[tag ⑥]** The slide shows **pacs.004** and **camt.029** as selected return and resolution examples. Payments SMEs validate each branch, status and exception against the active scheme profile before implementation.
 <!-- /slide -->
 
 ---
@@ -66,11 +66,11 @@
 
 **[tag ①]** Now the heart of the gateway: the **mapping**. On the left is our own event, in simple JSON. It has two references, the end-to-end ID and the UETR. It also has the amount, the debtor, the creditor, and the reason for the payment.
 
-**[tag ②]** On the right is a sample pacs.008 in XML. The lines show candidate mappings from internal references, amount, names, accounts and remittance text. Each mapping needs a source rule, target field and test case approved by payments SMEs. A diagram cannot establish the final contract.
+**[tag ②]** On the right is a sample pacs.008 in XML. The lines show candidate mappings from internal references, amount, names, accounts and remittance text. For each mapping, I want an authoritative source rule, target field and test case approved by payments SMEs.
 
-**[tag ③]** The gateway may add technical envelope fields such as message ID and transaction count. The settlement method and charge bearer are **not** engineering guesses. Even if this reference profile shows SLEV, the bank must confirm the current scheme guide and message version.
+**[tag ③]** The gateway may add technical envelope fields such as message ID and transaction count. The bank confirms settlement method and charge bearer against the current scheme guide and message version, including whether SLEV applies here.
 
-**[tag ④]** AI can draft mapping code and tests from a licensed implementation guide. Engineers check structure; payments SMEs check meaning. Official samples, negative cases and scheme certification would be required before connection. None of those approvals is implied by this reference design.
+**[tag ④]** AI can draft mapping code and tests from a licensed implementation guide. Engineers check structure; payments SMEs check meaning. Official samples, negative cases and scheme certification become explicit gates before connection.
 
 **[tag ⑤]** I would use three validation layers: ISO schema, scheme profile, and bank-approved business rules. The value is in making every reject explainable and testable. The domain owners supply the actual rules; the engineering team makes them executable.
 <!-- /slide -->
@@ -120,15 +120,15 @@
 <!-- slide:6 -->
 ## Slide 6 · Test Failure Paths with a Scheme Simulator
 
-**[tag ①]** For engineering validation, I would first use a **scheme simulator**. One planned test keeps it silent, advances a test clock, and checks that payment state remains unknown. If the scheme policy calls for pacs.028, the gateway should send it at the approved time. This is a test design, not a claim of a completed scheme test.
+**[tag ①]** For engineering validation, I would first use a **scheme simulator**. One test keeps it silent, advances a test clock, and checks that payment state remains unknown. If the scheme policy calls for pacs.028, the gateway should send it at the approved time. This gives the team a repeatable failure-path test.
 
 **[tag ②]** The simulator, built with WireMock, can play six scenarios. It can accept, reject with a reason, stay silent, or answer twice. It can also accept a recall, or refuse one. Each scenario has an expected result.
 
-**[tag ③]** AI may suggest edge cases, but SMEs select them. The examples include accents, long remittance text, three decimal places, late answers and conflicting responses. Allowed characters and lengths come from the active scheme profile, not from a generic rule I claim to know.
+**[tag ③]** AI may suggest edge cases, but SMEs select them. The examples include accents, long remittance text, three decimal places, late answers and conflicting responses. The active scheme profile supplies the allowed characters and lengths.
 
 **[tag ④]** Before any go-live decision, the bank would need to pass the applicable official message tests and explain any gaps.
 
-**[tag ⑤]** Scheme **certification** and connectivity approval are separate external gates owned by the bank and scheme. This architecture does not claim either has happened.
+**[tag ⑤]** Scheme **certification** and connectivity approval are separate external gates owned by the bank and scheme. I would track their evidence and owners alongside the engineering test results.
 
 **[tag ⑥]** Simulator cases can run in the pipeline on every pull request. External certification tests run in the scheme's approved environment and schedule.
 <!-- /slide -->
@@ -146,7 +146,7 @@
 
 **[tag ④]** AI could mis-map a field or invent a code. I would require official source references, tests for every mapping and sign-off by a payments expert. Technical tests support that review; they cannot replace domain judgment.
 
-**[tag ⑤]** This is the proposed boundary, not a claim of a connected bank gateway. Episode sixteen looks at how to translate fraud and screening policy into an executable decision path, with a sample one-hundred-and-fifty-millisecond budget.
+**[tag ⑤]** This sandbox gateway shows my approach to external integration: isolate the contract, test failures, and make approval gates visible. Episode sixteen applies the same execution method to fraud and screening decisions, with a sample one-hundred-and-fifty-millisecond budget.
 <!-- /slide -->
 
 ---

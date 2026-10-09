@@ -1,6 +1,6 @@
 # EP 24 · Continuous Modernisation with AI: Final Script
 
-**Series:** Core Payments Modernization — execution architecture (Stage 6: Operate · final episode). **Delivery:** clear English for global technology leaders. The migration is a reference scenario, not a completed banking programme; domain owners and providers validate all live requirements.
+**Series:** Core Payments Modernization — execution architecture (Stage 6: Operate · final episode). **Delivery:** clear English for global technology leaders. Payments is the sandbox; the continuous-change method applies across large enterprise systems. Domain owners and providers validate live requirements.
 
 **How to read it**
 - **Bold** = stress this word.
@@ -13,21 +13,21 @@
 <!-- TIMETABLE -->
 | Slide | Words | Length | Timestamp |
 |---|---|---|---|
-| 1 · Modern Today, Legacy Tomorrow? | 202 | 01:45 | 00:00 – 01:45 |
-| 2 · The Yearly Change Calendar | 201 | 01:40 | 01:45 – 03:25 |
-| 3 · Every Change, the Same Path | 213 | 01:50 | 03:25 – 05:15 |
-| 4 · Small and Often Beats Big and Rare | 184 | 01:35 | 05:15 – 06:50 |
-| 5 · Keep the AI Guardrails Current | 182 | 01:35 | 06:50 – 08:25 |
-| 6 · Audit Evidence, Always On | 209 | 01:45 | 08:25 – 10:10 |
-| 7 · The Full Circle | 199 | 01:40 | 10:10 – 11:50 |
-| **Total** | **1390** | **11:50** | at 125 words per minute, plus 6 s per slide for drawing |
+| 1 · Modern Today, Legacy Tomorrow? | 200 | 01:40 | 00:00 – 01:40 |
+| 2 · The Yearly Change Calendar | 201 | 01:40 | 01:40 – 03:20 |
+| 3 · Every Change, the Same Path | 206 | 01:45 | 03:20 – 05:05 |
+| 4 · Small and Often Beats Big and Rare | 184 | 01:35 | 05:05 – 06:40 |
+| 5 · Keep the AI Guardrails Current | 173 | 01:30 | 06:40 – 08:10 |
+| 6 · Audit Evidence, Always On | 209 | 01:45 | 08:10 – 09:55 |
+| 7 · The Full Circle | 199 | 01:40 | 09:55 – 11:35 |
+| **Total** | **1372** | **11:35** | at 125 words per minute, plus 6 s per slide for drawing |
 
 ---
 
 <!-- slide:1 -->
 ## Slide 1 · Modern Today, Legacy Tomorrow?
 
-**[tag ①]** Imagine the bank has completed a controlled payment cutover and retired an old path. What happens next? The new platform begins to **age** as soon as it goes live. This is the day-two question in our reference scenario, not a claim that I have completed a core banking migration.
+**[tag ①]** In our payments sandbox, imagine a controlled cutover is complete and an old path is retired. What happens next? The new platform begins to **age** as soon as it goes live. This day-two challenge is familiar across large enterprise systems: modernisation has to continue after the launch.
 
 **[tag ②]** Change comes from scheme guides, regulation, security findings, Java and Spring versions, Kafka and cloud services, and AI models. Each has a different owner and timetable. I can design the execution path; bank domain experts decide which external rule applies.
 
@@ -77,7 +77,7 @@
 
 **[tag ⑥]** A controlled release can then collect test and runtime evidence. The repeatable rule is simple: AI drafts, tools check, and accountable people decide.
 
-**[tag ⑦]** Here is a **public external change**, not a project result. Swift says that after fourteen November twenty twenty-six, fully unstructured postal addresses will be removed for cross-border payments; structured or hybrid addresses will be accepted. A bank must confirm its applicable profile and data gaps. The three services, two schemas, four stories, eleven tests and **hours** on this diagram are synthetic impact-analysis outputs, not results from a live estate.
+**[tag ⑦]** Here is a **public external change**. Swift says that after fourteen November twenty twenty-six, fully unstructured postal addresses will be removed for cross-border payments; structured or hybrid addresses will be accepted. A bank must confirm its applicable profile and data gaps. The three services, two schemas, four stories, eleven tests and **hours** on this diagram are synthetic impact-analysis outputs for the sandbox.
 <!-- /slide -->
 
 ---
@@ -113,7 +113,7 @@
 
 **[tag ⑤]** Monitor acceptance, defects and incidents. Useful lessons can become reviewed repository rules and tests; an AGENTS.md file is one possible place for local guidance.
 
-**[tag ⑥]** The evaluation table is **synthetic**. Ninety-seven-percent rule recall, ninety-six-percent instruction adherence and a ninety-eight-percent target are examples, not measurements of a model I deployed. A real decision would use an approved dataset, clear scoring and a named risk owner. If a critical gate fails, the rollout waits.
+**[tag ⑥]** The evaluation table uses **synthetic** scores: ninety-seven-percent rule recall, ninety-six-percent instruction adherence and a ninety-eight-percent target. A real decision uses an approved dataset, clear scoring and a named risk owner. If a critical gate fails, the rollout waits.
 
 **[tag ⑦]** The skipped-outbox incident is a **hypothetical failure**. It shows an execution response: add a reviewed architecture rule, an ArchUnit check and a regression test. That reduces repeat risk; it cannot promise the error will never happen again.
 <!-- /slide -->

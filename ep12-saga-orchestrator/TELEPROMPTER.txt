@@ -1,9 +1,9 @@
 ﻿===== Slide 1 · What the Orchestrator Does  (00:00 – 01:55) =====
 
 [tag ①]
-In this reference design, the payment orchestrator coordinates a difficult workflow.
+In this payment sandbox, the orchestrator coordinates a difficult workflow.
 It begins with PaymentInitiated from the service in episode eleven.
-This is a way to show my execution method, not a claim that I have operated a bank payment core.
+The method also applies to complex workflows in other large enterprise systems: make state, ownership, failure and recovery explicit.
 
 [tag ②]
 The orchestrator is the technical owner of the workflow state.

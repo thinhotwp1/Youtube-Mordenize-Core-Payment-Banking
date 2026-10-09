@@ -1,9 +1,10 @@
 ﻿===== Slide 1 · The Front Door for Slice 1  (00:00 – 01:55) =====
 
 [tag ①]
-This episode examines the front door of the reference first slice.
-The diagram routes a mobile payment request through an API gateway to an initiation service.
-I use this scenario to show how I turn an approved contract into code; the bank decides the actual channel and product behavior.
+This episode examines the front door of the payment sandbox.
+The diagram routes a mobile request through an API gateway to an initiation service.
+The same engineering challenge appears in other high-volume systems: turn an approved contract into reliable code.
+Bank teams define the actual payment channel and product behavior.
 
 [tag ②]
 The proposed service aims to answer quickly, without waiting for fraud or scheme calls.
@@ -16,7 +17,8 @@ Debezium can publish the event to Kafka, where the orchestrator must handle poss
 
 [tag ④]
 The engineering responsibilities are input validation, idempotency, atomic storage, and a timely response.
-IBAN, amount, and currency checks follow a contract reviewed by the bank; I do not infer business eligibility from these technical checks.
+I would implement IBAN, amount and currency checks from the bank's reviewed contract, with tests for each rule.
+Business eligibility follows the owner and boundary agreed for that check.
 
 [tag ⑤]
 The boundary is just as important.
@@ -43,7 +45,7 @@ The exact allowed values and error response need a bank-approved contract.
 The centre has a domain model for Payment, Money, IBAN, and status.
 BigDecimal with currency avoids binary rounding.
 Keeping Spring, SQL, and Kafka outside makes the model easier to test.
-It does not give me authority to define the bank's business states.
+Bank owners define the business states; I encode and verify their agreed transitions.
 
 [tag ④]
 On the right, a repository writes to PostgreSQL and an outbox writer records the event in the same transaction.
@@ -91,10 +93,10 @@ The API team must check these choices against the current specification and its 
 ===== Slide 4 · Idempotency in Code  (05:35 – 07:25) =====
 
 [tag ①]
-Here is the core algorithm as illustrative code.
+Here is the core algorithm as sandbox code.
 First, look up the customer and key.
 If there is a completed result, replay it.
-The code shown is a design sketch, not a claim about deployed bank software.
+This makes the idempotency rule concrete enough to test under concurrent traffic.
 
 [tag ②]
 Compare a hash of the approved request fields.

@@ -1,10 +1,10 @@
 ﻿===== Slide 1 · Why a Shadow Ledger  (00:00 – 01:55) =====
 
 [tag ①]
-Phase two of this reference design is a shadow ledger.
+Phase two of this payments sandbox is a shadow ledger.
 The proposed new payment path runs beside a legacy mainframe, while the existing ledger remains the system of record.
-This is a design exercise, not a report from a bank programme I have led.
-I focus on the evidence a bank would need before changing that authority.
+My focus is the execution decision: what evidence would justify changing that authority?
+The compare-before-cutover method also applies to other large enterprise migrations.
 
 [tag ②]
 Why is this different from moving an ordinary service?
@@ -97,13 +97,12 @@ This scorecard is a worked example: a ninety-nine point nine nine seven percent 
 I would not call that release-ready without the bank's agreed threshold and a complete explanation for each material difference.
 A percentage alone can hide financial risk.
 
-===== Slide 4 · Find, Classify, Fix Every Break  (06:10 – 07:55) =====
+===== Slide 4 · Find, Classify, Fix Every Break  (06:10 – 07:50) =====
 
 [tag ①]
 A difference between two ledger results is a break.
-This chart is an illustrative target trajectory over thirty-two weeks, not a record of a bank programme.
-It shows how the team would expect unexplained breaks to fall, including through three close cycles.
-Real evidence would come from signed reconciliation reports.
+This chart sketches an illustrative target trajectory over thirty-two weeks and three close cycles.
+I would use signed reconciliation reports to track actual progress and decide whether the gate is ready.
 
 [tag ②]
 I would start triage with four candidate causes, then let bank specialists refine the taxonomy.
@@ -130,7 +129,7 @@ A named owner still confirms each root cause against the records.
 [tag ⑦]
 A break closes only with a documented decision, a fix where needed, replay evidence, and a clean re-check.
 
-===== Slide 5 · Month-End and the Hard Days  (07:55 – 09:45) =====
+===== Slide 5 · Month-End and the Hard Days  (07:50 – 09:40) =====
 
 [tag ①]
 An ordinary day is not enough evidence.
@@ -162,7 +161,7 @@ An engineering control is to retain both the bank-defined business date and the 
 We reconcile against the approved business calendar and trace by timestamp.
 We never assume a Friday payment belongs to Monday without that bank rule.
 
-===== Slide 6 · Test Read Offload and MIPS  (09:45 – 11:20) =====
+===== Slide 6 · Test Read Offload and MIPS  (09:40 – 11:15) =====
 
 [tag ①]
 A parallel-run mirror may support selected read workloads before any ledger cutover.
@@ -179,7 +178,7 @@ We measure mainframe usage and contract terms before counting savings.
 
 [tag ④]
 The chart models a fall from one hundred to seventy-eight MIPS units, about twenty-two percent.
-That is an illustrative calculation, not a measured bank result.
+It is an illustrative calculation; actual savings require measured workload and contract evidence.
 
 [tag ⑤]
 Freshness must be observable.
@@ -191,7 +190,7 @@ If CDC lags, a tested routing control can return eligible reads to the mainframe
 The on-call team is paged and checks freshness.
 The fallback is a design to rehearse, not an automatic guarantee.
 
-===== Slide 7 · Ready to Flip?  (11:20 – 12:55) =====
+===== Slide 7 · Ready to Flip?  (11:15 – 12:45) =====
 
 [tag ①]
 What evidence would justify a ledger cutover?
@@ -214,7 +213,6 @@ People check each claim against the source.
 The evidence pack is versioned and protected after approval.
 
 [tag ⑤]
-Episode twenty examines a proposed segment-by-segment cutover and its fallback limits.
-It does not claim that a bank has executed this design.
+Episode twenty applies this method to a proposed segment-by-segment cutover and its fallback limits.
 Evidence, domain ownership and rehearsed recovery must earn any change of write authority.
 

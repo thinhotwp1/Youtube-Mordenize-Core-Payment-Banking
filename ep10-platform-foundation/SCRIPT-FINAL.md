@@ -13,21 +13,21 @@
 <!-- TIMETABLE -->
 | Slide | Words | Length | Timestamp |
 |---|---|---|---|
-| 1 · Build the Road Once | 206 | 01:45 | 00:00 – 01:45 |
+| 1 · Build the Road Once | 208 | 01:45 | 00:00 – 01:45 |
 | 2 · The Landing Zone | 220 | 01:50 | 01:45 – 03:35 |
 | 3 · Private by Default | 182 | 01:35 | 03:35 – 05:10 |
 | 4 · The Payment Runtime | 217 | 01:50 | 05:10 – 07:00 |
 | 5 · Everything as Code | 191 | 01:40 | 07:00 – 08:40 |
-| 6 · Reference Test Stack | 183 | 01:35 | 08:40 – 10:15 |
-| 7 · The Golden Path for Squads | 213 | 01:50 | 10:15 – 12:05 |
-| **Total** | **1412** | **12:05** | at 125 words per minute, plus 6 s per slide for drawing |
+| 6 · Reference Test Stack | 185 | 01:35 | 08:40 – 10:15 |
+| 7 · The Golden Path for Squads | 216 | 01:50 | 10:15 – 12:05 |
+| **Total** | **1419** | **12:05** | at 125 words per minute, plus 6 s per slide for drawing |
 
 ---
 
 <!-- slide:1 -->
 ## Slide 1 · Build the Road Once
 
-**[tag ①]** Welcome to the build stage of this reference scenario. The bank would first confirm its rules and targets. My engineering move is to build a shared **platform** before scaling feature teams. In large enterprises, separate pipelines and security setups create repeated work and make controls harder to review. The diagram contrasts that fragmentation with a common delivery path.
+**[tag ①]** The payment sandbox now enters the build stage. I start with a shared **platform** before scaling feature teams. This pattern applies to many large enterprise systems: separate pipelines and security setups create repeated work and make controls harder to review. The diagram contrasts that fragmentation with a common delivery path. Bank teams would confirm their own rules and targets.
 
 **[tag ②]** A platform team can provide one **paved road**: network patterns, security controls, pipelines, runtime, and monitoring. Squads can then focus on their services, while the bank reviews one repeatable set of controls.
 
@@ -35,7 +35,7 @@
 
 **[tag ④]** In this operating model, a platform team builds and runs the shared road. Delivery squads are its **customers**, with feedback and service levels.
 
-**[tag ⑤]** The road has five building blocks: landing zone, network, runtime, pipelines, and a local engineering stack. Each is a technical decision to validate, not a claim that this bank platform is deployed.
+**[tag ⑤]** The road has five building blocks: landing zone, network, runtime, pipelines, and a local engineering stack. I would validate each block against security, resilience and delivery requirements before a team relies on it.
 
 **[validation plan]** Terraform plans and a local Docker Compose stack would be the technical evidence to review, alongside security and failure tests.
 <!-- /slide -->
@@ -99,7 +99,7 @@
 <!-- slide:5 -->
 ## Slide 5 · Everything as Code
 
-**[tag ①]** I would express this platform as **code** with Terraform modules for the landing zone, network, EKS, Kafka, databases, observability, and service template. Versions give squads a controlled way to adopt changes. The diagram shows a proposed module map, not a deployed estate.
+**[tag ①]** I would express this platform as **code** with Terraform modules for the landing zone, network, EKS, Kafka, databases, observability, and service template. Versions give squads a controlled way to adopt changes. The diagram shows the module map I would build and validate.
 
 **[tag ②]** AI can draft modules from confirmed decisions and AGENTS.md rules. In this model, AI cannot apply production changes, disable guardrails, or insert secrets. Named engineers review every suggestion.
 
@@ -119,7 +119,7 @@
 <!-- slide:6 -->
 ## Slide 6 · Reference Test Stack
 
-**[tag ①]** The **local stack** is for engineering tests, not a miniature bank. The aim is to reuse contracts, topic definitions, schemas, and database migrations where possible, with different endpoints and infrastructure.
+**[tag ①]** The **local stack** makes engineering tests repeatable. I would reuse contracts, topic definitions, schemas, and database migrations where possible, with different endpoints and infrastructure. Bank integration and capacity tests remain separate gates.
 
 **[tag ②]** Local stand-ins could include Kind, Kafka in Docker, PostgreSQL, Debezium, Unleash, and LocalStack. They make failure cases repeatable, but cannot prove AWS service behavior or production capacity.
 
@@ -143,7 +143,7 @@
 
 **[tag ③]** Services would use a common pipeline for tests, security scans, a software bill of materials, and policy checks, with exceptions reviewed explicitly.
 
-**[tag ④]** A service would pass contract and golden tests before a controlled release. Canary and rollback are options where the change is reversible. **One day** from idea to production is an illustrative delivery target, not a promise for a regulated payment change.
+**[tag ④]** A service would pass contract and golden tests before a controlled release. Canary and rollback are options where the change is reversible. **One day** from idea to production is a sandbox stretch target for suitable changes; a real release follows the bank's approval path.
 
 **[tag ⑤]** I would measure the platform like a product: time to first deployment, infrastructure coverage in code, policy exceptions, environment cost, and squad feedback. These numbers show whether the paved road actually helps.
 

@@ -1,10 +1,10 @@
 ﻿===== Slide 1 · Many Layers, One Goal  (00:00 – 01:55) =====
 
 [tag ①]
-We are now at the test and deploy stage of this reference design.
-The challenge is to turn requirements into evidence before real money is at risk.
-I would use a test pyramid, but no test suite alone can prove every bank rule or law.
-Payments and compliance owners define what must be accepted.
+We are at the test and deploy stage of this payments sandbox.
+In large enterprise systems, I turn requirements into evidence before a critical release.
+A test pyramid gives fast feedback.
+Payments and compliance owners define the business cases and the acceptance gate.
 
 [tag ②]
 Unit tests cover small decisions quickly.
@@ -22,7 +22,7 @@ ISO 20022 meaning and scheme profiles still need payments SME approval; a passin
 [tag ⑤]
 End-to-end tests exercise payment flows with partner simulators.
 Golden tests can compare old and new outcomes against bank-approved examples.
-Fifty thousand nightly cases is an illustrative target, not an existing bank test suite.
+Fifty thousand nightly cases is an illustrative planning target; the actual suite follows the risk profile and available partner environments.
 
 [tag ⑥]
 Load, fault and security tests probe non-functional risks.
@@ -34,12 +34,11 @@ Because the earlier we find a bug, the cheaper it is.
 In a pull request, it costs one developer a few minutes.
 In production, it costs customers, money, and sometimes a call from the regulator.
 
-===== Slide 2 · Evidence Across Test Environments  (01:55 – 03:35) =====
+===== Slide 2 · Evidence Across Test Environments  (01:55 – 03:30) =====
 
 [tag ①]
-The diagram shows six possible environments, from local development to production.
-They are a planning model, not a description of an existing bank estate.
-Each step should make the test more representative.
+The diagram proposes six environments, from local development to production.
+Each step makes the test more representative and adds evidence for the next release gate.
 
 [tag ②]
 A CI environment created by Terraform could give each pull request a clean test space.
@@ -62,7 +61,7 @@ Passing simulator tests would support our handling of those scenarios; scheme co
 The proposed loop is create, test, retain evidence and destroy.
 The exact pull-request gate is a delivery choice; evidence must show what was tested and where.
 
-===== Slide 3 · Realistic Data, Zero Real Customers  (03:35 – 05:20) =====
+===== Slide 3 · Realistic Data, Zero Real Customers  (03:30 – 05:10) =====
 
 [tag ①]
 Tests need realistic data without exposing customers.
@@ -75,7 +74,7 @@ Access, retention and environment boundaries need explicit approval.
 
 [tag ③]
 Raw production customer data should not enter ordinary test environments.
-Whether any exceptional use is lawful is for the bank's privacy and legal teams, not a claim I can make from this diagram.
+The bank's privacy and legal teams decide whether any exceptional use is lawful and how it is controlled.
 
 [tag ④]
 To make synthetic data useful, feed the generator bank-approved patterns: peak days, account states, valid identifiers and customer profiles.
@@ -93,7 +92,7 @@ Before use, the data team should check for real identifiers and document privacy
 Finally, every test run starts from a known state.
 The data is restored in seconds, so tests never depend on each other.
 
-===== Slide 4 · AI Writes Tests. People Decide.  (05:20 – 07:15) =====
+===== Slide 4 · AI Writes Tests. People Decide.  (05:10 – 07:00) =====
 
 [tag ①]
 AI can draft tests quickly, which makes false confidence a real risk.
@@ -127,9 +126,9 @@ Eighty-two percent and a seventy-five-percent gate on this slide are illustrativ
 [tag ⑦]
 Watch for tests that assert nothing, copy a bug, or fail randomly.
 The twelve-hundred-test count and seventy-four-percent acceptance are sample dashboard figures.
-In a real programme, I would report actual review and mutation evidence, not borrow these numbers as a success claim.
+A live release gate needs measured review and mutation evidence.
 
-===== Slide 5 · Money Must Never Be Lost  (07:15 – 09:20) =====
+===== Slide 5 · Money Must Never Be Lost  (07:00 – 09:05) =====
 
 [tag ①]
 The hard cases are those that can harm customers or create financial breaks.
@@ -165,7 +164,7 @@ And finally, property-based tests.
 Instead of ten examples, the tool creates thousands of random cases, with random amounts, timings and orders, and checks that the invariants always hold.
 Test the invariants, not just the examples.
 
-===== Slide 6 · No Green, No Go  (09:20 – 10:55) =====
+===== Slide 6 · No Green, No Go  (09:05 – 10:40) =====
 
 [tag ①]
 I would propose four risk-based quality gates.
@@ -191,9 +190,9 @@ A locked report helps review, but it is only as good as the underlying tests.
 [tag ⑥]
 Flaky tests weaken trust.
 I would quarantine them quickly, assign an owner, and prevent a rerun from hiding a failure.
-The twenty-four-hour and five-day windows on the slide are proposed service levels, not a bank policy I have implemented.
+The twenty-four-hour and five-day windows on the slide are proposed service levels for the sandbox.
 
-===== Slide 7 · Pilot Gate Evidence  (10:55 – 12:40) =====
+===== Slide 7 · Pilot Gate Evidence  (10:40 – 12:25) =====
 
 [tag ①]
 Machines test mechanics; people accept business meaning.
@@ -208,8 +207,8 @@ And customer support looks at what customers see, and what they will ask.
 
 [tag ④]
 The go/no-go report should show coverage, open defects, load evidence and current recovery evidence.
-Zero major defects, five thousand payments per second and four-hundred-and-twenty-millisecond p99 are illustrative criteria, not benchmark results.
-Bank leaders decide the actual gate.
+Zero major defects, five thousand payments per second and four-hundred-and-twenty-millisecond p99 are illustrative criteria.
+Bank leaders set the actual gate using measured results.
 
 [tag ⑤]
 The seven differences shown are an example of a comparison report.

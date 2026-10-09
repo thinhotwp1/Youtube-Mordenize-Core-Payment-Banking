@@ -12,20 +12,20 @@
 <!-- TIMETABLE -->
 | Slide | Words | Length | Timestamp |
 |---|---|---|---|
-| 1 · Why This Series Exists | 251 | 02:05 | 00:00 – 02:05 |
-| **Total** | **251** | **02:05** | at 125 words per minute, plus 6 s per slide for drawing |
+| 1 · Why This Series Exists | 199 | 01:40 | 00:00 – 01:40 |
+| **Total** | **199** | **01:40** | at 125 words per minute, plus 6 s per slide for drawing |
 
 ---
 
 <!-- slide:1 -->
 ## Slide 1 · Why This Series Exists
 
-**[tag 1]** I have worked on **complex systems** in large enterprises. I have not personally led a bank's core payments modernization. Banks and their domain specialists own the payment products, business rules, and obligations. My role in this series is different. As an **Execution Architect**, I turn approved business needs into technical decisions that teams can build, test, release, and operate.
+**[tag 1]** Modernizing a **large enterprise system** is more than replacing technology. The hard part is changing a running service without losing control of data or operations. I have worked with complex enterprise systems. As an **Execution Architect**, I turn difficult requirements into architecture choices, testable changes, and sustainable operations.
 
-**[tag 2]** Across industries, difficult systems share engineering problems: peak load, concurrent updates, ageing monoliths, data consistency, and safe change. The business meaning is **never identical**, so I do not copy a solution one to one. I start by discovering current behaviour with the people who own it. Then we agree on outcomes and controls, choose a small safe step, implement it, measure it, and learn from operation.
+**[tag 2]** Core payments is the **sandbox** for this series. The problems reach beyond banking: peak load, concurrency, legacy boundaries, data consistency, and safe releases. Business rules differ. The execution method transfers: understand current behaviour, agree on outcomes, test trade-offs, change in controlled steps, and learn from operations. Business teams define their domain rules; I turn them into testable design choices.
 
-**[tag 3]** That is why I created this series. Short LinkedIn clips raise one execution question. The full YouTube episodes show a **reference payments architecture** and the choices behind it: Java and Spring Boot services, Kafka events, AWS infrastructure, and relational data. For each choice, I ask what code, tests, benchmarks, and failure drills would **prove** it. I distinguish design targets from measured results. These examples should be challenged with bank specialists, not copied as a final design.
+**[tag 3]** The YouTube episodes follow discovery, design, build, migration, and operations. I use Java, Spring Boot, Kafka, AWS, and relational data to show **why** I would choose a path, where it could fail, and what code, tests, benchmarks, and drills would validate it.
 
-**[tag 4]** If you are shaping a hard transformation, I hope the series shows how I **work with business and engineering teams**. I would welcome a conversation about roadmap advice, an expert role, or end-to-end delivery. The scenarios and views are **my own**. They do not represent any employer, client, or organisation.
+**[tag 4]** LinkedIn clips raise one question at a time. The full series shows how I **reason through the work** with business and engineering teams. For a similar transformation, let us discuss the roadmap, expert leadership, or end-to-end delivery. These are my own views, not those of any employer, client, or organisation.
 <!-- /slide -->
 

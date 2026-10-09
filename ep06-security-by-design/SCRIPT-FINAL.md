@@ -13,21 +13,21 @@
 <!-- TIMETABLE -->
 | Slide | Words | Length | Timestamp |
 |---|---|---|---|
-| 1 · Built In, Not Bolted On | 185 | 01:35 | 00:00 – 01:35 |
+| 1 · Built In, Not Bolted On | 181 | 01:35 | 00:00 – 01:35 |
 | 2 · How Could Someone Attack This? | 232 | 01:55 | 01:35 – 03:30 |
 | 3 · Who Can Do What | 193 | 01:40 | 03:30 – 05:10 |
 | 4 · Protect the Data | 203 | 01:45 | 05:10 – 06:55 |
 | 5 · Checked Every Time, by Machines | 221 | 01:50 | 06:55 – 08:45 |
 | 6 · Stop Fraud in 10 Seconds | 235 | 02:00 | 08:45 – 10:45 |
 | 7 · Operate Securely, Then Sign Off | 247 | 02:05 | 10:45 – 12:50 |
-| **Total** | **1516** | **12:50** | at 125 words per minute, plus 6 s per slide for drawing |
+| **Total** | **1512** | **12:50** | at 125 words per minute, plus 6 s per slide for drawing |
 
 ---
 
 <!-- slide:1 -->
 ## Slide 1 · Built In, Not Bolted On
 
-**[tag ①]** Security reviews are costly when they arrive after design choices are locked. In large enterprise delivery, this creates avoidable rework. For this payment reference scenario, I would bring security and bank compliance owners into the first slice decision, not assume any bank currently leaves them until the end.
+**[tag ①]** Security reviews are costly when they arrive after design choices are locked. In large enterprise delivery, this creates avoidable rework. The payments sandbox brings security and bank compliance owners into the first slice decision, so their approved controls shape the architecture from the start.
 
 **[tag ②]** The execution pattern is to make security part of **every** stage: approved requirements, threat model, build checks, adversarial tests, and production monitoring. Bank security owners define the policy. Engineering makes the controls visible and repeatable.
 

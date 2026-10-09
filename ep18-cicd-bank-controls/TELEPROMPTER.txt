@@ -2,9 +2,9 @@
 
 [tag ①]
 Large organisations often face tension between speed and control.
-This slide contrasts two hypothetical release models.
-In the first, a developer writes a change ticket and waits for a monthly approval meeting.
-It is an example, not a claim about how every bank works.
+This payments sandbox contrasts two release models.
+In the first example, a developer writes a change ticket and waits for a monthly approval meeting.
+The execution challenge is to keep controls strong while making evidence easier to collect.
 
 [tag ②]
 If fifty changes are bundled into one release, fault isolation becomes harder and manual evidence takes more work.
@@ -95,7 +95,7 @@ AI is very helpful here.
 It explains each finding in plain words, drafts a fix as a pull request, and groups the same finding across many services.
 But a developer reviews every AI fix.
 
-===== Slide 4 · Know What You Ship  (05:00 – 06:50) =====
+===== Slide 4 · Know What You Ship  (05:00 – 06:45) =====
 
 [tag ①]
 Modern services include many third-party libraries, so leaders need to know what is shipped.
@@ -122,7 +122,7 @@ Environment-specific configuration still needs control and testing.
 [tag ⑥]
 Imagine a new library vulnerability.
 Search the SBOMs, identify affected services, notify owners and assess the fix.
-The nine-o'clock timeline and three affected services are illustrative, not a response time I have observed.
+The nine-o'clock timeline and three affected services are illustrative.
 Actual speed depends on inventory quality and patch risk.
 
 [tag ⑦]
@@ -130,7 +130,7 @@ The target is a reliable answer to "are we affected?" quickly, backed by current
 I would measure response time and test admission controls.
 Legal teams determine which supply-chain obligations apply.
 
-===== Slide 5 · Approval by Risk, Not by Meeting  (06:50 – 08:25) =====
+===== Slide 5 · Approval by Risk, Not by Meeting  (06:45 – 08:20) =====
 
 [tag ①]
 Change approval must follow the bank's own governance.
@@ -162,7 +162,7 @@ Whether humans retain any standing access is a bank security decision; the targe
 Break-glass access needs time limits, approval, logging and review.
 I would exercise it before an incident, under the bank's access policy.
 
-===== Slide 6 · Release in Small Steps  (08:25 – 10:00) =====
+===== Slide 6 · Release in Small Steps  (08:20 – 09:55) =====
 
 [tag ①]
 For release, I propose a canary on Kubernetes.
@@ -196,7 +196,7 @@ So putting code live and turning a feature on are two separate decisions.
 Database changes can use expand and contract so versions coexist during rollout.
 I would verify compatibility with real data patterns before removing the old structure.
 
-===== Slide 7 · Evidence by Design  (10:00 – 11:30) =====
+===== Slide 7 · Evidence by Design  (09:55 – 11:25) =====
 
 [tag ①]
 The pipeline can collect a useful evidence chain: pull request, reviewers, approvals, tests, scans, exceptions, SBOM, signature and canary analysis.
@@ -218,7 +218,8 @@ An AI suggestion could hide a weakness, so every pull request is reviewed and sc
 And secrets could be pasted into a prompt, so we use secret scans and masked data.
 
 [tag ⑤]
-Episode nineteen examines a proposed shadow ledger and reconciliation.
-Episode twenty examines a possible segment-by-segment flip.
-The bank's acceptance evidence determines whether the next gate opens; this series shows the execution method, not a completed banking migration.
+Episode nineteen examines a shadow ledger and reconciliation in the sandbox.
+Episode twenty examines a segment-by-segment flip.
+The bank's acceptance evidence determines whether the next gate opens.
+This is the same evidence-led execution method I use to approach difficult enterprise change.
 

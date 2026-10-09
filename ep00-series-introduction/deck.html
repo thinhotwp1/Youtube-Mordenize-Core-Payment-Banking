@@ -11,15 +11,15 @@
 <script>
 /* EP00 · One leadership diagram: context and purpose, before EP01's system overview. */
 function d1(){return [
-  group({x:10,y:25,w:1260,h:175,k:'neutral',label:'👤 EXPERIENCE BEHIND THIS SERIES'}),
+  group({x:10,y:25,w:1260,h:175,k:'neutral',label:'👤 ENTERPRISE EXECUTION EXPERIENCE'}),
   '<rect x="36" y="73" width="116" height="116" rx="18" fill="#FFFBF4" stroke="#222530" stroke-width="2"/>',
   '<image href="../shared/jo-logo.png" x="48" y="85" width="92" height="92"/>',
-  txt(176,111,'What I have seen in large enterprises','gx'),
-  txt(176,147,'Recurring engineering problems across different businesses.','kl'),
-  txt(176,177,'Bank specialists own payment rules; I focus on technical execution.','bsl'),
-  tag(1,1230,65,'My perspective','r'),
+  txt(176,111,'Execution across large enterprise systems','gx'),
+  txt(176,147,'Make hard changes safe, measurable and operable.','kl'),
+  txt(176,177,'Core payments is the sandbox; the execution method travels.','bsl'),
+  tag(1,1230,65,'Enterprise lens','r'),
 
-  group({x:10,y:225,w:1260,h:355,k:'aws',label:'🔁 THE WORKING PATTERN I KEEP SEEING'}),
+  group({x:10,y:225,w:1260,h:355,k:'aws',label:'🔁 REPEATABLE EXECUTION PATTERN'}),
   tag(2,42,287,'From change to operation'),
   box({x:30,y:318,w:285,h:150,k:'legacy',i:'🔍',t:'Understand',s:'current system\nand hidden rules'}),
   box({x:340,y:318,w:285,h:150,k:'human',i:'🎯',t:'Align',s:'outcomes, owners\nand controls'}),
@@ -34,12 +34,13 @@ function d1(){return [
   group({x:10,y:605,w:610,h:170,k:'risk',label:'🎬 WHY THIS SERIES EXISTS'}),
   tag(3,35,657,'Decisions behind the work'),
   txt(35,707,'LinkedIn clips raise a question.','kl'),
-  txt(35,740,'Full episodes show technical choices and the evidence needed.','kl'),
+  txt(35,740,'YouTube episodes show choices and the evidence needed.','kl'),
 
   group({x:640,y:605,w:630,h:170,k:'good',label:'🤝 LEADERSHIP VIEW'}),
   tag(4,665,657,'Continue the conversation'),
-  txt(665,707,'See how I think, decide and work with teams.','kl'),
-  txt(665,740,'Roadmap · expert leadership · end-to-end delivery','kl'),
+  txt(665,695,'See how I think, decide and work with teams.','kl'),
+  txt(665,724,'Roadmap · expert leadership · end-to-end delivery','kl'),
+  txt(665,753,'My own views; not those of an employer or client.','note'),
 ].join('')}
 
 const DECK={
@@ -52,7 +53,7 @@ const DECK={
   legend:'<span><i style="border-color:#7B8190;background:rgba(123,129,144,.18)"></i>Context</span><span><i style="border-color:#0F7F77;background:rgba(15,127,119,.15)"></i>Change</span><span><i style="border-color:#2E8B57;background:rgba(46,139,87,.15)"></i>Operate</span><span class="tg"><b>1</b>Point</span>',
   glossTitle:'👔 LEADERSHIP LENS',
   glossSub:'The questions behind this series',
-  callout:{title:'👤 PERSONAL VIEW',first:'Perspective:',second:'Independence:'},
+  callout:{title:'🧭 SERIES SCOPE',first:'Sandbox:',second:'Transfer:'},
   glossary:{
     OUTCOME:['Business outcome','value','The result leaders expect the programme to deliver and measure.'],
     CONTROL:['Control','risk','A check or decision that protects money, customers and continuity.'],
@@ -60,18 +61,18 @@ const DECK={
     OPERATE:['Operating model','value','How teams own, support and improve the system after release.'],
   },
   slides:[
-    {icon:'🎬',kicker:'EP00 · CONTEXT & PURPOSE',title:'Why This Series Exists',time:'00:00 – 02:05',draw:d1,
+    {icon:'🎬',kicker:'EP00 · CONTEXT & PURPOSE',title:'Why This Series Exists',time:'00:00 – 01:40',draw:d1,
      key:'An execution architect’s view of how business needs become tested technical decisions.',
      next:'▶️ Watch EP01 · System Overview',
-     open:'I have worked on complex systems in large enterprises.',
-     land:'The scenarios and views are my own.',
+     open:'Modernizing a large enterprise system is rarely just a technology replacement.',
+     land:'These are my own views.',
      gloss:[['OUTCOME',[1,2]],['CONTROL',[2]],['EVIDENCE',[2,3]],['OPERATE',[2,4]]],
-     callout:['The payments scenario is illustrative; these views are my own.',
-              'They do not represent any employer, client or organisation.'],
-     steps:[['Experience','Bank specialists own payment rules; I bring the execution lens.'],
+     callout:['Core payments makes wider enterprise execution choices concrete.',
+              'Apply the method elsewhere; confirm each domain’s rules and controls.'],
+     steps:[['Enterprise lens','Core payments is a sandbox for wider execution choices.'],
             ['Working pattern','Understand, align, change safely, then operate and learn.'],
-            ['Why this series','Ask what tests and benchmarks would prove each choice.'],
-            ['Leadership view','Discuss a roadmap, expert role or full delivery; views are personal.']]},
+            ['Why this series','Show decisions, risks and the evidence each choice needs.'],
+            ['Leadership view','Discuss roadmap, expert leadership or full delivery.']]},
   ],
 };
 startDeck(DECK);
