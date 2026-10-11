@@ -12,8 +12,8 @@
 <!-- TIMETABLE -->
 | Slide | Words | Length | Timestamp |
 |---|---|---|---|
-| 1 · Why This Series Exists | 199 | 01:40 | 00:00 – 01:40 |
-| **Total** | **199** | **01:40** | at 125 words per minute, plus 6 s per slide for drawing |
+| 1 · Why This Series Exists | 206 | 01:45 | 00:00 – 01:45 |
+| **Total** | **206** | **01:45** | at 125 words per minute, plus 6 s per slide for drawing |
 
 ---
 
@@ -26,6 +26,6 @@
 
 **[tag 3]** The YouTube episodes follow discovery, design, build, migration, and operations. I use Java, Spring Boot, Kafka, AWS, and relational data to show **why** I would choose a path, where it could fail, and what code, tests, benchmarks, and drills would validate it.
 
-**[tag 4]** LinkedIn clips raise one question at a time. The full series shows how I **reason through the work** with business and engineering teams. For a similar transformation, let us discuss the roadmap, expert leadership, or end-to-end delivery. These are my own views, not those of any employer, client, or organisation.
+**[tag 4]** When you finish this series, you will understand how complex business needs become technical decisions, and you will become an **Execution Architect**—a role every large organisation wants. The short LinkedIn clips introduce each question; the full YouTube episodes show the thinking behind the answers. These are my own views, not those of any employer, client, or organisation.
 <!-- /slide -->
 
